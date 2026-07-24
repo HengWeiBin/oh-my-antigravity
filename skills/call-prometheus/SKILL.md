@@ -19,4 +19,6 @@ When this skill is loaded, do the following:
      [User's Message]
      ```
 3. Do NOT execute any other operations (such as file edits, command execution, or other tool calls) that are not explicitly specified by the Subagent or the User.
-4. Execute the `invoke_subagent` tool immediately and report back.
+4. Execute the `invoke_subagent` tool immediately.
+5. If the Subagent asks the user any questions, the main Agent must forward the questions directly to the user and is strictly forbidden from answering them on the user's behalf.
+6. When the Prometheus Subagent is ready and returns a Plan (e.g., a path to a markdown plan), the main Agent must NOT perform redundant validation, exploration, or regenerate any implementation plans on top of it. Simply report the path of the Plan directly to the user.
