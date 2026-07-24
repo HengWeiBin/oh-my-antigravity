@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -130,8 +129,6 @@ def _run_with_playwright(url: str, preset: str) -> dict[str, int]:
             args=["--remote-debugging-port=0"],
         )
 
-        # Get the actual CDP port from browser
-        cdp_url = browser.contexts[0].pages[0].url if browser.contexts else ""
         # Use the browser's websocket endpoint to extract port
         ws_endpoint = browser._impl_obj._connection._transport._ws_url  # noqa: SLF001
         # Extract port from ws://127.0.0.1:PORT/...

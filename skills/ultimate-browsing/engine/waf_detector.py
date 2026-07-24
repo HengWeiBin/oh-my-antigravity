@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import fnmatch
 import os
-import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -89,7 +88,7 @@ def _load_profiles(path: str = PROFILES_PATH) -> dict:
         return dict(_DEFAULT_PROFILES)
 
     if not isinstance(loaded, dict) or not any(k for k in loaded if not k.startswith("_")):
-        _LAST_LOAD_ERROR = f"waf_profiles.yaml has no usable profiles"
+        _LAST_LOAD_ERROR = "waf_profiles.yaml has no usable profiles"
         return dict(_DEFAULT_PROFILES)
 
     return loaded

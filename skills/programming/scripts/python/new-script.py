@@ -31,7 +31,6 @@ By default writes to a temp directory and prints the path.
 
 from __future__ import annotations
 
-import os
 import stat
 import sys
 import tempfile
@@ -78,7 +77,6 @@ def main(
 ) -> None:
     """Generate a new PEP 723 script with all boilerplate pre-filled."""
     filename = f"{name}.py" if not name.endswith(".py") else name
-    stem = filename.removesuffix(".py")
 
     if output is not None:
         dest = Path(output)

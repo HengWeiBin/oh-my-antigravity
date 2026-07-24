@@ -24,7 +24,6 @@ Creates via `uv init`, then injects basedpyright + ruff ALL + pytest config.
 from __future__ import annotations
 
 import subprocess
-import sys
 from pathlib import Path
 
 import typer

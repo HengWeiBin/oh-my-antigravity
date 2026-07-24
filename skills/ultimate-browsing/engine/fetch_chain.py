@@ -17,7 +17,6 @@ No site-specific branching. Site knowledge enters only via:
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import time
