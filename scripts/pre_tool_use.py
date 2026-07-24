@@ -1,13 +1,255 @@
 import sys
 import json
 import os
+import re
+
+UUID_PATTERN = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+KNOWN_AGENTS = {"sisyphus", "atlas", "prometheus", "metis", "momus", "hephaestus", "sisyphus-junior", "explore", "librarian"}
+
+def is_probable_conversation_id(val):
+    if not isinstance(val, str):
+        return False
+    val_stripped = val.strip()
+    if val_stripped.lower() in KNOWN_AGENTS:
+        return False
+    if UUID_PATTERN.match(val_stripped):
+        return True
+    if "-" in val_stripped:
+        parts = val_stripped.split("-")
+        if len(parts) >= 2 and parts[-1].isdigit():
+            return True
+        if len(val_stripped) == 36 and val_stripped.count("-") == 4:
+            return True
+    return False
+
+def find_invoke_subagent_calls(obj):
+    calls = []
+    if isinstance(obj, dict):
+        is_invoke = False
+        for k, v in obj.items():
+            if k in ("name", "tool", "toolName") and v == "invoke_subagent":
+                is_invoke = True
+                break
+        if is_invoke:
+            subagents = None
+            for k, v in obj.items():
+                if k.lower() == "subagents":
+                    subagents = v
+                    break
+                if isinstance(v, dict):
+                    for sk, sv in v.items():
+                        if sk.lower() == "subagents":
+                            subagents = sv
+                            break
+                elif isinstance(v, str):
+                    if (v.strip().startswith("{") and v.strip().endswith("}")) or (v.strip().startswith("[") and v.strip().endswith("]")):
+                        try:
+                            parsed_v = json.loads(v)
+                            if isinstance(parsed_v, dict):
+                                for sk, sv in parsed_v.items():
+                                    if sk.lower() == "subagents":
+                                        subagents = sv
+                                        break
+                        except Exception:
+                            pass
+            if isinstance(subagents, list):
+                type_names = []
+                for sa in subagents:
+                    if isinstance(sa, dict):
+                        tn = sa.get("TypeName") or sa.get("typename") or sa.get("type_name")
+                        if tn:
+                            type_names.append(tn)
+                if type_names:
+                    calls.append(type_names)
+        else:
+            for v in obj.values():
+                calls.extend(find_invoke_subagent_calls(v))
+    elif isinstance(obj, list):
+        for item in obj:
+            calls.extend(find_invoke_subagent_calls(item))
+    elif isinstance(obj, str):
+        if (obj.strip().startswith("{") and obj.strip().endswith("}")) or (obj.strip().startswith("[") and obj.strip().endswith("]")):
+            try:
+                parsed = json.loads(obj)
+                calls.extend(find_invoke_subagent_calls(parsed))
+            except Exception:
+                pass
+    return calls
+
+def find_conversation_ids(obj):
+    cids = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in ("conversationId", "conversation_id") and isinstance(v, str):
+                cids.append(v)
+            elif isinstance(v, str):
+                if (v.strip().startswith("{") and v.strip().endswith("}")) or (v.strip().startswith("[") and v.strip().endswith("]")):
+                    try:
+                        parsed = json.loads(v)
+                        cids.extend(find_conversation_ids(parsed))
+                    except Exception:
+                        pass
+                elif is_probable_conversation_id(v):
+                    cids.append(v)
+            else:
+                cids.extend(find_conversation_ids(v))
+    elif isinstance(obj, list):
+        for item in obj:
+            if isinstance(item, str) and is_probable_conversation_id(item):
+                cids.append(item)
+            else:
+                cids.extend(find_conversation_ids(item))
+    elif isinstance(obj, str):
+        if (obj.strip().startswith("{") and obj.strip().endswith("}")) or (obj.strip().startswith("[") and obj.strip().endswith("]")):
+            try:
+                parsed = json.loads(obj)
+                cids.extend(find_conversation_ids(parsed))
+            except Exception:
+                pass
+        elif is_probable_conversation_id(obj):
+            cids.append(obj)
+    return cids
+
+def parse_typename_from_log(log_path, target_conversation_id, parent_cid):
+    pending_type_names = []
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    continue
+                
+                calls = find_invoke_subagent_calls(obj)
+                if calls:
+                    for type_names in calls:
+                        pending_type_names.append(type_names)
+                    continue
+                
+                line_lower = line.lower()
+                if "invoke_subagent" in line_lower and ("conversationid" in line_lower or "conversation_id" in line_lower):
+                    if pending_type_names:
+                        cids = []
+                        found_cids = find_conversation_ids(obj)
+                        for cid in found_cids:
+                            if cid != parent_cid:
+                                cids.append(cid)
+                        if cids:
+                            tns = pending_type_names.pop(0)
+                            for i in range(min(len(tns), len(cids))):
+                                if cids[i] == target_conversation_id:
+                                    return tns[i]
+    except Exception:
+        pass
+    return None
+
+
+def check_permission(tool_name, file_path, conversation_id, brain_dir):
+    normalized_path = file_path.replace("\\", "/").lower()
+    basename = os.path.basename(normalized_path)
+    
+    # 1. Parse the TypeName of the conversation_id from logs
+    typename = None
+    if conversation_id and brain_dir and os.path.exists(brain_dir):
+        for cid in os.listdir(brain_dir):
+            if cid == conversation_id:
+                continue
+            cid_dir = os.path.join(brain_dir, cid)
+            if not os.path.isdir(cid_dir):
+                continue
+            logs_dir = os.path.join(cid_dir, ".system_generated", "logs")
+            if not os.path.exists(logs_dir):
+                continue
+            for name in ["transcript.jsonl", "transcript_full.jsonl"]:
+                log_path = os.path.join(logs_dir, name)
+                if os.path.exists(log_path):
+                    parsed_typename = parse_typename_from_log(log_path, conversation_id, cid)
+                    if parsed_typename:
+                        typename = parsed_typename
+                        break
+            if typename:
+                break
+                
+    conductors = {None, "sisyphus", "atlas", "prometheus", "metis", "momus"}
+    workers = {"hephaestus", "sisyphus-junior", "explore", "librarian"}
+    
+    is_worker = False
+    if typename in workers:
+        is_worker = True
+    elif typename in conductors:
+        is_worker = False
+    else:
+        is_worker = (typename is not None)
+        
+    # 2. Apply role-specific constraints
+    if is_worker:
+        # Subagent Constraints:
+        # Cannot write to .omo/, .agents/, or plugin config files (hooks.json, plugin.json, rules/)
+        is_omo = "/.omo/" in normalized_path or normalized_path.startswith(".omo/")
+        is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
+        is_plugin_config = (
+            "hooks.json" in basename or
+            "plugin.json" in basename or
+            "/rules/" in normalized_path or
+            normalized_path.startswith("rules/")
+        )
+        
+        if is_omo or is_agents or is_plugin_config:
+            return {
+                "permissionDecision": "deny",
+                "permissionDecisionReason": (
+                    f"STOP. Subagents (workers) are forbidden from modifying .omo/ state or "
+                    f"plugin configuration files (Path: {file_path})."
+                )
+            }
+    else:
+        # Orchestrator Constraints:
+        # Cannot write to product files directly.
+        # Allowed files for orchestrator:
+        # - .md files
+        # - plans/tasks files (filename contains 'plan' or 'task')
+        # - scratch/ files
+        # - .agents/ files
+        # - .omo/ files
+        is_plan = "plan" in basename or "task" in basename or normalized_path.endswith(".md")
+        is_scratch = "scratch" in normalized_path
+        is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
+        is_omo = "/.omo/" in normalized_path or normalized_path.startswith(".omo/")
+        
+        if not (is_plan or is_scratch or is_agents or is_omo):
+            return {
+                "permissionDecision": "ask",
+                "permissionDecisionReason": (
+                    f"STOP. Lead Orchestrator agents do not edit source code directly (Path: {file_path}).\n"
+                    "Implementing yourself is forbidden. You are paid to ORCHESTRATE, not implement.\n"
+                    "If this is a tiny verification fix (<= 2 lines) on subagent output, you may proceed. "
+                    "Otherwise, please delegate it via invoke_subagent."
+                )
+            }
+            
+    return {"permissionDecision": "allow"}
 
 def main():
     try:
         # Read JSON from stdin
         payload = json.load(sys.stdin)
-        tool_name = payload.get("tool_name", "")
-        tool_input = payload.get("tool_input", {})
+        
+        # Support both schemas
+        tool_name = payload.get("tool_name")
+        if not tool_name and "toolCall" in payload:
+            tool_name = payload["toolCall"].get("name")
+        
+        tool_input = payload.get("tool_input")
+        if not tool_input and "toolCall" in payload:
+            tool_input = payload["toolCall"].get("args", {})
+        if not tool_input:
+            tool_input = {}
+            
+        conversation_id = payload.get("conversationId", "")
+        artifact_dir = payload.get("artifactDirectoryPath", "")
+        brain_dir = os.path.dirname(artifact_dir) if artifact_dir else ""
         
         # Check if tool is write/edit
         if tool_name in ["write_to_file", "replace_file_content", "multi_replace_file_content"]:
@@ -18,25 +260,9 @@ def main():
             
             # If path is specified, check it
             if file_path:
-                basename = os.path.basename(file_path)
-                # Allow markdown plan/task files or files in scratch/ or .agents/
-                is_plan = "plan" in basename.lower() or "task" in basename.lower() or file_path.endswith(".md")
-                normalized_path = file_path.replace("\\", "/").lower()
-                is_scratch = "scratch" in normalized_path or ".agents" in normalized_path
-                
-                if not (is_plan or is_scratch):
-                    # Direct code write/edit detected! Warn/Ask
-                    response = {
-                        "permissionDecision": "ask",
-                        "permissionDecisionReason": (
-                            f"STOP. Lead Orchestrator agents do not edit source code directly (Path: {file_path}).\n"
-                            "Implementing yourself is forbidden. You are paid to ORCHESTRATE, not implement.\n"
-                            "If this is a tiny verification fix (<= 2 lines) on subagent output, you may proceed. "
-                            "Otherwise, please delegate it via invoke_subagent."
-                        )
-                    }
-                    print(json.dumps(response))
-                    return
+                decision = check_permission(tool_name, file_path, conversation_id, brain_dir)
+                print(json.dumps(decision))
+                return
         
         # Default allow
         print(json.dumps({"permissionDecision": "allow"}))
