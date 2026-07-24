@@ -3,6 +3,9 @@ import json
 import os
 import re
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from hooks import notepad_write_guard, fsync_skip_warning
+
 UUID_PATTERN = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
 KNOWN_AGENTS = {"sisyphus", "atlas", "prometheus", "metis", "momus", "hephaestus", "sisyphus-junior", "explore", "librarian"}
 
@@ -279,12 +282,24 @@ def main():
             # If path is specified, check it
             if file_path:
                 decision = check_permission(tool_name, file_path, conversation_id, brain_dir)
-                print(json.dumps(decision))
+                if decision.get("permissionDecision") != "allow":
+                    print(json.dumps(decision))
+                    return
+            
+            res = notepad_write_guard.run_notepad_write_guard(tool_name, tool_input)
+            if res and res.get("permissionDecision") != "allow":
+                print(json.dumps(res))
+                return
+
+        elif tool_name == "run_command":
+            res = fsync_skip_warning.run_fsync_skip_warning(tool_name, tool_input)
+            if res and res.get("permissionDecision") != "allow":
+                print(json.dumps(res))
                 return
         
         # Default allow
         print(json.dumps({"permissionDecision": "allow"}))
-    except Exception as e:
+    except Exception:
         # Fallback to allow if any error
         print(json.dumps({"permissionDecision": "allow"}))
 

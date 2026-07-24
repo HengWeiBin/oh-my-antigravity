@@ -4,12 +4,12 @@
       {
         "type": "command",
         "command": "python C:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/scripts/pre_invocation.py",
-        "timeout": 5
+        "timeout": 8
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "^(write_to_file|replace_file_content|multi_replace_file_content)$",
+        "matcher": "^(write_to_file|replace_file_content|multi_replace_file_content|run_command)$",
         "hooks": [
           {
             "type": "command",
@@ -21,7 +21,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "^invoke_subagent$",
+        "matcher": "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content)$",
         "hooks": [
           {
             "type": "command",
