@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python C:/Users/K20879/.gemini/config/plugins/oh-my-openagent/scripts/pre_tool_use.py",
+            "command": "python C:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/scripts/pre_tool_use.py",
             "timeout": 5
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python C:/Users/K20879/.gemini/config/plugins/oh-my-openagent/scripts/post_tool_use.py",
+            "command": "python C:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/scripts/post_tool_use.py",
             "timeout": 5
           }
         ]
