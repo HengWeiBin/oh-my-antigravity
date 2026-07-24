@@ -241,6 +241,78 @@ class TestPreInvocation(unittest.TestCase):
         output_json = json.loads(mock_stdout.getvalue())
         self.assertEqual(output_json, {"injectSteps": []})
 
+    def test_is_subagent_session(self) -> None:
+        self.assertTrue(pre_invocation.is_subagent_session({"isSubagent": True}))
+        self.assertTrue(pre_invocation.is_subagent_session({"is_subagent": "true"}))
+        self.assertTrue(pre_invocation.is_subagent_session({"parentConversationId": "parent-123"}))
+        self.assertTrue(pre_invocation.is_subagent_session({"role": "subagent"}))
+        self.assertTrue(pre_invocation.is_subagent_session({"typename": "hephaestus"}))
+        self.assertFalse(pre_invocation.is_subagent_session({"role": "user"}))
+        self.assertFalse(pre_invocation.is_subagent_session({}))
+
+    def test_extract_user_prompt(self) -> None:
+        self.assertEqual(pre_invocation.extract_user_prompt({"prompt": "/programming"}), "/programming")
+        self.assertEqual(pre_invocation.extract_user_prompt({"userPrompt": "hello world"}), "hello world")
+        self.assertEqual(
+            pre_invocation.extract_user_prompt({"messages": [{"role": "user", "content": "/debugging"}]}),
+            "/debugging"
+        )
+        self.assertEqual(pre_invocation.extract_user_prompt({}), "")
+
+    def test_parse_skill_commands(self) -> None:
+        prompt = "/programming /debugging Please execute /programming and /refactor"
+        skills = pre_invocation.parse_skill_commands(prompt)
+        self.assertEqual(skills, ["programming", "debugging", "refactor"])
+        self.assertEqual(pre_invocation.parse_skill_commands("http://example.com/foo"), [])
+
+    def test_format_skill_instruction(self) -> None:
+        formatted = pre_invocation.format_skill_instruction("programming", "Code strictly.")
+        self.assertEqual(formatted, "<skill-instruction>\nCode strictly.\n</skill-instruction>")
+
+    @patch("sys.stdin.read")
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_subagent_skill_autoload(self, mock_stdout: io.StringIO, mock_stdin: MagicMock) -> None:
+        mock_stdin.return_value = json.dumps({
+            "isSubagent": True,
+            "prompt": "Run /test-skill for me",
+            "workspacePaths": ["/workspace"],
+            "cwd": "/workspace"
+        })
+
+        self.mock_files = {
+            "/workspace/skills/test-skill/SKILL.md": "Skill instructions content"
+        }
+
+        pre_invocation.main()
+
+        output_json = json.loads(mock_stdout.getvalue())
+        self.assertIn("injectSteps", output_json)
+        self.assertEqual(len(output_json["injectSteps"]), 1)
+        self.assertEqual(
+            output_json["injectSteps"][0]["ephemeralMessage"],
+            "<skill-instruction>\nSkill instructions content\n</skill-instruction>"
+        )
+
+    @patch("sys.stdin.read")
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_main_agent_skill_ignore(self, mock_stdout: io.StringIO, mock_stdin: MagicMock) -> None:
+        mock_stdin.return_value = json.dumps({
+            "isSubagent": False,
+            "prompt": "Run /test-skill for me",
+            "workspacePaths": ["/workspace"],
+            "cwd": "/workspace"
+        })
+
+        self.mock_files = {
+            "/workspace/skills/test-skill/SKILL.md": "Skill instructions content"
+        }
+
+        pre_invocation.main()
+
+        output_json = json.loads(mock_stdout.getvalue())
+        self.assertEqual(output_json, {"injectSteps": []})
+
 
 if __name__ == "__main__":
     unittest.main()
+
