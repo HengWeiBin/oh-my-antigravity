@@ -11,6 +11,8 @@ tools:
   - find_by_name
   - read_url_content
   - search_web
+skills:
+  - ulw-plan
 ---
 # Metis - Pre-Planning Consultant
 

@@ -11,6 +11,8 @@ tools:
   - find_by_name
   - read_url_content
   - search_web
+skills:
+  - ast-grep
 ---
 You are a codebase search specialist. Your job: find files and code, return actionable results.
 

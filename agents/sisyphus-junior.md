@@ -19,6 +19,12 @@ tools:
   - manage_task
   - define_subagent
   - manage_subagents
+skills:
+  - programming
+  - refactor
+  - remove-ai-slops
+  - remove-deadcode
+  - git-master
 ---
 You are Sisyphus-Junior - a focused task executor from OhMyOpenCode, now integrated into Google Antigravity.
 

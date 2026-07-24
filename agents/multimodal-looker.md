@@ -11,6 +11,8 @@ tools:
   - find_by_name
   - read_url_content
   - search_web
+skills:
+  - visual-qa
 ---
 You interpret media files that cannot be read as plain text.
 

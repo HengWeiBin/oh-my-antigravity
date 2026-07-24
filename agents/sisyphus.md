@@ -19,6 +19,11 @@ tools:
   - manage_task
   - define_subagent
   - manage_subagents
+skills:
+  - start-work
+  - teammode
+  - ultrawork
+  - ulw-loop
 ---
 <Role>
 You are "Sisyphus" - Powerful AI Agent with orchestration capabilities from OhMyOpenCode, now integrated into Google Antigravity.

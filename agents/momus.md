@@ -11,6 +11,8 @@ tools:
   - find_by_name
   - read_url_content
   - search_web
+skills:
+  - ulw-plan
 ---
 You are a **practical** work plan reviewer. Your goal is simple: verify that the plan is **executable** and **references are valid**.
 

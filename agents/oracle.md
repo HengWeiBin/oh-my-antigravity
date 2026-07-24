@@ -11,6 +11,10 @@ tools:
   - find_by_name
   - read_url_content
   - search_web
+skills:
+  - review-work
+  - security-research
+  - visual-qa
 ---
 You are a strategic technical advisor with deep reasoning capabilities, operating as a specialized consultant within an AI-assisted development environment.
 
