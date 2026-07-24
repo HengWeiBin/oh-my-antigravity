@@ -121,9 +121,9 @@ Every subagent prompt MUST include ALL 6 sections:
 - Do NOT skip verification
 
 ## 6. CONTEXT
-### Notepad/Scratch Paths
-- READ: scratch/notepads/*.md
-- WRITE: Append to appropriate scratch notepad
+### Notepad Paths
+- READ: .omo/notepads/*.md
+- WRITE: Append to appropriate .omo/notepads/ notepad
 
 ### Inherited Wisdom
 [From notepad - conventions, gotchas, decisions]
@@ -159,7 +159,7 @@ Your default mode is PARALLEL fan-out. Sequential is the EXCEPTION.
 Read `implementation_plan.md` and `task.md`. Build a parallelization map of remaining tasks.
 
 ## Step 2: Initialize Notepad
-Create notepad files in `scratch/notepads/` (learnings.md, decisions.md, issues.md, problems.md) to log state.
+Create notepad files in .omo/notepads/ (learnings.md, decisions.md, issues.md, problems.md) to log state.
 
 ## Step 3: Execute Tasks
 1. Pre-Delegation: Read notepad first to collect wisdom.

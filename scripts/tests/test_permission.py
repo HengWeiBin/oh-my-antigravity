@@ -39,11 +39,10 @@ class TestOmoConstraints(unittest.TestCase):
         # Mock empty brain dir
         mock_listdir.return_value = []
         
-        # Orchestrator is allowed to write to plans, omo, scratch, agents
+        # Orchestrator is allowed to write to plans, omo, agents
         for path in [
             "plans/plan.md", 
             ".omo/boulder.json", 
-            "scratch/temp.txt", 
             ".agents/hooks.json",
             "task_list.md"
         ]:
@@ -105,15 +104,43 @@ class TestOmoConstraints(unittest.TestCase):
         mock_file.__iter__.return_value = [step_n, step_n_plus_1]
         mock_open.return_value.__enter__.return_value = mock_file
         
-        # Subagent writing to .omo/ should be denied
+        # Subagent writing to .omo/plans/plan.md should be denied
+        res = check_permission(
+            tool_name="write_to_file",
+            file_path=".omo/plans/plan.md",
+            conversation_id=self.sub_cid,
+            brain_dir=self.brain_dir
+        )
+        self.assertEqual(res["permissionDecision"], "deny")
+        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["permissionDecisionReason"])
+
+        # Subagent writing to .omo/drafts/draft.md should be denied
+        res = check_permission(
+            tool_name="write_to_file",
+            file_path=".omo/drafts/draft.md",
+            conversation_id=self.sub_cid,
+            brain_dir=self.brain_dir
+        )
+        self.assertEqual(res["permissionDecision"], "deny")
+        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["permissionDecisionReason"])
+
+        # Subagent writing to .omo/notepads/learnings.md should be allowed
+        res = check_permission(
+            tool_name="write_to_file",
+            file_path=".omo/notepads/learnings.md",
+            conversation_id=self.sub_cid,
+            brain_dir=self.brain_dir
+        )
+        self.assertEqual(res["permissionDecision"], "allow")
+
+        # Subagent writing to .omo/boulder.json should be allowed
         res = check_permission(
             tool_name="write_to_file",
             file_path=".omo/boulder.json",
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "deny")
-        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["permissionDecisionReason"])
+        self.assertEqual(res["permissionDecision"], "allow")
 
         # Subagent writing to .agents/ should be denied
         res = check_permission(

@@ -186,8 +186,28 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
     # 2. Apply role-specific constraints
     if is_worker:
         # Subagent Constraints:
-        # Cannot write to .omo/, .agents/, or plugin config files (hooks.json, plugin.json, rules/)
+        # Cannot write to .agents/, or plugin config files (hooks.json, plugin.json, rules/)
+        # For .omo/: writing to .omo/plans/ or files in .omo/ containing "plan", "task", or "draft" in the path/filename is denied,
+        # but writing to .omo/notepads/ is allowed. Other .omo/ files are not denied.
         is_omo = "/.omo/" in normalized_path or normalized_path.startswith(".omo/")
+        deny_omo = False
+        if is_omo:
+            idx = normalized_path.find("/.omo/")
+            if idx != -1:
+                subpath = normalized_path[idx + 1:]
+            elif normalized_path.startswith(".omo/"):
+                subpath = normalized_path
+            else:
+                subpath = ""
+            
+            is_omo_notepads = subpath.startswith(".omo/notepads/")
+            is_omo_plans = subpath.startswith(".omo/plans/")
+            contains_deny_word = any(w in subpath for w in ["plan", "task", "draft"])
+            
+            if not is_omo_notepads:
+                if is_omo_plans or contains_deny_word:
+                    deny_omo = True
+        
         is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
         is_plugin_config = (
             "hooks.json" in basename or
@@ -196,7 +216,7 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
             normalized_path.startswith("rules/")
         )
         
-        if is_omo or is_agents or is_plugin_config:
+        if deny_omo or is_agents or is_plugin_config:
             return {
                 "permissionDecision": "deny",
                 "permissionDecisionReason": (
@@ -210,15 +230,13 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
         # Allowed files for orchestrator:
         # - .md files
         # - plans/tasks files (filename contains 'plan' or 'task')
-        # - scratch/ files
         # - .agents/ files
         # - .omo/ files
         is_plan = "plan" in basename or "task" in basename or normalized_path.endswith(".md")
-        is_scratch = "scratch" in normalized_path
         is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
         is_omo = "/.omo/" in normalized_path or normalized_path.startswith(".omo/")
         
-        if not (is_plan or is_scratch or is_agents or is_omo):
+        if not (is_plan or is_agents or is_omo):
             return {
                 "permissionDecision": "ask",
                 "permissionDecisionReason": (
