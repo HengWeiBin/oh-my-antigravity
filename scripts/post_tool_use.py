@@ -5,7 +5,9 @@ def main():
     try:
         # Read JSON from stdin
         payload = json.load(sys.stdin)
-        tool_name = payload.get("tool_name", "")
+        tool_name = payload.get("tool_name")
+        if not tool_name and "toolCall" in payload:
+            tool_name = payload["toolCall"].get("name")
         
         # Check if subagent was invoked
         if tool_name == "invoke_subagent":
