@@ -2,7 +2,8 @@
 name: momus
 description: |
   Practical work plan reviewer. Cruelly spots gaps, missing context, and unexecutable tasks in plans. (Momus - Plan Reviewer)
-model: inherit
+mainAgent: false
+model: flash
 enable_mcp_tools: true
 tools:
   - view_file

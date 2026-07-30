@@ -2,7 +2,8 @@
 name: librarian
 description: |
   Specialized open-source codebase and external documentation lookup agent. Retrieves official docs and implementation examples. (Librarian - Docs Search)
-model: inherit
+mainAgent: false
+model: flash
 enable_mcp_tools: true
 tools:
   - view_file

@@ -2,7 +2,8 @@
 name: multimodal-looker
 description: |
   Read-only utility agent for analyzing media files (PDFs, images, diagrams) attached to messages. (Multimodal Looker - Media Analysis)
-model: inherit
+mainAgent: false
+model: flash
 enable_mcp_tools: true
 tools:
   - view_file
