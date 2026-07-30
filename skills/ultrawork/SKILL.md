@@ -287,7 +287,7 @@ Until every success criterion PASSES with its evidence captured:
 Every `invoke_subagent` prompt is self-contained and starts with `TASK: <imperative assignment>`, then names `DELIVERABLE`, `SCOPE`, and `VERIFY`. State that it is an executable assignment, not a context handoff. Use `Workspace: "inherit"` (or omit `Workspace` to branch) depending on isolation needs.
 
 # Subagent tool configuration in Antigravity
-When invoking subagents, tool permissions are explicitly whitelisted. Refer to `antigravity-subagent-tools` skill for details. A subagent will not automatically inherit file system tools unless configured in its agent markdown file or the parent agent specifically passes them.
+When invoking subagents, tool permissions are explicitly whitelisted. Refer to `antigravity-subagents` skill for details. A subagent will not automatically inherit file system tools unless configured in its agent markdown file or the parent agent specifically passes them.
 
 Treat child status as a progress signal, not a timeout counter. For
 work likely to exceed one wait cycle, tell the child to send
