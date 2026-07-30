@@ -2,7 +2,8 @@
 name: oracle
 description: |
   Strategic technical advisor for complex architecture decisions, tradeoffs, and debugging strategies. (Oracle - Advisor)
-model: inherit
+mainAgent: false
+model: pro
 enable_mcp_tools: true
 tools:
   - view_file

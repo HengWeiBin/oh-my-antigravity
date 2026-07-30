@@ -2,7 +2,8 @@
 name: hephaestus
 description: |
   Autonomous Deep Worker agent for complex, multi-step implementation tasks. Explores thoroughly and executes end-to-end. (Hephaestus - Deep Worker, Gemini Optimized)
-model: inherit
+mainAgent: false
+model: pro
 enable_mcp_tools: true
 tools:
   - view_file
