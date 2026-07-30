@@ -1,5 +1,5 @@
 ---
-name: librarian
+name: Librarian
 description: |
   Specialized open-source codebase and external documentation lookup agent. Retrieves official docs and implementation examples. (Librarian - Docs Search)
 mainAgent: false

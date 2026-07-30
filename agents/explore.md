@@ -1,5 +1,5 @@
 ---
-name: explore
+name: Explore
 description: |
   Read-only codebase search specialist. Answers "Where is X?" and locates specific implementation patterns. (Explore - Contextual Grep)
 mainAgent: false

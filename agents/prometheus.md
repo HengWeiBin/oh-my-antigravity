@@ -1,5 +1,5 @@
 ---
-name: prometheus
+name: Prometheus
 description: |
   Planning consultant agent. Gathers information, checks codebase conventions, and constructs the implementation plan. (Prometheus - Planner)
 mainAgent: true

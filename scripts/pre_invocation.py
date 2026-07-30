@@ -44,6 +44,17 @@ def find_skill_md_file(skill_name: str, workspace_paths: list[str], cwd: str) ->
     # 2. Plugin skills
     paths_to_check.append(os.path.join(plugin_dir, "skills", skill_name, "SKILL.md"))
 
+    # 2.5 Sibling plugin directories
+    plugins_dir = os.path.dirname(plugin_dir)
+    if os.path.isdir(plugins_dir):
+        try:
+            for entry in os.listdir(plugins_dir):
+                d = os.path.join(plugins_dir, entry)
+                if os.path.isdir(d) and entry != os.path.basename(plugin_dir):
+                    paths_to_check.append(os.path.join(d, "skills", skill_name, "SKILL.md"))
+        except OSError:
+            pass
+
     # 3. User config skills
     paths_to_check.append(os.path.join(home, ".gemini", "config", "skills", skill_name, "SKILL.md"))
 

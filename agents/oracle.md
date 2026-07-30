@@ -1,5 +1,5 @@
 ---
-name: oracle
+name: Oracle
 description: |
   Strategic technical advisor for complex architecture decisions, tradeoffs, and debugging strategies. (Oracle - Advisor)
 mainAgent: false

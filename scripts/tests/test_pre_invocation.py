@@ -16,7 +16,7 @@ import json
 import os
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 
 # Resolve scripts path and add it to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -250,6 +250,20 @@ class TestPreInvocation(unittest.TestCase):
         self.assertFalse(pre_invocation.is_subagent_session({"role": "user"}))
         self.assertFalse(pre_invocation.is_subagent_session({}))
 
+    @patch("hooks.utils.os.path.isdir")
+    @patch("hooks.utils.os.listdir")
+    @patch("hooks.utils.os.path.isfile")
+    @patch("builtins.open", new_callable=mock_open, read_data='{"conversationId": "sub-123", "invoke_subagent": true}\n')
+    def test_is_subagent_session_brain_dir(self, mock_file, mock_isfile, mock_listdir, mock_isdir) -> None:
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ["parent-456"]
+        mock_isfile.return_value = True
+        payload = {
+            "conversationId": "sub-123",
+            "artifactDirectoryPath": "/brain/sub-123"
+        }
+        self.assertTrue(pre_invocation.is_subagent_session(payload))
+
     def test_extract_user_prompt(self) -> None:
         self.assertEqual(pre_invocation.extract_user_prompt({"prompt": "/programming"}), "/programming")
         self.assertEqual(pre_invocation.extract_user_prompt({"userPrompt": "hello world"}), "hello world")
@@ -259,11 +273,20 @@ class TestPreInvocation(unittest.TestCase):
         )
         self.assertEqual(pre_invocation.extract_user_prompt({}), "")
 
+    @patch("hooks.utils.os.path.isfile")
+    @patch("builtins.open", new_callable=mock_open, read_data='{"type": "USER_INPUT", "content": "from transcript"}\n')
+    def test_extract_user_prompt_transcript_fallback(self, mock_file, mock_isfile) -> None:
+        mock_isfile.return_value = True
+        payload = {"transcriptPath": "/fake/transcript.jsonl"}
+        self.assertEqual(pre_invocation.extract_user_prompt(payload), "from transcript")
+
     def test_parse_skill_commands(self) -> None:
         prompt = "/programming /debugging Please execute /programming and /refactor"
         skills = pre_invocation.parse_skill_commands(prompt)
         self.assertEqual(skills, ["programming", "debugging", "refactor"])
         self.assertEqual(pre_invocation.parse_skill_commands("http://example.com/foo"), [])
+        self.assertEqual(pre_invocation.parse_skill_commands('"/omomomo"'), ["omomomo"])
+        self.assertEqual(pre_invocation.parse_skill_commands("(/test)"), ["test"])
 
     def test_format_skill_instruction(self) -> None:
         formatted = pre_invocation.format_skill_instruction("programming", "Code strictly.")

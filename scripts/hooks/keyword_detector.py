@@ -36,7 +36,7 @@ def get_keyword_detector_messages(payload: dict) -> list[dict]:
     if not prompt:
         return []
 
-    matches = re.findall(r'(?:^|\s)\$([a-zA-Z0-9_\-]+)', prompt)
+    matches = re.findall(r'(?:^|[^\w\-\$])\$([a-zA-Z0-9_\-]+)', prompt)
     
     seen_skills = set()
     messages = []

@@ -1,5 +1,5 @@
 ---
-name: atlas
+name: Atlas
 description: |
   Orchestrates work via invoke_subagent to complete ALL tasks in a todo list/plan until fully done. (Atlas - Master Orchestrator, Gemini Optimized)
 mainAgent: true

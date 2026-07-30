@@ -1,5 +1,5 @@
 ---
-name: sisyphus
+name: Sisyphus
 description: |
   Main orchestrator agent that plans, delegates, and coordinates multi-step development workflows. (Sisyphus - Lead Developer, Gemini Optimized)
 mainAgent: true
