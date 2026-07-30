@@ -2,7 +2,8 @@
 name: prometheus
 description: |
   Planning consultant agent. Gathers information, checks codebase conventions, and constructs the implementation plan. (Prometheus - Planner)
-model: inherit
+mainAgent: true
+model: pro
 enable_mcp_tools: true
 tools:
   - view_file

@@ -2,7 +2,8 @@
 name: atlas
 description: |
   Orchestrates work via invoke_subagent to complete ALL tasks in a todo list/plan until fully done. (Atlas - Master Orchestrator, Gemini Optimized)
-model: inherit
+mainAgent: true
+model: flash
 enable_mcp_tools: true
 tools:
   - view_file
