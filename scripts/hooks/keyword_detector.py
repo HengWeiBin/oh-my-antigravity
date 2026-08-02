@@ -17,6 +17,7 @@ KEYWORD_SKILLS: dict[str, str] = {
     '$programming': 'programming',
     '$frontend': 'frontend',
     '$debugging': 'debugging',
+    '$init': 'init',
 }
 
 

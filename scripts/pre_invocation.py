@@ -13,7 +13,8 @@ from hooks import (
     compaction_todo_preserver,
     todo_continuation_enforcer,
     agent_usage_reminder,
-    keyword_detector
+    keyword_detector,
+    init_project_dir_replacer
 )
 
 
@@ -142,6 +143,12 @@ def main() -> None:
             pass
         try:
             res = keyword_detector.run_keyword_detector(payload)
+            if res:
+                steps.extend(res)
+        except Exception:
+            pass
+        try:
+            res = init_project_dir_replacer.run_init_project_dir_replacer(payload)
             if res:
                 steps.extend(res)
         except Exception:
