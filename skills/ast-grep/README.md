@@ -23,35 +23,35 @@ ln -s /path/to/your/clone ~/.agents/skills/ast-grep
 
 - **Claude Code / OpenCode**: drop the directory under `~/.agents/skills/` (or `~/.config/opencode/skills/`) and the skill auto-registers via the `name` + `description` in `SKILL.md` frontmatter.
 - **pi (`~/.senpi/agent`)**: not a `pi` extension — this is a skill. Pi consumes skills via `~/.agents/skills/` symlinks; the actual `pi-ast-grep` extension is at <https://github.com/code-yeongyu/pi-extensions>.
-- **Direct CLI use**: `python3 ~/.agents/skills/ast-grep/scripts/ast_grep_helper.py <subcommand>`.
+- **Direct CLI use**: `python ~/.agents/skills/ast-grep/scripts/ast_grep_helper.py <subcommand>`.
 
 ## Usage
 
 ```bash
 # Search by AST pattern (the helper validates patterns offline first)
-python3 scripts/ast_grep_helper.py search 'console.log($MSG)' --lang ts src/
+python scripts/ast_grep_helper.py search 'console.log($MSG)' --lang ts src/
 
 # Rewrite (dry-run preview by default)
-python3 scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/
+python scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/
 
 # Apply the rewrite (two-pass: preview JSON + then --update-all)
-python3 scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/ --apply
+python scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/ --apply
 
 # Run YAML lint rules from sgconfig.yml
-python3 scripts/ast_grep_helper.py scan src/
+python scripts/ast_grep_helper.py scan src/
 
 # Validate a pattern OFFLINE (no sg call, no filesystem)
-python3 scripts/ast_grep_helper.py validate '\w+' --lang ts
+python scripts/ast_grep_helper.py validate '\w+' --lang ts
 # → exit 2: regex \w not supported. Use $VAR for identifiers.
 
 # Doctor: check ast-grep binary availability
-python3 scripts/ast_grep_helper.py doctor
+python scripts/ast_grep_helper.py doctor
 
 # List 25 supported languages
-python3 scripts/ast_grep_helper.py langs
+python scripts/ast_grep_helper.py langs
 
 # Install / re-install the ast-grep binary
-python3 scripts/ast_grep_helper.py install
+python scripts/ast_grep_helper.py install
 ```
 
 See [SKILL.md](./SKILL.md) for full agent-facing usage and the [`references/`](./references/) directory for deep dives.
