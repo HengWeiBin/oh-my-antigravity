@@ -41,7 +41,7 @@ Read the matching reference before acting: [`references/insane-search/README.md`
 
 ```bash
 # Core command — auto-detects WAF, runs the full fetch grid (run from the skill dir):
-python3 -m engine "https://example.com/blocked-page"
+python -m engine "https://example.com/blocked-page"
 #   add --selector "<CSS>" for positive-proof validation, --device auto|desktop|mobile,
 #   --trace to inspect every attempt, --json for machine-readable output.
 
@@ -104,9 +104,9 @@ agent-browser --cdp 9242 close
 ```bash
 # Extract cookies to a file:
 mkdir -p ~/.local/state/omo-cookies
-python3 scripts/extract_cookies.py --browser chrome --domain youtube.com --output ~/.local/state/omo-cookies/youtube.cookies.json
+python scripts/extract_cookies.py --browser chrome --domain youtube.com --output ~/.local/state/omo-cookies/youtube.cookies.json
 # Extract and inject into the running CDP session:
-python3 scripts/extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
+python scripts/extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
 ```
 
 Cookie export files are written with owner-only `0600` permissions. Do not place live auth cookies in shared temp directories or commit them to a repo. Cookie injection sends values to CDP over stdin rather than argv. Cookies apply on next navigation — reload after injecting. Google services use fingerprint-bound tokens that may not transfer across browser profiles. Full detail in [references/chrome-stealth.md](references/chrome-stealth.md).

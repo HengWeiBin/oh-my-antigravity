@@ -10,7 +10,7 @@
 ```bash
 # 프로필
 curl -sL "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={handle}" | \
-python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{d[\"displayName\"]} — Followers: {d[\"followersCount\"]}, Posts: {d[\"postsCount\"]}')"
+python -c "import sys,json; d=json.load(sys.stdin); print(f'{d[\"displayName\"]} — Followers: {d[\"followersCount\"]}, Posts: {d[\"postsCount\"]}')"
 
 # 피드 (최근 게시물)
 curl -sL "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor={handle}&limit=10"

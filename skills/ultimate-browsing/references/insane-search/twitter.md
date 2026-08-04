@@ -24,7 +24,7 @@ https://syndication.twitter.com/srv/timeline-profile/screen-name/{handle}
 
 ```bash
 curl -sL "https://syndication.twitter.com/srv/timeline-profile/screen-name/{handle}" | \
-python3 -c "
+python -c "
 import sys, json, re, html
 content = sys.stdin.read()
 match = re.search(r'__NEXT_DATA__.*?>(.*?)</script>', content)

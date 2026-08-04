@@ -69,7 +69,7 @@ Phase 1 → Phase 2 전환 조건:
 
 **의존성 확보**:
 ```bash
-python3 -c "import curl_cffi" 2>/dev/null || pip install curl_cffi -q
+python -c "import curl_cffi" 2>/dev/null || pip install curl_cffi -q
 ```
 설치 실패 시 → 즉시 Phase 3으로.
 

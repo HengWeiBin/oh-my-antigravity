@@ -56,7 +56,7 @@ agent-reach run wechat-article "https://mp.weixin.qq.com/s/ARTICLE_ID"   # Camou
 ## RSS (feedparser)
 
 ```python
-python3 -c "
+python -c "
 import feedparser
 for e in feedparser.parse('FEED_URL').entries[:5]:
     print(f'{e.title} — {e.link}')

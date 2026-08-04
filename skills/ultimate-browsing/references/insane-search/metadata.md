@@ -5,7 +5,7 @@
 
 ## 의존성
 
-없음 (curl + python3 기본 모듈).
+없음 (curl + python 기본 모듈).
 
 ## OGP (Open Graph Protocol) 메타태그
 
@@ -13,7 +13,7 @@
 
 ```bash
 curl -sL -H "User-Agent: Mozilla/5.0 ..." "{URL}" | \
-  python3 -c "
+  python -c "
 import sys, re
 html = sys.stdin.read()
 for m in re.findall(r'<meta property=\"og:(\w+)\" content=\"([^\"]*?)\"', html):
@@ -29,7 +29,7 @@ for m in re.findall(r'<meta name=\"description\" content=\"([^\"]*?)\"', html):
 
 ```bash
 curl -sL "{URL}" | \
-  python3 -c "
+  python -c "
 import sys, re, json
 html = sys.stdin.read()
 blocks = re.findall(r'<script type=\"application/ld\+json\">(.*?)</script>', html, re.DOTALL)
@@ -93,7 +93,7 @@ Next.js App Router 사이트는 `self.__next_f.push()` 스크립트에 콘텐츠
 
 ```bash
 curl -sL "{URL}" | \
-  python3 -c "
+  python -c "
 import sys, re
 html = sys.stdin.read()
 chunks = re.findall(r'self\.__next_f\.push\(\[1,\"(.*?)\"\]\)', html)

@@ -15,7 +15,7 @@ AMP 지원 사이트의 캐시 버전. 뉴스/미디어 사이트에 효과적.
 # URL 변환: domain의 .을 -로 → cdn.ampproject.org
 # 예: www.bbc.com → www-bbc-com.cdn.ampproject.org
 
-python3 -c "
+python -c "
 from urllib.parse import urlparse
 url = '{URL}'
 p = urlparse(url)

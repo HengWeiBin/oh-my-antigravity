@@ -5,7 +5,7 @@
 ## 의존성
 
 ```bash
-python3 -c "import feedparser" 2>/dev/null || pip install feedparser -q
+python -c "import feedparser" 2>/dev/null || pip install feedparser -q
 ```
 
 ## RSS 자동 발견
@@ -14,7 +14,7 @@ Jina Reader JSON 모드로 사이트의 RSS URL을 자동 탐지:
 
 ```bash
 curl -sH "Accept: application/json" "https://r.jina.ai/{URL}" | \
-  python3 -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}).get('alternate',[]))"
+  python -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}).get('alternate',[]))"
 ```
 
 ## URL 변형으로 피드 탐색

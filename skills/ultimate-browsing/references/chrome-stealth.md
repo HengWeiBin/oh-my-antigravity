@@ -91,9 +91,9 @@ Verified 2026-07 with CloakBrowser 0.4.10 + agent-browser 0.31.1: `navigator.web
 ```bash
 # Extract to a file:
 mkdir -p ~/.local/state/omo-cookies
-python3 ../scripts/extract_cookies.py --browser chrome --domain youtube.com --output ~/.local/state/omo-cookies/youtube.cookies.json
+python ../scripts/extract_cookies.py --browser chrome --domain youtube.com --output ~/.local/state/omo-cookies/youtube.cookies.json
 # Extract and inject into the running CDP session:
-python3 ../scripts/extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
+python ../scripts/extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
 ```
 
 Cookie export files are written with owner-only `0600` permissions. Do not place live auth cookies in shared temp directories or commit them to a repo. Cookie injection sends values to CDP over stdin rather than argv, so live cookie values do not appear in process listings. Cookies apply on next navigation — reload after injecting. Google services use fingerprint-bound tokens (SIDTS) that may not transfer across browser profiles. Firefox-family profiles store cookies unencrypted; Chromium-family profiles trigger a one-time OS-keyring prompt on macOS/Linux.

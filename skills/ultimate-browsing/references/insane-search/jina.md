@@ -126,5 +126,5 @@ Jina JSON 모드의 `external.alternate`에서 사이트의 RSS URL이 자동 �
 
 ```bash
 curl -H "Accept: application/json" "https://r.jina.ai/{URL}" | \
-python3 -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}))"
+python -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}))"
 ```

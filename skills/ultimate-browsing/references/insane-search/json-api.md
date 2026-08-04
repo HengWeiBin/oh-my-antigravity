@@ -43,7 +43,7 @@ curl -sL "https://hacker-news.firebaseio.com/v0/item/{id}.json"
 
 배치 조회:
 ```bash
-python3 -c "
+python -c "
 import urllib.request, json
 ids = json.load(urllib.request.urlopen('https://hacker-news.firebaseio.com/v0/topstories.json?limitToFirst=5&orderBy=\"\$key\"'))
 for id in ids:
