@@ -8,7 +8,7 @@ Covers CPython 3.9+, pytest, asyncio, Django, FastAPI. Setup commands, attach me
 
 ```bash
 # Which Python will actually run the code?
-which python; which python3
+which python; which python
 python --version
 
 # Is there a project env manager in play?

@@ -24,7 +24,7 @@ Run each criterion's real-surface proof yourself through the channel that faithf
 4. **Computer use** — for desktop/GUI apps, drive the running app via OS automation (computer-use, AppleScript, xdotool, etc.); capture action log + screenshot.
 
 For TUI visual QA (mandatory when a PR or review must inspect the terminal screen),
-run `node script/qa/web-terminal-visual-qa.mjs --command "<cmd>" --input "{Enter}"
+run `node "<skill-root>/../../visual-qa/scripts/web-terminal-visual-qa.mjs" --command "<cmd>" --input "{Enter}"
 --evidence-dir <dir>` (live pty + xterm.js in Chrome; `--from-file` replays a raw
 stream) and record `terminal.png`, `terminal.txt`, and `metadata.json`.
 

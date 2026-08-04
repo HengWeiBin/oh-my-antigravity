@@ -67,7 +67,7 @@ For reference-fidelity work, repeat the capture and diff for every referenced vi
    repository root:
 
 ```
-node script/qa/web-terminal-visual-qa.mjs --title "TUI Visual QA" \
+node "<skill-root>/scripts/web-terminal-visual-qa.mjs" --title "TUI Visual QA" \
   --command "<tui-command>" \
   --input "{ArrowDown}" --input "{Enter}" \
   --evidence-dir .omo/evidence/<slug>/tui-web-terminal

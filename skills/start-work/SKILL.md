@@ -111,7 +111,7 @@ Each sub-task message must include:
    - Terminal / TUI: drive a real pty; `tmux send-keys` is fine for a boot/behavior smoke, but color/layout/CJK evidence goes through the xterm.js web terminal below, NEVER `tmux capture-pane`.
    - Browser use: in Codex, use `browser:control-in-app-browser` first when available and the scenario does not need an authenticated or persistent user browser profile; otherwise drive the real page with Chrome, or agent-browser (https://github.com/vercel-labs/agent-browser) when Chrome is unavailable.
    - Computer use: OS-level GUI automation against the running desktop app when the surface is not a page.
-   - TUI visual evidence: when a TUI claim needs visual QA or PR proof, run `node script/qa/web-terminal-visual-qa.mjs --command "<cmd>" --input "{Enter}" --evidence-dir <dir>` (real pty rendered through xterm.js in Chrome) and attach `terminal.png` plus `metadata.json`.
+   - TUI visual evidence: when a TUI claim needs visual QA or PR proof, run `node "<skill-root>/../visual-qa/scripts/web-terminal-visual-qa.mjs" --command "<cmd>" --input "{Enter}" --evidence-dir <dir>` (real pty rendered through xterm.js in Chrome) and attach `terminal.png` plus `metadata.json`.
 6. The adversarial classes that apply to this sub-task (from the 9 ultraqa classes) and how each is probed.
 7. Required artifact path and cleanup receipt.
 

@@ -83,7 +83,7 @@ When the user names a brand or site — "Linear-style", "like Stripe's landing",
 Audit CLI (build for production first; never measure a dev server):
 
 ```bash
-uv run $SKILL_DIR/scripts/perfection/lighthouse-audit.py https://localhost:3000
+uv run "<skill-root>/scripts/perfection/lighthouse-audit.py" https://localhost:3000
 ```
 
 Run mobile AND desktop presets, 3–5 runs, take the median, diagnose from the JSON report.
@@ -93,9 +93,9 @@ Run mobile AND desktop presets, 3–5 runs, take the median, diagnose from the J
 `README.md` documents the search CLI and the master-plus-overrides persistence pattern. The CLI (run from the ruleset directory so it finds `data/`):
 
 ```bash
-python3 $SKILL_DIR/references/ui-ux-db/scripts/search.py "<query>" --design-system -p "Project"   # full design-system generation
-python3 $SKILL_DIR/references/ui-ux-db/scripts/search.py "<query>" --domain <domain>             # targeted lookup
-python3 $SKILL_DIR/references/ui-ux-db/scripts/search.py "<query>" --stack <stack>               # stack best practices
+python "<skill-root>/references/ui-ux-db/scripts/search.py" "<query>" --design-system -p "Project"   # full design-system generation
+python "<skill-root>/references/ui-ux-db/scripts/search.py" "<query>" --domain <domain>             # targeted lookup
+python "<skill-root>/references/ui-ux-db/scripts/search.py" "<query>" --stack <stack>               # stack best practices
 ```
 
 Domains: `product` `style` `typography` `color` `landing` `chart` `ux` `react` `web` `prompt`. Stacks: `html-tailwind` (default) `react` `nextjs` `vue` `svelte` `astro` `swiftui` `react-native` `flutter` `shadcn` `jetpack-compose`.

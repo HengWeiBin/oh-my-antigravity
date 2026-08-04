@@ -177,7 +177,7 @@ A bare default constructor for any of these (no timeouts, no pool tuning, no sch
 | Test runner | **pytest** | **cargo-nextest** | `bun test` / `vitest` | stdlib `go test -race -shuffle=on -count=1` + `goleak` |
 | UB / soundness gate | (n/a) | **nightly miri** with strict provenance + Tree Borrows pass | (n/a) | **`nilaway`** + `-race` detector + `goleak` are the equivalent gate |
 | Disposable scripts | **PEP 723** inline metadata + `uv run script.py` | **rust-script** with inline `Cargo.toml` block | `bun run script.ts` | `//go:build ignore` + `go run script.go` |
-| Bootstrap a new project | `scripts/python/new-project.py` | `scripts/rust/new-project.py` | `scripts/typescript/new-project.ts` | `scripts/go/new-project.py` |
+| Bootstrap a new project | `<skill-root>/scripts/python/new-project.py` | `<skill-root>/scripts/rust/new-project.py` | `<skill-root>/scripts/typescript/new-project.ts` | `<skill-root>/scripts/go/new-project.py` |
 | Pre-commit / CI gate | `ruff check . && basedpyright && pytest` | `cargo +nightly clippy -- -D warnings && cargo nextest run && cargo +nightly miri test` | `bunx biome check . && bunx tsc --noEmit && bun test` | `gofumpt -l . && golangci-lint run ./... && nilaway ./... && go test -race -shuffle=on -count=1 ./...` |
 
 A `tsconfig.json` with `"strict": true` alone is **not** strict. The reference enumerates the additional flags. Same for `pyproject.toml` and `Cargo.toml` - the references contain the canonical full configuration.
@@ -240,11 +240,11 @@ Or run the per-language checker the skill ships:
 
 ```bash
 # Python
-uv run scripts/python/check-no-excuse-rules.py <changed paths>
+uv run "<skill-root>/scripts/python/check-no-excuse-rules.py" <changed paths>
 # Rust
-bash scripts/rust/check-no-excuse-rules.sh <changed paths>
+uv run "<skill-root>/scripts/rust/check-no-excuse-rules.py" <changed paths>
 # TypeScript
-bun run scripts/typescript/check-no-excuse-rules.ts <changed paths>
+bun run "<skill-root>/scripts/typescript/check-no-excuse-rules.ts" <changed paths>
 ```
 
 ### Step 2 — interpret

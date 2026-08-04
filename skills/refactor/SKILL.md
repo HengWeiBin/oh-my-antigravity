@@ -171,7 +171,7 @@ lsp_diagnostics(filePath)  // Errors, warnings before we start
 
 \`\`\`bash
 // Find structural patterns
-python3 scripts/ast_grep_helper.py search 'function $NAME($$$) { $$$ }' --lang ts src/
+python scripts/ast_grep_helper.py search 'function $NAME($$$) { $$$ }' --lang ts src/
 
 # Preview refactoring first
 sg --pattern '[old_pattern]' --rewrite '[new_pattern]' --lang ts src/
@@ -425,7 +425,7 @@ lsp_rename(filePath, line, character, newName)  // Execute rename
 sg --pattern '[pattern]' --rewrite '[rewrite]' --lang ts path/to/file.ts
 
 // If preview looks good, execute
-python3 scripts/ast_grep_helper.py replace '[pattern]' '[rewrite]' --lang ts path/to/file.ts --apply
+python scripts/ast_grep_helper.py replace '[pattern]' '[rewrite]' --lang ts path/to/file.ts --apply
 \`\`\`
 
 **For Structural Changes:**

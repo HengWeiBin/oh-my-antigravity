@@ -96,7 +96,7 @@ LC_ALL=C grep -aoc 'NEEDLE' ./target
 LC_ALL=C grep -aob 'NEEDLE' ./target | head
 
 # Or via Python for byte-precise context
-python3 -c "
+python -c "
 import sys
 data = open('./target','rb').read()
 needle = b'NEEDLE'

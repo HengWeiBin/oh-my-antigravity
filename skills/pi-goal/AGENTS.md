@@ -63,8 +63,8 @@ The goal tool contract is aligned with codex `codex-rs/ext/goal`:
 ```sh
 bun test packages/pi-goal                      # unit/characterization gate
 tsgo --noEmit -p packages/pi-goal/tsconfig.json
-node packages/pi-goal/scripts/qa/drive.mjs --self-test
-node packages/pi-goal/scripts/qa/drive.mjs     # live pi-harness proof (RPC mode, sandboxed)
+node "<skill-root>/scripts/qa/drive.mjs" --self-test
+node "<skill-root>/scripts/qa/drive.mjs"     # live pi-harness proof (RPC mode, sandboxed)
 ```
 
 The live driver is the real-harness gate: unit tests alone never prove the extension

@@ -23,9 +23,9 @@ Rigid language-specific checkers (check-no-excuse-rules.py, etc.) and coding gui
 | [references/rust/README.md](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/references/rust/README.md) | Rust development practices, cargo configuration, and safety guidelines |
 | [references/typescript/README.md](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/references/typescript/README.md) | TypeScript biome, tsconfig, and data modeling conventions |
 | [references/go/README.md](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/references/go/README.md) | Go context, golangci-lint, and testing configurations |
-| [scripts/python/check-no-excuse-rules.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/python/check-no-excuse-rules.py) | Python AST checker verifying 250 LOC limit and strict typing rules |
-| [scripts/typescript/check-no-excuse-rules.ts](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/typescript/check-no-excuse-rules.ts) | TypeScript AST checker enforcing Biome/tsc conventions and file size |
-| [scripts/rust/check-no-excuse-rules.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/rust/check-no-excuse-rules.py) | Python AST-based checker adapted for Rust structural rules |
+| [<skill-root>/scripts/python/check-no-excuse-rules.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/python/check-no-excuse-rules.py) | Python AST checker verifying 250 LOC limit and strict typing rules |
+| [<skill-root>/scripts/typescript/check-no-excuse-rules.ts](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/typescript/check-no-excuse-rules.ts) | TypeScript AST checker enforcing Biome/tsc conventions and file size |
+| [<skill-root>/scripts/rust/check-no-excuse-rules.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/programming/scripts/rust/check-no-excuse-rules.py) | Python AST-based checker adapted for Rust structural rules |
 
 ## CONVENTIONS
 - **Strict Size Caps**: Files are capped at 250 pure LOC (enforced by `check-no-excuse-rules`) and functions at 3 parameters.
