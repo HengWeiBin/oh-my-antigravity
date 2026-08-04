@@ -44,6 +44,7 @@ def _run(root: Path, *args: str) -> JsonMap:
     env["APPDATA"] = str(root / "appdata")
     env["CODEX_HOME"] = str(root)
     env["HOME"] = str(root / "home")
+    env["USERPROFILE"] = str(root / "home")
     env["OPENCODE_HOME"] = str(root / "opencode-home")
     proc = subprocess.run(
         [sys.executable, "scripts/find-agent-sessions.py", *args, "--root", str(root)],
@@ -103,7 +104,7 @@ def test_find_searches_all_platforms_and_explains_matches(tmp_path: Path) -> Non
         assert reasons[0]["query"] == "alpha"
         assert reasons[0]["platform"] == item["platform"]
         assert isinstance(reasons[0]["snippet"], str) and "alpha" in reasons[0]["snippet"].lower()
-        assert item["detail_hint"] == f"python3 scripts/find-agent-sessions.py read {item['id']} --platform {item['platform']}"
+        assert item["detail_hint"] == f"python scripts/find-agent-sessions.py read {item['id']} --platform {item['platform']}"
 
 
 def test_platform_filter_narrows_find_results(tmp_path: Path) -> None:
@@ -123,4 +124,4 @@ def test_read_summarizes_first_and_last_user_prompts(tmp_path: Path) -> None:
     assert prompts["first_user_message"] == "unrelated"
     assert prompts["last_user_message"] == "alpha review notes"
     assert session["last_user_message"] == "alpha review notes"
-    assert result["detail_hint"] == "python3 scripts/find-agent-sessions.py read claude-beta --platform claude"
+    assert result["detail_hint"] == "python scripts/find-agent-sessions.py read claude-beta --platform claude"

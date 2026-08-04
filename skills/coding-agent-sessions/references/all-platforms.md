@@ -4,7 +4,7 @@
 
 Search these first, then add user-supplied roots with `--root`:
 
-Registered platform keys: `codex`, `claude`, `senpi`, `opencode`, `openclaw`, `droid`, `amp`, `gemini`, `kimi`, `qwen`, `codebuff`, `roo-code`, `kilo-code`, `cline`, `kodu`, `cursor-cli`, `aider`, `kilo-cli`, `hermes`, `goose`, `crush`, `zed`, `kiro`.
+Registered platform keys: `codex`, `claude`, `senpi`, `opencode`, `openclaw`, `droid`, `amp`, `gemini`, `antigravity`, `kimi`, `qwen`, `codebuff`, `roo-code`, `kilo-code`, `cline`, `kodu`, `cursor-cli`, `aider`, `kilo-cli`, `hermes`, `goose`, `crush`, `zed`, `kiro`.
 
 | Platform | Unix/macOS | Windows |
 |---|---|---|
@@ -16,6 +16,7 @@ Registered platform keys: `codex`, `claude`, `senpi`, `opencode`, `openclaw`, `d
 | Factory Droid | `~/.factory/sessions/*/*.jsonl` | pass `--root` |
 | Amp | `~/.local/share/amp/threads/T-*.json` | pass `--root` |
 | Gemini / Kimi / Qwen | `~/.gemini/tmp/*/chats`, `~/.kimi/sessions/*/*/wire.jsonl`, `~/.qwen/projects/*/chats` | pass `--root` |
+| Antigravity | `~/.gemini/antigravity/brain/*/.system_generated/logs/transcript.jsonl` | `%USERPROFILE%\.gemini\antigravity\brain\*` |
 | Codebuff | `~/.config/manicode*/projects/*/chats/*/chat-messages.json` | pass `--root` |
 | Roo Code (`roo-code`) / Kilo Code (`kilo-code`) / Cline | VS Code `globalStorage/<extension>/tasks/*` | VS Code `globalStorage\<extension>\tasks\*` |
 | Kodu | VS Code `globalStorage/kodu-ai.claude-dev-experimental/db/Azad.db` | VS Code `globalStorage\kodu-ai.claude-dev-experimental\db\Azad.db` |
@@ -32,13 +33,13 @@ Do not add these as default transcript platforms without a separate prompt-recon
 |---|---|
 | Copilot OTEL | Token/telemetry rows, not prompts |
 | Mux | `session-usage.json` usage buckets only |
-| Antigravity | tokscale cache/RPC data, not raw chat transcripts |
+| Antigravity tokscale | tokscale cache/RPC data, not raw session transcripts (which are under `brain/`) |
 | Synthetic | Provider retagging over another platform, not an independent session store |
 | Cursor IDE usage CSV | Usage accounting; use `cursor-cli` for local CLI chat stores |
 
 ## Workflow
 
-1. Run `scripts/find-agent-sessions.py search <query>` across all platforms, or repeat `--query` for several searches in one scan. Add `--include-subagents` when the work may have run inside a delegated agent — child transcripts are excluded from `list`/`search` by default.
+1. Run `<skill-root>/scripts/find-agent-sessions.py search <query>` across all platforms, or repeat `--query` for several searches in one scan. Add `--include-subagents` when the work may have run inside a delegated agent — child transcripts are excluded from `list`/`search` by default.
 2. If results are noisy, add `--cwd`, `--model`, `--from`, or repeated `--platform` filters.
 3. Run `get <session-id>` on likely hits. The result includes a `subagents` array: every child session (Claude Task/workflow agents, Codex thread spawns, OpenCode child sessions) with its own id, `agent` label, and raw path — follow up with `get <child-id>` for a child's events.
 4. Open raw `path` files for exact quotes, tool calls, and evidence.
@@ -56,8 +57,8 @@ Do not add these as default transcript platforms without a separate prompt-recon
 The finder scans selected platforms concurrently, parses transcript files concurrently, joins OpenCode message/part files concurrently, and evaluates repeated `--query` values concurrently. Increase `--workers` for large local stores:
 
 ```bash
-python3 scripts/find-agent-sessions.py search --query "commit" --query "deploy" --workers 64
-python3 scripts/find-agent-sessions.py search --query "commit" --platform senpi --platform opencode --workers 64
+python "<skill-root>/scripts/find-agent-sessions.py" search --query "commit" --query "deploy" --workers 64
+python "<skill-root>/scripts/find-agent-sessions.py" search --query "commit" --platform senpi --platform opencode --workers 64
 ```
 
 Omit `--platform` for the full multi-platform search. Add repeated platform flags such as `--platform openclaw --platform droid` only when the user already knows the likely stores. Comma-separated platform values are intentionally unsupported.
