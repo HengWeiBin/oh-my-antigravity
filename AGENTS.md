@@ -49,3 +49,18 @@ Hook paths in `hooks.json` use absolute paths (`C:/Users/...`). Do not hardcode 
 ## Skill Auto-Loading
 
 `pre_invocation.py` scans subagent prompts for slash-command syntax (e.g., `/debugging`) and auto-loads the corresponding `SKILL.md` from workspace, plugin, user config, or builtin skill directories. Skills are discovered under `skills/<name>/SKILL.md`.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical triage roles (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+
