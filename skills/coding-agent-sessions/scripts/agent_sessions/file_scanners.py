@@ -38,6 +38,25 @@ def scan_gemini(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
     return flat_parallel(recent(paths), workers, _gemini_sessions)
 
 
+def scan_antigravity(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
+    defaults = [Path.home() / ".gemini" / "antigravity" / "brain"]
+    roots = _roots(defaults, extra_roots, ("brain", "antigravity/brain", ".gemini/antigravity/brain"))
+    paths: list[Path] = []
+    for root in roots:
+        paths.extend(root.glob("*/.system_generated/logs/transcript.jsonl"))
+        paths.extend(root.glob("*/.system_generated/logs/transcript_full.jsonl"))
+        paths.extend(root.glob(".system_generated/logs/transcript.jsonl"))
+        paths.extend(root.glob(".system_generated/logs/transcript_full.jsonl"))
+    return jsonl_parallel(recent(paths), workers, "antigravity", _antigravity_id)
+
+
+def _antigravity_id(path: Path) -> str:
+    parent_name = path.parent.parent.parent.name
+    if parent_name and parent_name not in ("brain", "antigravity", ".gemini", ""):
+        return parent_name
+    return path.parent.parent.name or path.stem
+
+
 def scan_kimi(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
     roots = _roots([Path.home() / ".kimi"], extra_roots, (".kimi",))
     paths = [path for root in roots for path in (root / "sessions").glob("*/*/wire.jsonl")]

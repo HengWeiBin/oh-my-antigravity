@@ -9,6 +9,7 @@ from .codex import scan_codex
 from .file_scanners import (
     scan_aider,
     scan_amp,
+    scan_antigravity,
     scan_cline,
     scan_codebuff,
     scan_droid,
@@ -37,6 +38,7 @@ PLATFORM_SCANNERS: dict[str, Scanner] = {
     "droid": scan_droid,
     "amp": scan_amp,
     "gemini": scan_gemini,
+    "antigravity": scan_antigravity,
     "kimi": scan_kimi,
     "qwen": scan_qwen,
     "codebuff": scan_codebuff,
@@ -56,7 +58,7 @@ PLATFORM_SCANNERS: dict[str, Scanner] = {
 DEFAULT_PLATFORMS = frozenset(PLATFORM_SCANNERS)
 PLATFORM_ALIASES = {"cursor": "cursor-cli", "factory": "droid", "roo": "roo-code", "roocode": "roo-code", "kilocode": "kilo-code", "kilo": "kilo-cli"}
 
-__all__ = ["DEFAULT_PLATFORMS", "PLATFORM_SCANNERS", "scan", "scan_claude", "scan_codex", "scan_opencode", "scan_senpi"]
+__all__ = ["DEFAULT_PLATFORMS", "PLATFORM_SCANNERS", "scan", "scan_antigravity", "scan_claude", "scan_codex", "scan_opencode", "scan_senpi"]
 
 
 def scan(platforms: frozenset[str], roots: tuple[Path, ...], workers: int) -> list[Session]:

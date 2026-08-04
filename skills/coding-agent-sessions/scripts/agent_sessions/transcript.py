@@ -46,8 +46,8 @@ def jsonl_session(platform: str, path: Path, fallback_id: str) -> Session:
         session_line_id = text(data.get("id")) if event_type == "session" else None
         sid = text(data.get("sessionId")) or session_line_id or sid
         cwd = cwd or text(data.get("cwd"))
-        created = created or text(data.get("timestamp"))
-        updated = text(data.get("timestamp")) or updated
+        created = created or text(data.get("timestamp")) or text(data.get("created_at"))
+        updated = text(data.get("timestamp")) or text(data.get("created_at")) or updated
         provider = provider or text(data.get("provider"))
         model = model or text(data.get("modelId")) or text(data.get("model"))
         payload = as_map(data.get("payload"))
@@ -90,7 +90,7 @@ def nick_role(nickname: str | None, role: str | None) -> str | None:
 
 
 def user_text(data: JsonMap, message: JsonMap) -> str:
-    if data.get("type") == "user":
+    if data.get("type") in ("user", "USER_INPUT") or data.get("source") in ("USER_EXPLICIT", "USER_INPUT"):
         value = content_text(data.get("content"))
         if value:
             return value
