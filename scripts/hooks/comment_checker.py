@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import os
+
 
 def check_comment_preservation(tool_name: str, tool_input: dict, tool_response: dict | None) -> str | None:
     """
@@ -45,12 +47,7 @@ def check_comment_preservation(tool_name: str, tool_input: dict, tool_response: 
         if not stripped:
             continue
         
-        if (stripped.startswith("#") or 
-            stripped.startswith("//") or 
-            stripped.startswith("*") or 
-            stripped.startswith("/*") or 
-            '"""' in stripped or 
-            "'''" in stripped):
+        if (stripped.startswith(("#", "//", "*", "/*")) or '"""' in stripped or "'''" in stripped):
             comment_lines += 1
 
     if comment_lines == 0:

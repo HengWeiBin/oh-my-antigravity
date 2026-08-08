@@ -4,6 +4,7 @@ import json
 import os
 import re
 
+
 def resolve_path(path: str, cwd: str | None = None) -> str:
     """Helper to resolve paths"""
     if not path:
@@ -92,7 +93,7 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
             with open(state_file, "r", encoding="utf-8") as f:
                 state = json.load(f)
                 last_injection_invocation = state.get("last_injection_invocation", -1)
-    except Exception:
+    except Exception:  # noqa: BLE001
         last_injection_invocation = -1
 
     # Check throttling
@@ -107,8 +108,7 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
     
     for filename, tasks in unchecked_by_file.items():
         msg_lines.append(f"[{filename}]")
-        for task in tasks:
-            msg_lines.append(task)
+        msg_lines.extend(tasks)
         msg_lines.append("")
     
     msg_lines.append("Please continue working on these tasks without asking for permission to proceed.")

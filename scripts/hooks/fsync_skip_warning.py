@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import re
+
 
 def check_fsync_skip_warning(tool_name: str, tool_input: dict) -> dict | None:
     """
@@ -26,8 +28,8 @@ def check_fsync_skip_warning(tool_name: str, tool_input: dict) -> dict | None:
     for pattern, pattern_name in patterns:
         if re.search(pattern, command, re.IGNORECASE):
             return {
-                'permissionDecision': 'ask',
-                'permissionDecisionReason': f'⚠️ FSYNC WARNING: The command contains a potentially dangerous operation: [{pattern_name}]. Please confirm this is intentional before proceeding.\nCommand: {command}'
+                'decision': 'ask',
+                'reason': f'⚠️ FSYNC WARNING: The command contains a potentially dangerous operation: [{pattern_name}]. Please confirm this is intentional before proceeding.\nCommand: {command}'
             }
             
     return None

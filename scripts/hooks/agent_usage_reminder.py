@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 import os
+import sys
 
 # Ensure the scripts directory is in sys.path if not already, to allow absolute imports like `from hooks.utils import is_subagent_session`
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -9,7 +9,7 @@ scripts_dir = os.path.abspath(os.path.join(current_dir, ".."))
 if scripts_dir not in sys.path:
     sys.path.insert(0, scripts_dir)
 
-from hooks.utils import is_subagent_session  # noqa: E402
+from hooks.utils import is_subagent_session
 
 REMINDER_INTERVAL = 10  # Fire every N invocations
 REMINDER_START = 5     # First fire at invocation N

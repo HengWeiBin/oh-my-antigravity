@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import re
 
 WARNING_MSG = '⚠️ EMPTY SUBAGENT RESPONSE DETECTED: The subagent returned a very short or empty response. This is suspicious — the subagent may have failed silently. Please verify by checking the subagent transcript or re-dispatching with a more explicit task.'

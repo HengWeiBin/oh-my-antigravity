@@ -1,10 +1,11 @@
-import sys
 import json
 import os
 import re
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hooks import notepad_write_guard, fsync_skip_warning
+from hooks import fsync_skip_warning, notepad_write_guard
+from hooks.utils import setup_utf8_streams
 
 UUID_PATTERN = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
 KNOWN_AGENTS = {"sisyphus", "atlas", "prometheus", "metis", "momus", "hephaestus", "sisyphus-junior", "explore", "librarian"}
@@ -44,17 +45,16 @@ def find_invoke_subagent_calls(obj):
                         if sk.lower() == "subagents":
                             subagents = sv
                             break
-                elif isinstance(v, str):
-                    if (v.strip().startswith("{") and v.strip().endswith("}")) or (v.strip().startswith("[") and v.strip().endswith("]")):
-                        try:
-                            parsed_v = json.loads(v)
-                            if isinstance(parsed_v, dict):
-                                for sk, sv in parsed_v.items():
-                                    if sk.lower() == "subagents":
-                                        subagents = sv
-                                        break
-                        except Exception:
-                            pass
+                elif isinstance(v, str) and ((v.strip().startswith("{") and v.strip().endswith("}")) or (v.strip().startswith("[") and v.strip().endswith("]"))):
+                    try:
+                        parsed_v = json.loads(v)
+                        if isinstance(parsed_v, dict):
+                            for sk, sv in parsed_v.items():
+                                if sk.lower() == "subagents":
+                                    subagents = sv
+                                    break
+                    except Exception:  # noqa: BLE001, S110
+                        pass
             if isinstance(subagents, list):
                 type_names = []
                 for sa in subagents:
@@ -75,7 +75,7 @@ def find_invoke_subagent_calls(obj):
             try:
                 parsed = json.loads(obj)
                 calls.extend(find_invoke_subagent_calls(parsed))
-            except Exception:
+            except Exception:  # noqa: BLE001, S110
                 pass
     return calls
 
@@ -90,7 +90,7 @@ def find_conversation_ids(obj):
                     try:
                         parsed = json.loads(v)
                         cids.extend(find_conversation_ids(parsed))
-                    except Exception:
+                    except Exception:  # noqa: BLE001, S110
                         pass
                 elif is_probable_conversation_id(v):
                     cids.append(v)
@@ -107,7 +107,7 @@ def find_conversation_ids(obj):
             try:
                 parsed = json.loads(obj)
                 cids.extend(find_conversation_ids(parsed))
-            except Exception:
+            except Exception:  # noqa: BLE001, S110
                 pass
         elif is_probable_conversation_id(obj):
             cids.append(obj)
@@ -122,29 +122,27 @@ def parse_typename_from_log(log_path, target_conversation_id, parent_cid):
                     continue
                 try:
                     obj = json.loads(line)
-                except Exception:
+                except Exception:  # noqa: BLE001, S112
                     continue
                 
                 calls = find_invoke_subagent_calls(obj)
                 if calls:
-                    for type_names in calls:
-                        pending_type_names.append(type_names)
+                    pending_type_names.extend(calls)
                     continue
                 
                 line_lower = line.lower()
-                if "invoke_subagent" in line_lower and ("conversationid" in line_lower or "conversation_id" in line_lower):
-                    if pending_type_names:
-                        cids = []
-                        found_cids = find_conversation_ids(obj)
-                        for cid in found_cids:
-                            if cid != parent_cid:
-                                cids.append(cid)
-                        if cids:
-                            tns = pending_type_names.pop(0)
-                            for i in range(min(len(tns), len(cids))):
-                                if cids[i] == target_conversation_id:
-                                    return tns[i]
-    except Exception:
+                if "invoke_subagent" in line_lower and ("conversationid" in line_lower or "conversation_id" in line_lower) and pending_type_names:
+                    cids = []
+                    found_cids = find_conversation_ids(obj)
+                    for cid in found_cids:
+                        if cid != parent_cid:
+                            cids.append(cid)
+                    if cids:
+                        tns = pending_type_names.pop(0)
+                        for i in range(min(len(tns), len(cids))):
+                            if cids[i] == target_conversation_id:
+                                return tns[i]
+    except Exception:  # noqa: BLE001, S110
         pass
     return None
 
@@ -207,9 +205,8 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
             is_omo_plans = subpath.startswith(".omo/plans/")
             contains_deny_word = any(w in subpath for w in ["plan", "task", "draft"])
             
-            if not is_omo_notepads:
-                if is_omo_plans or contains_deny_word:
-                    deny_omo = True
+            if not is_omo_notepads and (is_omo_plans or contains_deny_word):
+                deny_omo = True
         
         is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
         is_plugin_config = (
@@ -221,8 +218,8 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
         
         if deny_omo or is_agents or is_plugin_config:
             return {
-                "permissionDecision": "deny",
-                "permissionDecisionReason": (
+                "decision": "deny",
+                "reason": (
                     f"STOP. Subagents (workers) are forbidden from modifying .omo/ state or "
                     f"plugin configuration files (Path: {file_path})."
                 )
@@ -241,8 +238,8 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
         
         if not (is_plan or is_agents or is_omo):
             return {
-                "permissionDecision": "ask",
-                "permissionDecisionReason": (
+                "decision": "ask",
+                "reason": (
                     f"STOP. Lead Orchestrator agents do not edit source code directly (Path: {file_path}).\n"
                     "Implementing yourself is forbidden. You are paid to ORCHESTRATE, not implement.\n"
                     "If this is a tiny verification fix (<= 2 lines) on subagent output, you may proceed. "
@@ -250,9 +247,10 @@ def check_permission(tool_name, file_path, conversation_id, brain_dir):
                 )
             }
             
-    return {"permissionDecision": "allow"}
+    return {"decision": "allow"}
 
 def main():
+    setup_utf8_streams()
     try:
         # Read JSON from stdin
         payload = json.load(sys.stdin)
@@ -282,26 +280,26 @@ def main():
             # If path is specified, check it
             if file_path:
                 decision = check_permission(tool_name, file_path, conversation_id, brain_dir)
-                if decision.get("permissionDecision") != "allow":
-                    print(json.dumps(decision))
+                if decision.get("decision") != "allow":
+                    print(json.dumps(decision, ensure_ascii=False))
                     return
             
             res = notepad_write_guard.run_notepad_write_guard(tool_name, tool_input)
-            if res and res.get("permissionDecision") != "allow":
-                print(json.dumps(res))
+            if res and res.get("decision") != "allow":
+                print(json.dumps(res, ensure_ascii=False))
                 return
 
         elif tool_name == "run_command":
             res = fsync_skip_warning.run_fsync_skip_warning(tool_name, tool_input)
-            if res and res.get("permissionDecision") != "allow":
-                print(json.dumps(res))
+            if res and res.get("decision") != "allow":
+                print(json.dumps(res, ensure_ascii=False))
                 return
         
         # Default allow
-        print(json.dumps({"permissionDecision": "allow"}))
-    except Exception:
+        print(json.dumps({"decision": "allow"}, ensure_ascii=False))
+    except Exception:  # noqa: BLE001
         # Fallback to allow if any error
-        print(json.dumps({"permissionDecision": "allow"}))
+        print(json.dumps({"decision": "allow"}, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()

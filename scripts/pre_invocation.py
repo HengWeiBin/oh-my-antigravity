@@ -4,17 +4,25 @@ import json
 import os
 import sys
 
-
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hooks.utils import get_home_dir, resolve_path, is_subagent_session, extract_user_prompt, parse_skill_commands, check_mcp_active, check_codegraph_dir_exists
 from hooks import (
-    directory_agents_injector,
-    rules_injector,
-    compaction_todo_preserver,
-    todo_continuation_enforcer,
     agent_usage_reminder,
+    compaction_todo_preserver,
+    directory_agents_injector,
+    init_project_dir_replacer,
     keyword_detector,
-    init_project_dir_replacer
+    rules_injector,
+    todo_continuation_enforcer,
+)
+from hooks.utils import (
+    check_codegraph_dir_exists,
+    check_mcp_active,
+    extract_user_prompt,
+    get_home_dir,
+    is_subagent_session,
+    parse_skill_commands,
+    resolve_path,
+    setup_utf8_streams,
 )
 
 
@@ -77,6 +85,7 @@ def format_skill_instruction(skill_name: str, skill_content: str) -> str:
 
 
 def main() -> None:
+    setup_utf8_streams()
     try:
         # Read JSON payload from stdin
         input_data = sys.stdin.read().strip()
@@ -115,43 +124,43 @@ def main() -> None:
             res = directory_agents_injector.run_directory_agents_injector(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = rules_injector.run_rules_injector(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = compaction_todo_preserver.run_compaction_todo_preserver(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = todo_continuation_enforcer.run_todo_continuation_enforcer(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = agent_usage_reminder.run_agent_usage_reminder(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = keyword_detector.run_keyword_detector(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         try:
             res = init_project_dir_replacer.run_init_project_dir_replacer(payload)
             if res:
                 steps.extend(res)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
         # Retain existing invocationNum == 0 codegraph recommendation behavior
@@ -183,9 +192,9 @@ def main() -> None:
                         except OSError:
                             pass
 
-        print(json.dumps({"injectSteps": steps}))
+        print(json.dumps({"injectSteps": steps}, ensure_ascii=False))
     except Exception:  # noqa: BLE001
-        print(json.dumps({}))
+        print(json.dumps({}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

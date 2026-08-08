@@ -1,11 +1,14 @@
-import sys
 import json
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hooks import empty_task_response_detector, comment_checker, plan_format_validator
+from hooks import comment_checker, empty_task_response_detector, plan_format_validator
+from hooks.utils import setup_utf8_streams
+
 
 def main():
+    setup_utf8_streams()
     try:
         # Read JSON from stdin
         payload = json.load(sys.stdin)
@@ -55,17 +58,14 @@ def main():
         if contexts:
             combined_context = "\n\n".join(contexts)
             response = {
-                "hookSpecificOutput": {
-                    "hookEventName": "PostToolUse",
-                    "additionalContext": combined_context
-                }
+                "additionalContext": combined_context
             }
-            print(json.dumps(response))
+            print(json.dumps(response, ensure_ascii=False))
             return
         
-        print(json.dumps({}))
-    except Exception:
-        print(json.dumps({}))
+        print(json.dumps({}, ensure_ascii=False))
+    except Exception:  # noqa: BLE001
+        print(json.dumps({}, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()

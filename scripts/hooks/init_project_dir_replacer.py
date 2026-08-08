@@ -9,7 +9,11 @@ scripts_dir = os.path.abspath(os.path.join(current_dir, ".."))
 if scripts_dir not in sys.path:
     sys.path.insert(0, scripts_dir)
 
-from hooks.utils import extract_user_prompt, parse_skill_commands, resolve_path  # noqa: E402
+from hooks.utils import (
+    extract_user_prompt,
+    parse_skill_commands,
+    resolve_path,
+)
 
 
 def format_skill_instruction(skill_name: str, skill_content: str) -> str:

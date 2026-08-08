@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+
 def get_compaction_todo_messages(payload: dict) -> list[dict]:
     """
     On high invocation numbers (>= 15, suggesting context compaction),
@@ -55,11 +56,11 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
                     with open(fpath, "r", encoding="utf-8") as f:
                         for line in f:
                             stripped = line.strip()
-                            if stripped.startswith("- [ ]") or stripped.startswith("* [ ]"):
+                            if stripped.startswith(("- [ ]", "* [ ]")):
                                 unchecked_items.append(stripped)
                                 if len(unchecked_items) >= 10:
                                     break
-                except Exception:
+                except Exception:  # noqa: BLE001, S112
                     continue
 
                 if unchecked_items:
@@ -68,15 +69,14 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
                         "Remaining unchecked items:",
                         f"[{fname}]"
                     ]
-                    for item in unchecked_items:
-                        msg_lines.append(item)
+                    msg_lines.extend(unchecked_items)
                     msg_lines.append("Please ensure you continue working on these items.")
                     messages.append({"ephemeralMessage": "\n".join(msg_lines)})
                     
                     files_processed += 1
                     if files_processed >= 3:
                         return messages
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
     return messages

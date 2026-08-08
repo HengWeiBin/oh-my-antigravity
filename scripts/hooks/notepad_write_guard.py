@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+
 def check_notepad_write_guard(tool_name: str, tool_input: dict) -> dict | None:
     """
     Returns a denial dict if the write would destructively shrink a notepad file >50%.
@@ -26,7 +27,7 @@ def check_notepad_write_guard(tool_name: str, tool_input: dict) -> dict | None:
     try:
         with open(target_file, "r", encoding="utf-8") as f:
             old_content = f.read()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
         
     if not old_content:
@@ -34,8 +35,8 @@ def check_notepad_write_guard(tool_name: str, tool_input: dict) -> dict | None:
         
     if len(new_content) < (len(old_content) / 2.0):
         return {
-            "permissionDecision": "deny",
-            "permissionDecisionReason": "NOTEPAD WRITE GUARD: This write would reduce the notepad content by >50%, which is likely an accidental overwrite. Use replace_file_content or multi_replace_file_content to make targeted edits instead."
+            "decision": "deny",
+            "reason": "NOTEPAD WRITE GUARD: This write would reduce the notepad content by >50%, which is likely an accidental overwrite. Use replace_file_content or multi_replace_file_content to make targeted edits instead."
         }
         
     return None

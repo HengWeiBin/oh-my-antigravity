@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import re
 
 # Required sections for a valid plan
@@ -33,7 +34,7 @@ def check_plan_format(tool_name: str, tool_input: dict, tool_response: dict | No
         try:
             with open(target_file, 'r', encoding='utf-8') as f:
                 content = f.read()
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
     missing_sections = []

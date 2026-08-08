@@ -1,6 +1,8 @@
 from __future__ import annotations
-import os
+
 import glob
+import os
+
 
 def get_rules_messages(payload: dict) -> list[dict]:
     """
@@ -72,7 +74,7 @@ def get_rules_messages(payload: dict) -> list[dict]:
                 messages.append({
                     "ephemeralMessage": f"📜 Rules from {rel_path}:\n\n{content}"
                 })
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
             
     return messages

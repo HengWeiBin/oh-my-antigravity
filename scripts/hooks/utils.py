@@ -1,11 +1,31 @@
+import io
 import json
 import os
 import re
+import sys
+
+
+def setup_utf8_streams() -> None:
+    """Ensure standard IO streams (stdin, stdout, stderr) use UTF-8 encoding across all platforms."""
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None:
+            if hasattr(stream, "reconfigure"):
+                try:
+                    stream.reconfigure(encoding="utf-8")
+                except Exception:  # noqa: BLE001, S110
+                    pass
+            elif hasattr(stream, "buffer"):
+                try:
+                    setattr(sys, stream_name, io.TextIOWrapper(stream.buffer, encoding="utf-8"))
+                except Exception:  # noqa: BLE001, S110
+                    pass
+
 
 def get_home_dir() -> str:
     return os.path.expanduser("~")
 
-def resolve_path(path: str, cwd: str = None) -> str:
+def resolve_path(path: str, cwd: str | None = None) -> str:
     if not path:
         return ""
     if os.path.isabs(path):
@@ -63,9 +83,8 @@ def extract_user_prompt(payload: dict) -> str:
                     try:
                         step = json.loads(line)
                         step_type = step.get("type", "")
-                        if step_type in ("USER_INPUT", "USER_EXPLICIT"):
-                            if "content" in step:
-                                return step["content"]
+                        if step_type in ("USER_INPUT", "USER_EXPLICIT") and "content" in step:
+                            return step["content"]
                     except json.JSONDecodeError:
                         pass
         except OSError:
@@ -93,10 +112,10 @@ def check_mcp_active(workspaces: list[str]) -> bool:
             mcp_cfg = os.path.join(wp, p)
             if os.path.isfile(mcp_cfg):
                 try:
-                    with open(mcp_cfg) as f:
+                    with open(mcp_cfg, "r", encoding="utf-8") as f:
                         if "codegraph" in f.read():
                             return True
-                except Exception:
+                except Exception:  # noqa: BLE001, S110
                     pass
     return False
 
@@ -104,9 +123,7 @@ def check_codegraph_dir_exists(workspaces: list[str], cwd: str) -> bool:
     for wp in workspaces:
         if os.path.isdir(os.path.join(wp, ".codegraph")):
             return True
-    if cwd and os.path.isdir(os.path.join(cwd, ".codegraph")):
-        return True
-    return False
+    return bool(cwd and os.path.isdir(os.path.join(cwd, ".codegraph")))
 
 def is_cid_invoked_in_log(log_path: str, cid: str) -> bool:
     if not log_path or not os.path.isfile(log_path):
@@ -114,9 +131,8 @@ def is_cid_invoked_in_log(log_path: str, cid: str) -> bool:
     try:
         with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
             for line in f:
-                if cid in line:
-                    if "invoke_subagent" in line or "conversationId" in line or "conversation_id" in line:
-                        return True
+                if cid in line and ("invoke_subagent" in line or "conversationId" in line or "conversation_id" in line):
+                    return True
     except OSError:
         pass
     return False

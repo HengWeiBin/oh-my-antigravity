@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+
 def get_directory_agents_messages(payload: dict) -> list[dict]:
     """
     Walks from cwd upward to find AGENTS.md files (up to workspace root).
@@ -61,7 +62,7 @@ def get_directory_agents_messages(payload: dict) -> list[dict]:
         # Return in reverse order so most specific is injected last
         found_files.reverse()
         return found_files
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
 run_directory_agents_injector = get_directory_agents_messages
