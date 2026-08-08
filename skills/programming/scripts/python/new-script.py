@@ -39,7 +39,6 @@ from pathlib import Path
 import typer
 from rich import print as rprint
 
-
 TEMPLATE = '''\
 #!/usr/bin/env -S uv run --script
 # /// script
@@ -71,8 +70,8 @@ if __name__ == "__main__":
 
 def main(
     name: str = typer.Argument(help="Script name (without .py extension)"),
-    output: Path | None = typer.Option(None, "--output", "-o", help="Output path. Default: OS temp directory."),
-    deps: list[str] = typer.Option([], "--deps", "-d", help="Dependencies to include (repeat --deps for each)."),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Output path. Default: OS temp directory."),  # noqa: B008
+    deps: list[str] = typer.Option([], "--deps", "-d", help="Dependencies to include (repeat --deps for each)."),  # noqa: B008
     py: str = typer.Option("3.13", "--py", help="Minimum Python version."),
 ) -> None:
     """Generate a new PEP 723 script with all boilerplate pre-filled."""

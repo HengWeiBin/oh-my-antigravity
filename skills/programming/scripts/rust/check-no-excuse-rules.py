@@ -90,9 +90,7 @@ def is_test_path(path: Path) -> bool:
             return True
     if path.name == "build.rs":
         return True
-    if path.name.endswith("_test.rs"):
-        return True
-    return False
+    return bool(path.name.endswith("_test.rs"))
 
 
 def is_lib_path(file: Path) -> bool:
@@ -253,8 +251,6 @@ def check_file(file: Path) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    global violations
-
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <file.rs|dir> [file.rs|dir ...]", file=sys.stderr)
         sys.exit(2)
@@ -268,12 +264,12 @@ def main() -> None:
         check_file(f)
 
     if violations > 0:
-        print("", file=sys.stderr)
+        print(file=sys.stderr)
         print(
             f"rust-programmer: {violations} violation(s). Fix before declaring work done.",
             file=sys.stderr,
         )
-        print("", file=sys.stderr)
+        print(file=sys.stderr)
         print("Then run the full toolchain gate:", file=sys.stderr)
         print("  cargo +stable fmt --all -- --check", file=sys.stderr)
         print(

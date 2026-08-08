@@ -40,7 +40,6 @@ import typer
 from rich import print as rprint
 from rich.table import Table
 
-
 # Lighthouse config as Node.js script — run via subprocess
 LIGHTHOUSE_RUNNER_JS = """\
 const lighthouse = require('lighthouse');
@@ -82,6 +81,7 @@ def _check_node_deps() -> bool:
         ["node", "-e", "require('lighthouse'); require('chrome-launcher')"],
         capture_output=True,
         text=True,
+        check=False,
     )
     return result.returncode == 0
 
@@ -108,6 +108,7 @@ def _run_lighthouse_via_cdp(url: str, cdp_port: int, preset: str) -> dict[str, i
             capture_output=True,
             text=True,
             timeout=120,
+            check=False,
         )
         if result.returncode != 0:
             rprint(f"[red]Lighthouse failed:[/red] {result.stderr}")
@@ -130,7 +131,7 @@ def _run_with_playwright(url: str, preset: str) -> dict[str, int]:
         )
 
         # Use the browser's websocket endpoint to extract port
-        ws_endpoint = browser._impl_obj._connection._transport._ws_url  # noqa: SLF001
+        ws_endpoint = browser._impl_obj._connection._transport._ws_url
         # Extract port from ws://127.0.0.1:PORT/...
         port_str = ws_endpoint.split("://")[1].split(":")[1].split("/")[0]
         cdp_port = int(port_str)

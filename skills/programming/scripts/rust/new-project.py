@@ -118,8 +118,8 @@ app = typer.Typer(add_completion=False)
 @app.command()
 def main(
     name: str = typer.Argument(help="Name of the new Rust project"),
-    path: Path = typer.Option(
-        Path.cwd(),
+    path: Path = typer.Option(  # noqa: B008
+        Path.cwd(),  # noqa: B008
         "--path",
         "-p",
         help="Parent directory where the project folder is created",

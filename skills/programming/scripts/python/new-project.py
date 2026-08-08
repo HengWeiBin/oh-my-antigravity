@@ -100,7 +100,7 @@ htmlcov/
 
 def main(
     name: str = typer.Argument(help="Project name"),
-    path: Path = typer.Option(Path("."), "--path", "-p", help="Parent directory"),
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Parent directory"),  # noqa: B008
     lib: bool = typer.Option(False, "--lib", help="Create as publishable library (uv init --lib)"),
 ) -> None:
     """Create a new Python project with ultra-strict config."""
@@ -112,7 +112,7 @@ def main(
 
     # Run uv init
     cmd = ["uv", "init", "--lib" if lib else "--app", str(project_dir)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         rprint(f"[red]uv init failed:[/red] {result.stderr}")
         raise SystemExit(1)
@@ -147,6 +147,7 @@ def main(
         ["uv", "add", "--dev", "basedpyright", "ruff", "pytest", "pytest-cov"],
         cwd=project_dir,
         capture_output=True,
+        check=False,
     )
 
     # Create tests directory

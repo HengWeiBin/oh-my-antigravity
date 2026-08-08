@@ -59,7 +59,6 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
 VERSION = "0.1.0"
 
@@ -140,7 +139,7 @@ def skill_root() -> Path:
     return script_dir().parent
 
 
-def cached_binary() -> Optional[Path]:
+def cached_binary() -> Path | None:
     """Look in <skill_root>/bin/ for a previously downloaded binary."""
     binname = "sg.exe" if os.name == "nt" else "sg"
     altname = "ast-grep.exe" if os.name == "nt" else "ast-grep"
@@ -151,14 +150,14 @@ def cached_binary() -> Optional[Path]:
     return None
 
 
-def npm_binary() -> Optional[Path]:
+def npm_binary() -> Path | None:
     """If @ast-grep/cli is installed globally via npm, find its binary."""
     # `sg` shipped by @ast-grep/cli is on PATH when npm prefix bin is on PATH.
     # We rely on shutil.which for that case.
     return None  # handled by which_binary
 
 
-def which_binary() -> Optional[Path]:
+def which_binary() -> Path | None:
     """Use shutil.which to find sg or ast-grep on PATH.
 
     On Linux, plain `sg` collides with the setgroups command from util-linux
@@ -179,16 +178,17 @@ def which_binary() -> Optional[Path]:
                         capture_output=True,
                         text=True,
                         timeout=5,
+                        check=False,
                     )
                     if out.returncode != 0 or "ast-grep" not in (out.stdout + out.stderr).lower():
                         continue
-                except Exception:
+                except Exception:  # noqa: BLE001, S112
                     continue
             return p
     return None
 
 
-def homebrew_binary() -> Optional[Path]:
+def homebrew_binary() -> Path | None:
     """Common Homebrew install paths."""
     candidates = [
         Path("/opt/homebrew/bin/ast-grep"),
@@ -204,7 +204,7 @@ def homebrew_binary() -> Optional[Path]:
 
 # --- OMO runtime resolution (vendored patch) ---
 
-def omo_env_binary() -> Optional[Path]:
+def omo_env_binary() -> Path | None:
     raw_path = os.environ.get("OMO_AST_GREP_SG_PATH")
     if not raw_path:
         return None
@@ -227,7 +227,7 @@ def omo_runtime_slug() -> str:
     return f"{os_slug}-{arch_slug}"
 
 
-def omo_runtime_binary() -> Optional[Path]:
+def omo_runtime_binary() -> Path | None:
     binary_name = "sg.exe" if sys.platform.startswith("win") else "sg"
     slug = omo_runtime_slug()
     candidates: list[Path] = []
@@ -243,7 +243,7 @@ def omo_runtime_binary() -> Optional[Path]:
     return None
 
 
-def resolve_binary() -> Optional[Path]:
+def resolve_binary() -> Path | None:
     """Resolve the ast-grep binary in priority order.
 
     1. OMO_AST_GREP_SG_PATH override
@@ -287,14 +287,14 @@ def require_binary() -> Path:
 # Each tuple: (regex_to_detect, hint_message)
 REGEX_ANTIPATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\\w|\\d|\\s|\\b"),
-     "Backslash escapes (\\w, \\d, \\s, \\b) are regex syntax, not ast-grep. "
-     "Use $VAR to capture any identifier, or switch to grep for text patterns."),
+     ("Backslash escapes (\\w, \\d, \\s, \\b) are regex syntax, not ast-grep. "
+     "Use $VAR to capture any identifier, or switch to grep for text patterns.")),
     (re.compile(r"(?<!\$)\.\*|(?<!\$)\.\+"),
-     "'.*' and '.+' are regex wildcards, not ast-grep. "
-     "Use $$$ between AST fragments to match many nodes, or $VAR for one node."),
+     ("'.*' and '.+' are regex wildcards, not ast-grep. "
+     "Use $$$ between AST fragments to match many nodes, or $VAR for one node.")),
     (re.compile(r"\[[a-zA-Z0-9-]+\]"),
-     "Character classes like '[a-z]' are regex syntax. "
-     "ast-grep has no AST equivalent - use grep for character-level patterns."),
+     ("Character classes like '[a-z]' are regex syntax. "
+     "ast-grep has no AST equivalent - use grep for character-level patterns.")),
 ]
 
 
@@ -310,46 +310,41 @@ def find_alternation(pattern: str) -> bool:
     return bool(re.search(r"\w\s*\|\s*\w", stripped)) and "||" not in stripped
 
 
-def lang_specific_hints(pattern: str, lang: Optional[str]) -> list[str]:
+def lang_specific_hints(pattern: str, lang: str | None) -> list[str]:
     """Return a list of hints for language-specific common mistakes."""
     if not lang:
         return []
     canonical = LANG_ALIASES.get(lang.lower(), lang.lower())
     hints: list[str] = []
 
-    if canonical == "python":
-        # def foo($$$):  <-- trailing colon breaks the parse
-        if re.search(r"^\s*(def|class)\s+\$?\w+[^:]*:\s*$", pattern, re.MULTILINE):
-            hints.append(
-                "Python pattern has trailing ':'. ast-grep parses pattern as a complete "
-                "definition - drop the trailing colon. Try: 'def $FUNC($$$)' or 'class $C($$$)'."
-            )
+    if canonical == "python" and re.search(r"^\s*(def|class)\s+\$?\w+[^:]*:\s*$", pattern, re.MULTILINE):
+        hints.append(
+            "Python pattern has trailing ':'. ast-grep parses pattern as a complete "
+            "definition - drop the trailing colon. Try: 'def $FUNC($$$)' or 'class $C($$$)'."
+        )
 
-    if canonical in ("javascript", "typescript", "tsx"):
-        if re.search(r"^\s*(async\s+)?function\s+\$?\w+\s*$", pattern):
-            hints.append(
-                "JS/TS function pattern is incomplete. Add params and body: "
-                "'function $NAME($$$) { $$$ }'."
-            )
+    if canonical in ("javascript", "typescript", "tsx") and re.search(r"^\s*(async\s+)?function\s+\$?\w+\s*$", pattern):
+        hints.append(
+            "JS/TS function pattern is incomplete. Add params and body: "
+            "'function $NAME($$$) { $$$ }'."
+        )
 
-    if canonical == "go":
-        if re.search(r"^\s*func\s+\$?\w+\s*$", pattern):
-            hints.append(
-                "Go function pattern is incomplete. Add params and body: "
-                "'func $NAME($$$) { $$$ }'."
-            )
+    if canonical == "go" and re.search(r"^\s*func\s+\$?\w+\s*$", pattern):
+        hints.append(
+            "Go function pattern is incomplete. Add params and body: "
+            "'func $NAME($$$) { $$$ }'."
+        )
 
-    if canonical == "rust":
-        if re.search(r"^\s*fn\s+\$?\w+\s*$", pattern):
-            hints.append(
-                "Rust fn pattern is incomplete. Add params, return type, and body: "
-                "'fn $NAME($$$) -> $RET { $$$ }' (or '-> ()' if returning unit)."
-            )
+    if canonical == "rust" and re.search(r"^\s*fn\s+\$?\w+\s*$", pattern):
+        hints.append(
+            "Rust fn pattern is incomplete. Add params, return type, and body: "
+            "'fn $NAME($$$) -> $RET { $$$ }' (or '-> ()' if returning unit)."
+        )
 
     return hints
 
 
-def validate_pattern(pattern: str, lang: Optional[str]) -> list[str]:
+def validate_pattern(pattern: str, lang: str | None) -> list[str]:
     """Return a list of hints. Empty list = pattern looks plausible."""
     hints: list[str] = []
 
@@ -368,7 +363,7 @@ def validate_pattern(pattern: str, lang: Optional[str]) -> list[str]:
     return hints
 
 
-def normalize_lang(lang: Optional[str]) -> Optional[str]:
+def normalize_lang(lang: str | None) -> str | None:
     if not lang:
         return None
     canonical = LANG_ALIASES.get(lang.lower(), lang.lower())
@@ -396,6 +391,7 @@ def run_sg(
             capture_output=capture,
             text=True,
             timeout=timeout,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         err(f"ast-grep call timed out after {timeout}s")
@@ -605,7 +601,7 @@ def cmd_install(_args: argparse.Namespace) -> int:
         err(f"installer not found: {installer}")
         return 1
     trace(f"running installer: {' '.join(cmd)}")
-    return subprocess.run(cmd).returncode
+    return subprocess.run(cmd, check=False).returncode
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -736,7 +732,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     global _QUIET
     parser = build_parser()
     args = parser.parse_args(argv)
