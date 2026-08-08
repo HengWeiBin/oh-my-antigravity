@@ -123,3 +123,6 @@ env/
 # System Files
 .DS_Store
 Thumbs.db
+
+# Agent Files
+.omo/
