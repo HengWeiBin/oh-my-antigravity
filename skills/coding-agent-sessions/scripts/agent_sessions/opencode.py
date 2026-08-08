@@ -5,7 +5,6 @@ import sqlite3
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import TypeAlias
 
 from .jsonio import as_map, int_value, parse_json_text, read_json, text
 from .timeparse import unix_millis
@@ -27,8 +26,8 @@ LEGACY_SESSION_SQL = (
     "from session where time_archived is null "
     "order by time_updated desc limit 2000"
 )
-SqlValue: TypeAlias = str | int | float | bytes | None
-OpenCodeRow: TypeAlias = tuple[SqlValue, ...]
+type SqlValue = str | int | float | bytes | None
+type OpenCodeRow = tuple[SqlValue, ...]
 
 
 def scan_opencode(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:

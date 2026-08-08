@@ -2,11 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypeAlias
 
-
-Json: TypeAlias = str | int | float | bool | None | list["Json"] | dict[str, "Json"]
-JsonMap: TypeAlias = dict[str, Json]
+type Json = str | int | float | bool | None | list["Json"] | dict[str, "Json"]
+type JsonMap = dict[str, Json]
 
 
 @dataclass(frozen=True, slots=True)

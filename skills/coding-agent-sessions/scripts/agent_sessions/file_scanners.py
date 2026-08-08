@@ -5,7 +5,14 @@ from urllib.parse import unquote, urlparse
 
 from .jsonio import as_map, int_value, iter_jsonl, parse_json_text, read_json, text
 from .timeparse import file_time, unix_millis, unix_seconds
-from .transcript import content_text, env_path, existing, flat_parallel, jsonl_parallel, recent
+from .transcript import (
+    content_text,
+    env_path,
+    existing,
+    flat_parallel,
+    jsonl_parallel,
+    recent,
+)
 from .types import Json, JsonMap, Session
 
 

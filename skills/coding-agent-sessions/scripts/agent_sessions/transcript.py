@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from heapq import nlargest
 from pathlib import Path
-from typing import Callable
 
 from .jsonio import as_map, iter_jsonl, parse_json_text, text
 from .timeparse import file_time

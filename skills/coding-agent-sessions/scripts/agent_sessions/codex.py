@@ -2,10 +2,18 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import TypeAlias
 
 from .timeparse import unix_seconds
-from .transcript import env_path, existing, flat_parallel, jsonl_parallel, nick_role, recent, spawn_info, stem_id
+from .transcript import (
+    env_path,
+    existing,
+    flat_parallel,
+    jsonl_parallel,
+    nick_role,
+    recent,
+    spawn_info,
+    stem_id,
+)
 from .types import Json, Session
 
 THREADS_SQL = (
@@ -17,8 +25,8 @@ LEGACY_THREADS_SQL = (
 )
 SPAWN_EDGES_SQL = "SELECT child_thread_id, parent_thread_id FROM thread_spawn_edges"
 
-SqliteScalar: TypeAlias = str | int | float | bytes | None
-CodexRow: TypeAlias = tuple[SqliteScalar, ...]
+type SqliteScalar = str | int | float | bytes | None
+type CodexRow = tuple[SqliteScalar, ...]
 
 
 def scan_codex(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
@@ -90,11 +98,11 @@ def _codex_row(path: Path, row: CodexRow, edges: dict[str, str]) -> Session:
     )
 
 
-def _row_text(value: Json | int | float | None) -> str | None:
+def _row_text(value: Json | float | None) -> str | None:
     return value if isinstance(value, str) else None
 
 
-def _row_number(value: Json | int | float | None) -> int | float | None:
+def _row_number(value: Json | float | None) -> int | float | None:
     return value if isinstance(value, int | float) else None
 
 

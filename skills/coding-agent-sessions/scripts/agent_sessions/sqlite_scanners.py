@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import TypeAlias
 
 from .jsonio import as_map, parse_json_text, text
 from .timeparse import file_time, unix_millis
 from .transcript import content_text, env_path, existing, flat_parallel, recent
 from .types import Json, JsonMap, Session
 
-SqlValue: TypeAlias = str | int | float | bytes | None
-SqlRow: TypeAlias = tuple[SqlValue, ...]
+type SqlValue = str | int | float | bytes | None
+type SqlRow = tuple[SqlValue, ...]
 
 
 def scan_kodu(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:

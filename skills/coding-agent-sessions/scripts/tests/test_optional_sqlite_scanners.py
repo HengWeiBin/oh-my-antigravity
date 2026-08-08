@@ -14,7 +14,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from agent_sessions.sqlite_optional_scanners import scan_crush, scan_goose, scan_hermes, scan_kilo_cli, scan_zed
+from agent_sessions.sqlite_optional_scanners import (
+    scan_crush,
+    scan_goose,
+    scan_hermes,
+    scan_kilo_cli,
+    scan_zed,
+)
 
 
 def _message_db(path: Path, table: str, prompt: str) -> None:
