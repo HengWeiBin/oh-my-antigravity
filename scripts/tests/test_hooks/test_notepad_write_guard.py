@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from hooks.notepad_write_guard import check_notepad_write_guard
 
+
 def test_non_notepad_file():
     tool_input = {
         "TargetFile": "/path/to/normal/file.txt",
@@ -65,5 +66,6 @@ def test_notepad_write_deny(tmp_path):
     
     result = check_notepad_write_guard("write_to_file", tool_input)
     assert result is not None
-    assert result.get("permissionDecision") == "deny"
-    assert "reduce the notepad content by >50%" in result.get("permissionDecisionReason")
+    assert result.get("decision") == "deny"
+    assert "reduce the notepad content by >50%" in result.get("reason", "")
+    assert "permissionDecision" not in result

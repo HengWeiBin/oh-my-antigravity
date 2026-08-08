@@ -1,5 +1,6 @@
 from hooks.compaction_todo_preserver import get_compaction_todo_messages
 
+
 def test_invocation_num_less_than_15():
     assert get_compaction_todo_messages({"invocationNum": 14}) == []
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from hooks.fsync_skip_warning import check_fsync_skip_warning
+
 
 def test_fsync_skip_warning_dangerous_patterns():
     tests = [
@@ -15,8 +17,9 @@ def test_fsync_skip_warning_dangerous_patterns():
     for cmd, pattern_name in tests:
         result = check_fsync_skip_warning("run_command", {"CommandLine": cmd})
         assert result is not None, f"Expected warning for '{cmd}'"
-        assert result["permissionDecision"] == "ask"
-        assert pattern_name in result["permissionDecisionReason"]
+        assert result["decision"] == "ask"
+        assert pattern_name in result["reason"]
+        assert "permissionDecision" not in result
 
 def test_fsync_skip_warning_safe_patterns():
     tests = [

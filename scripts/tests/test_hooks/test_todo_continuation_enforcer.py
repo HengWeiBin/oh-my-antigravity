@@ -1,9 +1,10 @@
-import os
 import json
+import os
 import tempfile
-import pytest
 
+import pytest
 from hooks.todo_continuation_enforcer import get_todo_continuation_messages
+
 
 @pytest.fixture
 def temp_workspace():

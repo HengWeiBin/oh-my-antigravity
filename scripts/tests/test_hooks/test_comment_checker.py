@@ -1,8 +1,9 @@
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from hooks.comment_checker import check_comment_preservation
+
 
 def test_python_with_comments():
     code = "\n".join([f"line {i}" for i in range(25)] + ["# a comment"])

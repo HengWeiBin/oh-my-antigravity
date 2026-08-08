@@ -5,6 +5,7 @@ import tempfile
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'hooks')))
 from plan_format_validator import check_plan_format
 
+
 def test_non_plan_file():
     tool_input = {
         'TargetFile': 'C:\\Users\\K20879\\.gemini\\config\\plugins\\oh-my-antigravity\\some_file.md',

@@ -1,4 +1,4 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
 from hooks.keyword_detector import get_keyword_detector_messages
 

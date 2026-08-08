@@ -1,14 +1,16 @@
-import sys
 import os
-import tempfile
-import pytest
 import shutil
+import sys
+import tempfile
+
+import pytest
 
 scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if scripts_dir not in sys.path:
     sys.path.insert(0, scripts_dir)
 
-from hooks.rules_injector import get_rules_messages  # noqa: E402
+from hooks.rules_injector import get_rules_messages
+
 
 @pytest.fixture
 def workspace():

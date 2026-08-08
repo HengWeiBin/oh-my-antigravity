@@ -1,5 +1,9 @@
-from unittest.mock import patch, mock_open
-from hooks.init_project_dir_replacer import run_init_project_dir_replacer, get_project_dir
+from unittest.mock import mock_open, patch
+
+from hooks.init_project_dir_replacer import (
+    get_project_dir,
+    run_init_project_dir_replacer,
+)
 
 
 def test_get_project_dir_workspace_paths():

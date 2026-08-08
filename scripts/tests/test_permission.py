@@ -1,14 +1,15 @@
-import sys
 import json
 import os
+import sys
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 # Import check_permission from pre_tool_use
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.abspath(f"{os.environ.get("USERPROFILE")}/.gemini/config/plugins/oh-my-antigravity/scripts"))
 
 from pre_tool_use import check_permission
+
 
 class TestOmoConstraints(unittest.TestCase):
     def setUp(self):        
@@ -31,8 +32,9 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.orch_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "ask")
-        self.assertIn("Lead Orchestrator agents do not edit source code directly", res["permissionDecisionReason"])
+        self.assertEqual(res["decision"], "ask")
+        self.assertIn("Lead Orchestrator agents do not edit source code directly", res["reason"])
+        self.assertNotIn("permissionDecision", res)
 
     @patch("pre_tool_use.os.listdir")
     def test_orchestrator_allowed_paths(self, mock_listdir):
@@ -52,7 +54,8 @@ class TestOmoConstraints(unittest.TestCase):
                 conversation_id=self.orch_cid,
                 brain_dir=self.brain_dir
             )
-            self.assertEqual(res["permissionDecision"], "allow", f"Failed on path: {path}")
+            self.assertEqual(res["decision"], "allow", f"Failed on path: {path}")
+            self.assertNotIn("permissionDecision", res)
 
     @patch("pre_tool_use.os.listdir")
     @patch("pre_tool_use.os.path.isdir")
@@ -111,8 +114,9 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "deny")
-        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["permissionDecisionReason"])
+        self.assertEqual(res["decision"], "deny")
+        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["reason"])
+        self.assertNotIn("permissionDecision", res)
 
         # Subagent writing to .omo/drafts/draft.md should be denied
         res = check_permission(
@@ -121,8 +125,9 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "deny")
-        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["permissionDecisionReason"])
+        self.assertEqual(res["decision"], "deny")
+        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["reason"])
+        self.assertNotIn("permissionDecision", res)
 
         # Subagent writing to .omo/notepads/learnings.md should be allowed
         res = check_permission(
@@ -131,7 +136,8 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "allow")
+        self.assertEqual(res["decision"], "allow")
+        self.assertNotIn("permissionDecision", res)
 
         # Subagent writing to .omo/boulder.json should be allowed
         res = check_permission(
@@ -140,7 +146,8 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "allow")
+        self.assertEqual(res["decision"], "allow")
+        self.assertNotIn("permissionDecision", res)
 
         # Subagent writing to .agents/ should be denied
         res = check_permission(
@@ -149,7 +156,8 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "deny")
+        self.assertEqual(res["decision"], "deny")
+        self.assertNotIn("permissionDecision", res)
 
         # Subagent writing to rules/ should be denied
         res = check_permission(
@@ -158,7 +166,8 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "deny")
+        self.assertEqual(res["decision"], "deny")
+        self.assertNotIn("permissionDecision", res)
 
     @patch("pre_tool_use.os.listdir")
     @patch("pre_tool_use.os.path.isdir")
@@ -216,7 +225,8 @@ class TestOmoConstraints(unittest.TestCase):
             conversation_id=self.sub_cid,
             brain_dir=self.brain_dir
         )
-        self.assertEqual(res["permissionDecision"], "allow")
+        self.assertEqual(res["decision"], "allow")
+        self.assertNotIn("permissionDecision", res)
 
 if __name__ == "__main__":
     unittest.main()

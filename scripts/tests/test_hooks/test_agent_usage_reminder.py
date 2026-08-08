@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from scripts.hooks.agent_usage_reminder import get_agent_usage_reminder_messages
 
+
 def test_subagent_session():
     # If is_subagent is true, should return []
     payload = {"isSubagent": True, "invocationNum": 10}

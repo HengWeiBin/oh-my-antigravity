@@ -1,7 +1,7 @@
-import sys
 import json
 import os
 import subprocess
+import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRE_INVOCATION = os.path.join(SCRIPT_DIR, "pre_invocation.py")
@@ -12,15 +12,14 @@ def run_script(script_path, payload):
     result = subprocess.run(
         [sys.executable, script_path],
         input=json.dumps(payload).encode("utf-8"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False
     )
     if result.returncode != 0:
         return {}
     try:
         return json.loads(result.stdout.decode("utf-8"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 def test_pre_invocation_integration():
@@ -42,8 +41,9 @@ def test_pre_tool_use_integration_run_command():
         "conversationId": "sys-123"
     }
     result = run_script(PRE_TOOL_USE, payload)
-    assert result.get("permissionDecision") == "ask"
-    assert "FSYNC WARNING" in result.get("permissionDecisionReason", "")
+    assert result.get("decision") == "ask"
+    assert "FSYNC WARNING" in result.get("reason", "")
+    assert "permissionDecision" not in result
     
 def test_pre_tool_use_integration_notepad():
     payload = {
@@ -55,7 +55,7 @@ def test_pre_tool_use_integration_notepad():
         "conversationId": "sys-123"
     }
     result = run_script(PRE_TOOL_USE, payload)
-    assert "permissionDecision" in result or not result # allow is usually permissionDecision: allow
+    assert "decision" in result or not result
     
 def test_post_tool_use_integration_invoke_subagent():
     payload = {
@@ -63,9 +63,9 @@ def test_post_tool_use_integration_invoke_subagent():
         "tool_response": "done"
     }
     result = run_script(POST_TOOL_USE, payload)
-    assert "hookSpecificOutput" in result
-    assert "additionalContext" in result["hookSpecificOutput"]
-    assert "EMPTY SUBAGENT RESPONSE DETECTED" in result["hookSpecificOutput"]["additionalContext"]
+    assert "additionalContext" in result
+    assert "hookSpecificOutput" not in result
+    assert "EMPTY SUBAGENT RESPONSE DETECTED" in result["additionalContext"]
     
 def test_post_tool_use_integration_write_file():
     payload = {
@@ -77,7 +77,7 @@ def test_post_tool_use_integration_write_file():
         "tool_response": {}
     }
     result = run_script(POST_TOOL_USE, payload)
-    assert "hookSpecificOutput" in result
-    assert "additionalContext" in result["hookSpecificOutput"]
-    context = result["hookSpecificOutput"]["additionalContext"]
+    assert "additionalContext" in result
+    assert "hookSpecificOutput" not in result
+    context = result["additionalContext"]
     assert "PLAN FORMAT VALIDATOR" in context or "COMMENT CHECKER" in context

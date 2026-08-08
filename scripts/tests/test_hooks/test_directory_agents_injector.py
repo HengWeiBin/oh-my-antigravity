@@ -1,5 +1,6 @@
 from hooks.directory_agents_injector import get_directory_agents_messages
 
+
 def test_no_agents_md(tmp_path):
     cwd = tmp_path / "src" / "deep"
     cwd.mkdir(parents=True)
