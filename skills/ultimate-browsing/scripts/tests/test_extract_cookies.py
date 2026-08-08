@@ -7,15 +7,19 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from cookie_crypto import decrypt_chromium_value, derive_key  # noqa: E402
-from cookie_paths import UnsupportedPlatform, resolve_cookie_db  # noqa: E402
-from extract_cookies import extract_cookies, inject_cookies, write_cookie_file  # noqa: E402
+from cookie_crypto import decrypt_chromium_value, derive_key
+from cookie_paths import UnsupportedPlatform, resolve_cookie_db
+from extract_cookies import (
+    extract_cookies,
+    inject_cookies,
+    write_cookie_file,
+)
 
 
 def _make_chromium_db(path: Path, name: str, encrypted_value: bytes, host: str) -> None:

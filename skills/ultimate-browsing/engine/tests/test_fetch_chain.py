@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from engine.fetch_chain import fetch  # noqa: E402
-from engine.result_schema import Attempt  # noqa: E402
-from engine.validators import Verdict  # noqa: E402
+from engine.fetch_chain import fetch
+from engine.result_schema import Attempt
+from engine.validators import Verdict
 
 
 class _Resp:
@@ -18,10 +18,13 @@ class _Resp:
         self.url = url
 
 
+from typing import ClassVar
+
+
 class _Hit:
     profile_id = "cloudflare_turnstile"
     confidence = 1.0
-    signals = ["test"]
+    signals: ClassVar[list[str]] = ["test"]
 
 
 class FetchChain(unittest.TestCase):

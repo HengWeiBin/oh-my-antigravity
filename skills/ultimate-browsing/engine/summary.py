@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .result_schema import Attempt
 from .validators import Verdict
-
 
 _R7_ELIGIBLE_PROFILES = frozenset({
     "akamai_bot_manager",
@@ -24,7 +21,7 @@ R7_HINT = (
 )
 
 
-def format_summary(trace: list[Attempt], profile: Optional[str]) -> str:
+def format_summary(trace: list[Attempt], profile: str | None) -> str:
     n = len(trace)
     verdicts = [a.verdict for a in trace]
     challenge_count = sum(1 for v in verdicts if v == Verdict.CHALLENGE.value)

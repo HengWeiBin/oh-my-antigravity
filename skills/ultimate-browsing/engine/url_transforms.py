@@ -16,7 +16,7 @@ Adding new transforms: prove they help on ≥2 unrelated sites first
 """
 from __future__ import annotations
 
-from typing import Callable, Optional
+from collections.abc import Callable
 from urllib.parse import urlsplit, urlunsplit
 
 
@@ -25,11 +25,11 @@ def _replace_host(url: str, new_host: str) -> str:
     return urlunsplit(parts._replace(netloc=new_host))
 
 
-def _original(url: str) -> Optional[str]:
+def _original(url: str) -> str | None:
     return url
 
 
-def _mobile_subdomain(url: str) -> Optional[str]:
+def _mobile_subdomain(url: str) -> str | None:
     """`https://www.example.com/a` → `https://m.example.com/a` (only if host starts with www.)."""
     parts = urlsplit(url)
     host = parts.hostname or ""
@@ -41,7 +41,7 @@ def _mobile_subdomain(url: str) -> Optional[str]:
     return _replace_host(url, new_host)
 
 
-def _am_prefix(url: str) -> Optional[str]:
+def _am_prefix(url: str) -> str | None:
     """`https://example.com/a` → `https://m.example.com/a` (only if host has no subdomain)."""
     parts = urlsplit(url)
     host = parts.hostname or ""
@@ -55,7 +55,7 @@ def _am_prefix(url: str) -> Optional[str]:
     return _replace_host(url, "m." + host)
 
 
-def _drop_www(url: str) -> Optional[str]:
+def _drop_www(url: str) -> str | None:
     parts = urlsplit(url)
     host = parts.hostname or ""
     if not host.startswith("www."):
@@ -63,7 +63,7 @@ def _drop_www(url: str) -> Optional[str]:
     return _replace_host(url, host[4:])
 
 
-TRANSFORMS: dict[str, Callable[[str], Optional[str]]] = {
+TRANSFORMS: dict[str, Callable[[str], str | None]] = {
     "original": _original,
     "mobile_subdomain": _mobile_subdomain,
     "am_prefix": _am_prefix,
@@ -71,7 +71,7 @@ TRANSFORMS: dict[str, Callable[[str], Optional[str]]] = {
 }
 
 
-def apply_transform(name: str, url: str) -> Optional[str]:
+def apply_transform(name: str, url: str) -> str | None:
     """Apply one transform by name. Returns transformed URL or None if skipped."""
     fn = TRANSFORMS.get(name)
     if fn is None:

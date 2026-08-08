@@ -57,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
             max_attempts=args.max_attempts,
             enable_playwright=not args.no_playwright,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"engine fatal: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
 

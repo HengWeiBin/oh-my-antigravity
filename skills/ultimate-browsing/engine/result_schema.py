@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -10,14 +9,14 @@ class Attempt:
     executor: str
     url: str
     url_transform: str
-    impersonate: Optional[str]
+    impersonate: str | None
     referer: str
     status: int = 0
     body_size: int = 0
     verdict: str = ""
     reasons: list[str] = field(default_factory=list)
     elapsed_s: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -29,7 +28,7 @@ class FetchResult:
     content: str = ""
     final_url: str = ""
     verdict: str = ""
-    profile_used: Optional[str] = None
+    profile_used: str | None = None
     trace: list[Attempt] = field(default_factory=list)
     summary: str = ""
 

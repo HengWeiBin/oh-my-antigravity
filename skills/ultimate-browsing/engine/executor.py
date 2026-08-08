@@ -24,12 +24,10 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Optional
 
+from .result_schema import Attempt
 from .validators import Verdict, validate
 from .waf_detector import load_profile
-from .result_schema import Attempt
-
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -42,9 +40,7 @@ def _chrome_channel_available() -> bool:
     """Heuristic: try `node -e` to import playwright. Fallback to True, let script fail loudly."""
     if not _node_available():
         return False
-    if shutil.which("npx") is None:
-        return False
-    return True
+    return shutil.which("npx") is not None
 
 
 def _pick_executor(capabilities: list[str], device_class: str) -> str:
@@ -77,11 +73,12 @@ def _run_node_template(template: str, args: dict, timeout: int = 90) -> tuple[in
             capture_output=True,
             text=True,
             timeout=timeout,
+            check=False,
         )
         return proc.returncode, proc.stdout, proc.stderr
     except subprocess.TimeoutExpired:
         return 124, "", f"timeout after {timeout}s"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return 1, "", f"{type(e).__name__}:{e}"
 
 
@@ -109,11 +106,11 @@ def run_playwright_fallback(
     url: str,
     *,
     profile_id: str,
-    success_selectors: Optional[list[str]] = None,
+    success_selectors: list[str] | None = None,
     device_class: str = "auto",
     timeout: int = 90,
-    profile_dir: Optional[str] = None,
-    force_executor: Optional[str] = None,
+    profile_dir: str | None = None,
+    force_executor: str | None = None,
 ) -> tuple[Attempt, str]:
     """Invoke the appropriate Playwright executor.
 

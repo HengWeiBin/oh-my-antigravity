@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 try:
     from bs4 import BeautifulSoup
@@ -86,7 +85,7 @@ def _abck_unresolved(cookies: dict) -> bool:
     return bool(abck) and "~-1~" in abck
 
 
-def _selector_hits(body: str, selectors: list[str]) -> Optional[list[str]]:
+def _selector_hits(body: str, selectors: list[str]) -> list[str] | None:
     """Return matched-selector list, or None if BS4 is unavailable.
 
     Distinguishing None (dependency missing) from [] (nothing matched) lets
@@ -97,14 +96,14 @@ def _selector_hits(body: str, selectors: list[str]) -> Optional[list[str]]:
         return None
     try:
         soup = BeautifulSoup(body, "html.parser")
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
     hits: list[str] = []
     for sel in selectors:
         try:
             if soup.select(sel):
                 hits.append(sel)
-        except Exception:
+        except Exception:  # noqa: BLE001, S112
             continue
     return hits
 
@@ -112,8 +111,8 @@ def _selector_hits(body: str, selectors: list[str]) -> Optional[list[str]]:
 def validate(
     resp,
     *,
-    success_selectors: Optional[list[str]] = None,
-    known_bad_sizes: Optional[list[int]] = None,
+    success_selectors: list[str] | None = None,
+    known_bad_sizes: list[int] | None = None,
     size_tolerance: int = 20,
 ) -> ValidationResult:
     """Validate a `curl_cffi` / `requests` response.
@@ -135,7 +134,7 @@ def validate(
         status = int(getattr(resp, "status_code", 0) or 0)
         text = getattr(resp, "text", "") or ""
         size = len(text)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return ValidationResult(verdict=Verdict.UNKNOWN, reasons=[f"parse_error:{e}"])
 
     r = ValidationResult(verdict=Verdict.UNKNOWN, body_size=size, status=status)
@@ -209,8 +208,8 @@ def validate(
 def _extract_cookies(resp) -> dict:
     try:
         return {c.name: c.value for c in resp.cookies.jar}
-    except Exception:
+    except Exception:  # noqa: BLE001
         try:
             return dict(resp.cookies) if hasattr(resp, "cookies") else {}
-        except Exception:
+        except Exception:  # noqa: BLE001
             return {}

@@ -48,7 +48,7 @@ def decrypt_chromium_value(platform: str, key: bytes, encrypted: bytes) -> str:
 def macos_keyring_secret(safe_storage: str) -> bytes:
     result = subprocess.run(
         ["security", "find-generic-password", "-s", safe_storage, "-w"],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True, text=True, timeout=30, check=False,
     )
     if result.returncode != 0:
         raise RuntimeError(f"cannot read {safe_storage} from Keychain: {result.stderr.strip()}")

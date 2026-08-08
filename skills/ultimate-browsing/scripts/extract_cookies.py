@@ -20,8 +20,9 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from cookie_crypto import (
     decrypt_chromium_value,
@@ -31,7 +32,13 @@ from cookie_crypto import (
     windows_oscrypt_key,
 )
 from cookie_domains import domain_where_clause
-from cookie_paths import BROWSERS, BrowserSpec, UnsupportedPlatform, platform_base, resolve_cookie_db
+from cookie_paths import (
+    BROWSERS,
+    BrowserSpec,
+    UnsupportedPlatform,
+    platform_base,
+    resolve_cookie_db,
+)
 
 _SAMESITE = {-1: "None", 0: "None", 1: "Lax", 2: "Strict"}
 
@@ -118,9 +125,8 @@ process.stdin.on("end", () => {
 
 
 def _secure_cookie_db_copy(db_path: Path) -> Path:
-    handle = tempfile.NamedTemporaryFile(prefix="omo-cookies-", suffix=".sqlite", delete=False)
-    tmp = Path(handle.name)
-    handle.close()
+    with tempfile.NamedTemporaryFile(prefix="omo-cookies-", suffix=".sqlite", delete=False) as handle:
+        tmp = Path(handle.name)
     try:
         shutil.copyfile(db_path, tmp)
         tmp.chmod(0o600)
@@ -251,6 +257,7 @@ def inject_cookies(cookies: list[CookieRecord], cdp_port: int) -> None:
         capture_output=True,
         text=True,
         timeout=15,
+        check=False,
     )
     if proc.returncode != 0:
         raise RuntimeError((proc.stderr or "CDP cookie injection failed").strip())

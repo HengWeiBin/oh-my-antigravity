@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import time
-from typing import Iterable, Mapping, Protocol
+from collections.abc import Iterable, Mapping
+from typing import Protocol
 
 from .referers import REFERER_STRATEGIES
 from .result_schema import Attempt

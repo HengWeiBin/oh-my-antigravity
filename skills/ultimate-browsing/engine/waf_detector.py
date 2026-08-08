@@ -13,7 +13,6 @@ from __future__ import annotations
 import fnmatch
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 try:
     import yaml  # PyYAML
@@ -46,7 +45,7 @@ _DEFAULT_PROFILES: dict = {
 
 # Module-level sticky error. Readers call `last_load_error()` after each
 # `_load_profiles()` call to surface YAML problems in FetchResult.trace.
-_LAST_LOAD_ERROR: Optional[str] = None
+_LAST_LOAD_ERROR: str | None = None
 
 
 @dataclass
@@ -56,7 +55,7 @@ class DetectionHit:
     signals: list[str]
 
 
-def last_load_error() -> Optional[str]:
+def last_load_error() -> str | None:
     """Return the most recent profile-loader error (or None if clean)."""
     return _LAST_LOAD_ERROR
 
@@ -83,7 +82,7 @@ def _load_profiles(path: str = PROFILES_PATH) -> dict:
     except yaml.YAMLError as e:
         _LAST_LOAD_ERROR = f"YAML parse error: {type(e).__name__}: {str(e)[:200]}"
         return dict(_DEFAULT_PROFILES)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _LAST_LOAD_ERROR = f"profile loader: {type(e).__name__}: {str(e)[:200]}"
         return dict(_DEFAULT_PROFILES)
 
@@ -97,17 +96,17 @@ def _load_profiles(path: str = PROFILES_PATH) -> dict:
 def _cookies_dict(resp) -> dict:
     try:
         return {c.name: c.value for c in resp.cookies.jar}
-    except Exception:
+    except Exception:  # noqa: BLE001
         try:
             return dict(resp.cookies) if hasattr(resp, "cookies") else {}
-        except Exception:
+        except Exception:  # noqa: BLE001
             return {}
 
 
 def _headers_dict(resp) -> dict:
     try:
         return {k.lower(): v for k, v in dict(resp.headers).items()}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 
@@ -128,7 +127,7 @@ def _match_patterns(haystack_keys: list[str], patterns: list[str]) -> list[str]:
     return hits
 
 
-def _score_profile(profile_id: str, profile: dict, resp) -> Optional[DetectionHit]:
+def _score_profile(profile_id: str, profile: dict, resp) -> DetectionHit | None:
     """Apply profile detectors to resp. Returns hit or None."""
     if profile_id.startswith("_"):
         return None
@@ -178,7 +177,7 @@ def _score_profile(profile_id: str, profile: dict, resp) -> Optional[DetectionHi
     return DetectionHit(profile_id=profile_id, confidence=conf, signals=signals)
 
 
-def detect(resp, *, profiles: Optional[dict] = None, min_confidence: float = 0.0) -> list[DetectionHit]:
+def detect(resp, *, profiles: dict | None = None, min_confidence: float = 0.0) -> list[DetectionHit]:
     """Return ranked list of detection hits (best first).
 
     When nothing fires, the returned list contains a single `unknown_challenge`
@@ -206,7 +205,7 @@ def detect(resp, *, profiles: Optional[dict] = None, min_confidence: float = 0.0
     return hits
 
 
-def load_profile(profile_id: str, *, profiles: Optional[dict] = None) -> dict:
+def load_profile(profile_id: str, *, profiles: dict | None = None) -> dict:
     """Get one profile by id, resolving `unknown_challenge` if missing."""
     if profiles is None:
         profiles = _load_profiles()

@@ -17,7 +17,6 @@ import re
 import sys
 from pathlib import Path
 
-
 # Known brand / domain substrings that should NOT appear in engine code.
 # This is a non-exhaustive deny list. CI should treat hits as warnings that
 # require human review; false positives (e.g. "github" in comments) can be
@@ -95,7 +94,7 @@ def _scan_file(path: Path, root: Path) -> list[str]:
     ext = path.suffix.lower()
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return [f"{rel}:0 — read error: {e}"]
 
     violations: list[str] = []
@@ -118,7 +117,7 @@ def _scan_file(path: Path, root: Path) -> list[str]:
             host = host.split("//", 1)[-1].split("/", 1)[0]
             if host in URL_ALLOWLIST:
                 continue
-            if host.endswith(".example.com") or host.endswith(".example.org"):
+            if host.endswith((".example.com", ".example.org")):
                 continue
             violations.append(f"{rel}:{lineno} — hardcoded host `{host}` in: {line.strip()[:120]}")
             break

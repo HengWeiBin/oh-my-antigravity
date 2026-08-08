@@ -24,9 +24,15 @@ import time
 from .curl_probe import run_attempt
 from .result_schema import Attempt, FetchResult
 from .summary import format_summary
-from .validators import Verdict
-from .waf_detector import DetectionHit, detect, load_profile, _load_profiles, last_load_error
 from .url_transforms import iter_transformed
+from .validators import Verdict
+from .waf_detector import (
+    DetectionHit,
+    _load_profiles,
+    detect,
+    last_load_error,
+    load_profile,
+)
 
 
 # --- Main entrypoint ---------------------------------------------------------
@@ -126,7 +132,7 @@ def fetch(
 
         tls_groups: list[list[str]] = profile.get("tls_impersonate_candidates") or [["safari", "chrome"]]
         tls_flat: list[str] = [t for group in tls_groups for t in group]
-        avoid = set((profile.get("tls_impersonate_avoid") or []))
+        avoid = set(profile.get("tls_impersonate_avoid") or [])
         tls_flat = [t for t in tls_flat if t not in avoid]
 
         referer_order = profile.get("referer_strategies") or ["self_root"]
