@@ -1,232 +1,119 @@
-import json
+from __future__ import annotations
+
 import os
 import sys
-import unittest
-from unittest.mock import MagicMock, patch
 
-# Import check_permission from pre_tool_use
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-sys.path.append(os.path.abspath(f"{os.environ.get("USERPROFILE")}/.gemini/config/plugins/oh-my-antigravity/scripts"))
+# Ensure scripts path is on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from pre_tool_use import check_permission
+from scripts.hooks.models import AgentRole
+from scripts.hooks.permission import PermissionPolicy
 
 
-class TestOmoConstraints(unittest.TestCase):
-    def setUp(self):        
-        # Dynamically construct conversation IDs to avoid literal matches in transcript history
-        self.sub_cid = "sub" + "agent" + "-" + "999"
-        self.orch_cid = "or" + "ch" + "-" + "999"
-        self.brain_dir = os.path.abspath(os.path.dirname(__file__) + "/../../../../antigravity/brain")
-        os.makedirs(self.brain_dir, exist_ok=True)
-        
-    @patch("pre_tool_use.os.listdir")
-    def test_orchestrator_product_code_denied_or_ask(self, mock_listdir):
-        # Mock empty brain dir so caller is not identified as subagent
-        mock_listdir.return_value = []
-        
-        # When caller is NOT a subagent (no other conversation links to self.orch_cid)
-        # Writing to source code directly should result in "ask"
-        res = check_permission(
+def test_orchestrator_code_edits_denied_or_ask() -> None:
+    res = PermissionPolicy.evaluate(
+        role=AgentRole.ORCHESTRATOR,
+        tool_name="write_to_file",
+        target_path="src/app.py",
+    )
+    assert not res.allowed
+    assert res.decision == "ask"
+    assert res.reason is not None
+    assert "Lead Orchestrator agents do not edit source code directly" in res.reason
+
+
+def test_orchestrator_allowed_paths() -> None:
+    for path in [
+        "plans/plan.md",
+        ".omo/boulder.json",
+        ".agents/hooks.json",
+        "task_list.md",
+        "docs/spec.md",
+    ]:
+        res = PermissionPolicy.evaluate(
+            role=AgentRole.ORCHESTRATOR,
             tool_name="write_to_file",
-            file_path="src/app.py",
-            conversation_id=self.orch_cid,
-            brain_dir=self.brain_dir
+            target_path=path,
         )
-        self.assertEqual(res["decision"], "ask")
-        self.assertIn("Lead Orchestrator agents do not edit source code directly", res["reason"])
-        self.assertNotIn("permissionDecision", res)
+        assert res.allowed, f"Failed on path: {path}"
+        assert res.decision == "allow"
 
-    @patch("pre_tool_use.os.listdir")
-    def test_orchestrator_allowed_paths(self, mock_listdir):
-        # Mock empty brain dir
-        mock_listdir.return_value = []
-        
-        # Orchestrator is allowed to write to plans, omo, agents
-        for path in [
-            "plans/plan.md", 
-            ".omo/boulder.json", 
-            ".agents/hooks.json",
-            "task_list.md"
-        ]:
-            res = check_permission(
-                tool_name="write_to_file",
-                file_path=path,
-                conversation_id=self.orch_cid,
-                brain_dir=self.brain_dir
-            )
-            self.assertEqual(res["decision"], "allow", f"Failed on path: {path}")
-            self.assertNotIn("permissionDecision", res)
 
-    @patch("pre_tool_use.os.listdir")
-    @patch("pre_tool_use.os.path.isdir")
-    @patch("pre_tool_use.os.path.exists")
-    @patch("builtins.open")
-    def test_subagent_omo_deny(self, mock_open, mock_exists, mock_isdir, mock_listdir):
-        # Mock other conversation transcript containing the subagent's cid
-        mock_listdir.return_value = ["some-parent-id"]
-        mock_isdir.return_value = True
-        mock_exists.return_value = True
-        
-        mock_file = MagicMock()
-        
-        # Mock file line iteration with JSONL steps
-        step_n = json.dumps({
-            "type": "message",
-            "message": {
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "name": "invoke_subagent",
-                        "input": {
-                            "Subagents": [
-                                {
-                                    "TypeName": "hephaestus",
-                                    "Role": "Deep Worker",
-                                    "Prompt": "Do work"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        })
-        step_n_plus_1 = json.dumps({
-            "type": "message",
-            "message": {
-                "role": "toolResult",
-                "toolName": "invoke_subagent",
-                "content": json.dumps([
-                    {
-                        "conversationId": self.sub_cid
-                    }
-                ])
-            }
-        })
-        
-        mock_file.__iter__.return_value = [step_n, step_n_plus_1]
-        mock_open.return_value.__enter__.return_value = mock_file
-        
-        # Subagent writing to .omo/plans/plan.md should be denied
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path=".omo/plans/plan.md",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "deny")
-        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["reason"])
-        self.assertNotIn("permissionDecision", res)
+def test_worker_restrictions() -> None:
+    # Subagent writing to .omo/plans/plan.md should be denied
+    res1 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path=".omo/plans/plan.md",
+    )
+    assert not res1.allowed
+    assert res1.decision == "deny"
+    assert res1.reason is not None
+    assert "Subagents (workers) are forbidden from modifying .omo/" in res1.reason
 
-        # Subagent writing to .omo/drafts/draft.md should be denied
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path=".omo/drafts/draft.md",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "deny")
-        self.assertIn("Subagents (workers) are forbidden from modifying .omo/", res["reason"])
-        self.assertNotIn("permissionDecision", res)
+    # Subagent writing to .omo/drafts/draft.md should be denied
+    res2 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path=".omo/drafts/draft.md",
+    )
+    assert not res2.allowed
+    assert res2.decision == "deny"
 
-        # Subagent writing to .omo/notepads/learnings.md should be allowed
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path=".omo/notepads/learnings.md",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "allow")
-        self.assertNotIn("permissionDecision", res)
+    # Subagent writing to .agents/ should be denied
+    res3 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path=".agents/hooks.json",
+    )
+    assert not res3.allowed
+    assert res3.decision == "deny"
 
-        # Subagent writing to .omo/boulder.json should be allowed
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path=".omo/boulder.json",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "allow")
-        self.assertNotIn("permissionDecision", res)
+    # Subagent writing to rules/ should be denied
+    res4 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path="rules/oh-my-openagent-rules.md",
+    )
+    assert not res4.allowed
+    assert res4.decision == "deny"
 
-        # Subagent writing to .agents/ should be denied
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path=".agents/hooks.json",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "deny")
-        self.assertNotIn("permissionDecision", res)
 
-        # Subagent writing to rules/ should be denied
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path="rules/oh-my-openagent-rules.md",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "deny")
-        self.assertNotIn("permissionDecision", res)
+def test_worker_allowed_paths() -> None:
+    # Subagent writing to .omo/notepads/learnings.md should be allowed
+    res1 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path=".omo/notepads/learnings.md",
+    )
+    assert res1.allowed
+    assert res1.decision == "allow"
 
-    @patch("pre_tool_use.os.listdir")
-    @patch("pre_tool_use.os.path.isdir")
-    @patch("pre_tool_use.os.path.exists")
-    @patch("builtins.open")
-    def test_subagent_source_code_allowed(self, mock_open, mock_exists, mock_isdir, mock_listdir):
-        mock_listdir.return_value = ["some-parent-id"]
-        mock_isdir.return_value = True
-        mock_exists.return_value = True
-        
-        mock_file = MagicMock()
-        
-        # Mock file line iteration with JSONL steps
-        step_n = json.dumps({
-            "type": "message",
-            "message": {
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "name": "invoke_subagent",
-                        "input": {
-                            "Subagents": [
-                                {
-                                    "TypeName": "hephaestus",
-                                    "Role": "Deep Worker",
-                                    "Prompt": "Do work"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        })
-        step_n_plus_1 = json.dumps({
-            "type": "message",
-            "message": {
-                "role": "toolResult",
-                "toolName": "invoke_subagent",
-                "content": json.dumps([
-                    {
-                        "conversationId": self.sub_cid
-                    }
-                ])
-            }
-        })
-        
-        mock_file.__iter__.return_value = [step_n, step_n_plus_1]
-        mock_open.return_value.__enter__.return_value = mock_file
-        
-        # Subagent writing to source code should be allowed (that's their job!)
-        res = check_permission(
-            tool_name="write_to_file",
-            file_path="src/app.py",
-            conversation_id=self.sub_cid,
-            brain_dir=self.brain_dir
-        )
-        self.assertEqual(res["decision"], "allow")
-        self.assertNotIn("permissionDecision", res)
+    # Subagent writing to .omo/boulder.json should be allowed
+    res2 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path=".omo/boulder.json",
+    )
+    assert res2.allowed
+    assert res2.decision == "allow"
 
-if __name__ == "__main__":
-    unittest.main()
+    # Subagent writing to source code should be allowed
+    res3 = PermissionPolicy.evaluate(
+        role=AgentRole.WORKER,
+        tool_name="write_to_file",
+        target_path="src/app.py",
+    )
+    assert res3.allowed
+    assert res3.decision == "allow"
+
+
+def test_read_tools_always_allowed() -> None:
+    res = PermissionPolicy.evaluate(
+        role=AgentRole.ORCHESTRATOR,
+        tool_name="view_file",
+        target_path="src/app.py",
+    )
+    assert res.allowed
+    assert res.decision == "allow"
