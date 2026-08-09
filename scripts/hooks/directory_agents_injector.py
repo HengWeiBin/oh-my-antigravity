@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+
 
 def get_directory_agents_messages(payload: dict) -> list[dict]:
     """
@@ -35,7 +38,7 @@ def get_directory_agents_messages(payload: dict) -> list[dict]:
                         content = f.read()
                         if len(content) > 4096:
                             content = content[:4096] + "... [truncated]"
-                        
+
                         msg = f"📋 AGENTS.md from {current_dir}:\n\n{content}"
                         found_files.append({"ephemeralMessage": msg})
                 except OSError:
@@ -52,11 +55,11 @@ def get_directory_agents_messages(payload: dict) -> list[dict]:
             if parent == current_dir:
                 # Reached root of file system
                 break
-            
+
             # Additional check for Windows to avoid infinite loop on drive root
             if current_dir.endswith(":\\") and parent.endswith(":\\"):
                 break
-                
+
             current_dir = parent
 
         # Return in reverse order so most specific is injected last
@@ -65,4 +68,15 @@ def get_directory_agents_messages(payload: dict) -> list[dict]:
     except Exception:  # noqa: BLE001
         return []
 
+
 run_directory_agents_injector = get_directory_agents_messages
+
+
+class DirectoryAgentsInjectorHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "directory_agents_injector"
+
+    def execute(self, context: HookContext) -> HookResult:
+        messages = get_directory_agents_messages(context.raw_payload)
+        return HookResult(injected_steps=messages)

@@ -3,16 +3,18 @@ from __future__ import annotations
 import os
 import sys
 
-# Ensure the scripts directory is in sys.path if not already, to allow absolute imports like `from hooks.utils import is_subagent_session`
 current_dir = os.path.dirname(os.path.abspath(__file__))
 scripts_dir = os.path.abspath(os.path.join(current_dir, ".."))
 if scripts_dir not in sys.path:
     sys.path.insert(0, scripts_dir)
 
-from hooks.utils import is_subagent_session
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+from scripts.hooks.utils import is_subagent_session
 
 REMINDER_INTERVAL = 10  # Fire every N invocations
-REMINDER_START = 5     # First fire at invocation N
+REMINDER_START = 5  # First fire at invocation N
+
 
 def get_agent_usage_reminder_messages(payload: dict) -> list[dict]:
     """
@@ -22,9 +24,9 @@ def get_agent_usage_reminder_messages(payload: dict) -> list[dict]:
     """
     if is_subagent_session(payload):
         return []
-    
+
     invocation_num = payload.get("invocationNum", 0)
-    
+
     if not isinstance(invocation_num, int):
         try:
             invocation_num = int(invocation_num)
@@ -41,7 +43,18 @@ def get_agent_usage_reminder_messages(payload: dict) -> list[dict]:
 📝 Notepads: Track state in `.omo/notepads/` files for cross-invocation memory
 🚫 Never implement yourself: You are an orchestrator — delegate everything"""
         return [{"ephemeralMessage": reminder_content}]
-    
+
     return []
 
+
 run_agent_usage_reminder = get_agent_usage_reminder_messages
+
+
+class AgentUsageReminderHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "agent_usage_reminder"
+
+    def execute(self, context: HookContext) -> HookResult:
+        messages = get_agent_usage_reminder_messages(context.raw_payload)
+        return HookResult(injected_steps=messages)

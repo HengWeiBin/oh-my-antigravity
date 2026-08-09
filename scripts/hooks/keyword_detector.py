@@ -3,21 +3,24 @@ from __future__ import annotations
 import os
 import re
 
-from hooks.utils import extract_user_prompt
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+from scripts.hooks.skill_resolver import SkillResolver
+from scripts.hooks.utils import extract_user_prompt
 
 # Keyword → skill name mapping
 KEYWORD_SKILLS: dict[str, str] = {
-    '$start-work': 'start-work',
-    '$ultrawork': 'ultrawork',
-    '$ulw': 'ultrawork',
-    '$review-work': 'review-work',
-    '$hyperplan': 'hyperplan',
-    '$ulw-plan': 'ulw-plan',
-    '$ulw-research': 'ulw-research',
-    '$programming': 'programming',
-    '$frontend': 'frontend',
-    '$debugging': 'debugging',
-    '$init': 'init',
+    "$start-work": "start-work",
+    "$ultrawork": "ultrawork",
+    "$ulw": "ultrawork",
+    "$review-work": "review-work",
+    "$hyperplan": "hyperplan",
+    "$ulw-plan": "ulw-plan",
+    "$ulw-research": "ulw-research",
+    "$programming": "programming",
+    "$frontend": "frontend",
+    "$debugging": "debugging",
+    "$init": "init",
 }
 
 
@@ -37,23 +40,23 @@ def get_keyword_detector_messages(payload: dict) -> list[dict]:
     if not prompt:
         return []
 
-    matches = re.findall(r'(?:^|[^\w\-\$])\$([a-zA-Z0-9_\-]+)', prompt)
-    
-    seen_skills = set()
-    messages = []
-    
+    matches = re.findall(r"(?:^|[^\w\-\$])\$([a-zA-Z0-9_\-]+)", prompt)
+
+    seen_skills: set[str] = set()
+    messages: list[dict] = []
+
     plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
+
     for match in matches:
-        keyword = f'${match}'
+        keyword = f"${match}"
         skill_name = KEYWORD_SKILLS.get(keyword)
-        
+
         if not skill_name or skill_name in seen_skills:
             continue
-            
+
         seen_skills.add(skill_name)
-        
-        skill_path = os.path.join(plugin_dir, 'skills', skill_name, 'SKILL.md')
+
+        skill_path = os.path.join(plugin_dir, "skills", skill_name, "SKILL.md")
         if os.path.isfile(skill_path):
             try:
                 with open(skill_path, "r", encoding="utf-8") as f:
@@ -62,7 +65,21 @@ def get_keyword_detector_messages(payload: dict) -> list[dict]:
                 messages.append({"ephemeralMessage": formatted})
             except OSError:
                 pass
-                
+
     return messages
 
+
 run_keyword_detector = get_keyword_detector_messages
+
+
+class KeywordDetectorHook(BaseHook):
+    def __init__(self, skill_resolver: SkillResolver | None = None) -> None:
+        self.skill_resolver = skill_resolver or SkillResolver()
+
+    @property
+    def name(self) -> str:
+        return "keyword_detector"
+
+    def execute(self, context: HookContext) -> HookResult:
+        messages = get_keyword_detector_messages(context.raw_payload)
+        return HookResult(injected_steps=messages)
