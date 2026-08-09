@@ -2,7 +2,15 @@ from __future__ import annotations
 
 import re
 
-WARNING_MSG = '⚠️ EMPTY SUBAGENT RESPONSE DETECTED: The subagent returned a very short or empty response. This is suspicious — the subagent may have failed silently. Please verify by checking the subagent transcript or re-dispatching with a more explicit task.'
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+
+WARNING_MSG = (
+    "⚠️ EMPTY SUBAGENT RESPONSE DETECTED: The subagent returned a very short or empty response. "
+    "This is suspicious — the subagent may have failed silently. "
+    "Please verify by checking the subagent transcript or re-dispatching with a more explicit task."
+)
+
 
 def check_empty_task_response(tool_name: str, tool_response: dict | str | None) -> str | None:
     """
@@ -10,7 +18,7 @@ def check_empty_task_response(tool_name: str, tool_response: dict | str | None) 
     Returns a warning string if response is empty/near-empty (< 50 meaningful chars).
     Returns None if response looks normal.
     """
-    if tool_name != 'invoke_subagent':
+    if tool_name != "invoke_subagent":
         return None
 
     if tool_response is None:
@@ -20,7 +28,7 @@ def check_empty_task_response(tool_name: str, tool_response: dict | str | None) 
     if isinstance(tool_response, str):
         text = tool_response
     elif isinstance(tool_response, dict):
-        for key in ['output', 'result', 'content', 'message']:
+        for key in ["output", "result", "content", "message"]:
             if key in tool_response:
                 val = tool_response[key]
                 if isinstance(val, str):
@@ -32,16 +40,31 @@ def check_empty_task_response(tool_name: str, tool_response: dict | str | None) 
 
     # Clean text
     clean_text = text.lower()
-    for phrase in ['done', 'completed', 'ok', 'yes']:
+    for phrase in ["done", "completed", "ok", "yes"]:
         # remove standalone phrases
-        clean_text = re.sub(rf'\b{phrase}\b', '', clean_text)
-        
+        clean_text = re.sub(rf"\b{phrase}\b", "", clean_text)
+
     # Remove whitespace to count meaningful chars
-    meaningful_content = re.sub(r'\s+', '', clean_text)
-    
+    meaningful_content = re.sub(r"\s+", "", clean_text)
+
     if len(meaningful_content) < 50:
         return WARNING_MSG
-        
+
     return None
 
+
 run_empty_task_response_detector = check_empty_task_response
+
+
+class EmptyTaskResponseDetectorHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "empty_task_response_detector"
+
+    def execute(self, context: HookContext) -> HookResult:
+        if context.tool_name != "invoke_subagent":
+            return HookResult()
+        warning = check_empty_task_response(context.tool_name, context.tool_output)
+        if warning:
+            return HookResult(additional_context=warning)
+        return HookResult()
