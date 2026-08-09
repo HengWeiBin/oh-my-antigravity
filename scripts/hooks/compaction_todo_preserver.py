@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+
 
 def get_compaction_todo_messages(payload: dict) -> list[dict]:
     """
@@ -20,7 +23,7 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
         for wp in workspace_paths_raw:
             if isinstance(wp, str) and wp:
                 workspace_paths.append(wp)
-                
+
     cwd = payload.get("cwd", "")
     if isinstance(cwd, str) and cwd and cwd not in workspace_paths:
         workspace_paths.append(cwd)
@@ -67,12 +70,12 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
                     msg_lines = [
                         "🔄 COMPACTION TODO PRESERVER: Active plan TODOs detected (context may have been compacted).",
                         "Remaining unchecked items:",
-                        f"[{fname}]"
+                        f"[{fname}]",
                     ]
                     msg_lines.extend(unchecked_items)
                     msg_lines.append("Please ensure you continue working on these items.")
                     messages.append({"ephemeralMessage": "\n".join(msg_lines)})
-                    
+
                     files_processed += 1
                     if files_processed >= 3:
                         return messages
@@ -81,4 +84,15 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
 
     return messages
 
+
 run_compaction_todo_preserver = get_compaction_todo_messages
+
+
+class CompactionTodoPreserverHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "compaction_todo_preserver"
+
+    def execute(self, context: HookContext) -> HookResult:
+        messages = get_compaction_todo_messages(context.raw_payload)
+        return HookResult(injected_steps=messages)

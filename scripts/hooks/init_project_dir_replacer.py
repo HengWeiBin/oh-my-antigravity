@@ -3,13 +3,14 @@ from __future__ import annotations
 import os
 import sys
 
-# Ensure the scripts directory is in sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 scripts_dir = os.path.abspath(os.path.join(current_dir, ".."))
 if scripts_dir not in sys.path:
     sys.path.insert(0, scripts_dir)
 
-from hooks.utils import (
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+from scripts.hooks.utils import (
     extract_user_prompt,
     parse_skill_commands,
     resolve_path,
@@ -57,7 +58,7 @@ def run_init_project_dir_replacer(payload: dict) -> list[dict]:
     project_dir = get_project_dir(payload)
 
     # Locate skills/init/SKILL.md
-    plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    plugin_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     skill_path = os.path.join(plugin_dir, "skills", "init", "SKILL.md")
 
     if not os.path.isfile(skill_path):
@@ -74,3 +75,13 @@ def run_init_project_dir_replacer(payload: dict) -> list[dict]:
         return [{"ephemeralMessage": formatted}]
     except OSError:
         return []
+
+
+class InitProjectDirReplacerHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "init_project_dir_replacer"
+
+    def execute(self, context: HookContext) -> HookResult:
+        messages = run_init_project_dir_replacer(context.raw_payload)
+        return HookResult(injected_steps=messages)
