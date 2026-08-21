@@ -58,3 +58,8 @@ Before ANY analysis, classify the work intent. This determines your entire strat
 - Identify exact outputs (files, endpoints, UI elements).
 - Identify explicit exclusions (what must NOT be included).
 - Prevent scope inflation, premature abstraction, over-validation, and documentation bloat.
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.

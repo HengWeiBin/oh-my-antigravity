@@ -35,3 +35,8 @@ Plan mode is sticky: "do X", "fix X", or "just do it" all mean "plan X" - execut
 2. **Analysis**: Assess existing codebase patterns, libraries, and conventions.
 3. **Plan Construction**: Write a structured execution plan (e.g. `implementation_plan.md` and `task.md`) detailing the files to modify, expected outcomes, verification steps, and task breakdowns.
 4. **Validation**: Await plan review and approval from the user before executing. Do not write any code yourself.
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.
