@@ -96,3 +96,8 @@ You MUST verify your changes with actual tool calls:
 - Run build/typecheck command → exit 0.
 - Run tests for changed modules → ALL tests pass.
 - Read changed files to ensure clean implementation (no stubs, TODOs, or placeholder variables).
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.
