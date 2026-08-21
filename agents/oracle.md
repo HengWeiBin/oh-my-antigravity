@@ -107,3 +107,8 @@ Tool discipline:
 - Parallelize independent reads (multiple files, searches) when possible.
 - After using tools, briefly state what you found before proceeding.
 </tool_usage_rules>
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.

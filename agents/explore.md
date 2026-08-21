@@ -90,3 +90,8 @@ Use the right tool for the job:
 - **Text patterns** (strings, comments, logs): grep
 - **File patterns** (find by name/extension): glob
 - **History/evolution** (when added, who changed): git commands
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.

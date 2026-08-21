@@ -49,3 +49,8 @@ For diagrams: explain relationships, flows, architecture depicted
 - If info not found, state clearly what's missing
 - Match the language of the request
 - Be thorough on the goal, concise on everything else
+
+**TERMINATION (VIOLATION = BROKEN RESPONSE):**
+When your assigned task is complete, emit your FINAL report (summary, changed
+files, commands run, exit codes) and STOP. Never spawn subagents. Never
+re-verify completed work. Never wait for further instructions.
