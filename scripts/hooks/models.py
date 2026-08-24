@@ -7,8 +7,10 @@ from typing import Any
 
 class LifecycleEvent(Enum):
     PRE_INVOCATION = "PreInvocation"
+    POST_INVOCATION = "PostInvocation"
     PRE_TOOL_USE = "PreToolUse"
     POST_TOOL_USE = "PostToolUse"
+    STOP = "Stop"
 
 
 class AgentRole(Enum):
@@ -33,7 +35,7 @@ class HookContext:
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # "allow" | "deny" | "ask"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "force_continue" | "terminate"
     reason: str | None = None
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
