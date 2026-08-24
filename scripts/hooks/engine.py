@@ -166,6 +166,9 @@ class HookEngine:
             pipeline.register(CodegraphRecommendationHook())
             pipeline.register(SubagentSkillAutoloaderHook())
 
+        elif lifecycle == LifecycleEvent.POST_INVOCATION:
+            pass
+
         elif lifecycle == LifecycleEvent.PRE_TOOL_USE:
             from scripts.hooks.fsync_skip_warning import FsyncSkipWarningHook
             from scripts.hooks.notepad_write_guard import NotepadWriteGuardHook
@@ -189,6 +192,9 @@ class HookEngine:
             pipeline.register(EmptyTaskResponseDetectorHook())
             pipeline.register(CommentCheckerHook())
             pipeline.register(PlanFormatValidatorHook())
+
+        elif lifecycle == LifecycleEvent.STOP:
+            pass
 
         return pipeline
 
@@ -255,6 +261,18 @@ class HookEngine:
                     steps.extend(res.injected_steps)
             return {"injectSteps": steps}
 
+        elif lifecycle == LifecycleEvent.POST_INVOCATION:
+            out: dict = {}
+            steps: list[dict] = []
+            for res in results:
+                if res.decision and "decision" not in out:
+                    out["decision"] = res.decision
+                if res.injected_steps:
+                    steps.extend(res.injected_steps)
+            if steps:
+                out["injectSteps"] = steps
+            return out
+
         elif lifecycle == LifecycleEvent.PRE_TOOL_USE:
             for res in results:
                 if res.decision and res.decision.lower() in ("deny", "ask"):
@@ -271,6 +289,9 @@ class HookEngine:
                     contexts.append(res.additional_context.strip())
             if contexts:
                 return {"additionalContext": "\n\n".join(contexts)}
+            return {}
+
+        elif lifecycle == LifecycleEvent.STOP:
             return {}
 
         return {}
