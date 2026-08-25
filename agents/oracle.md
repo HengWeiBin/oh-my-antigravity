@@ -5,6 +5,7 @@ description: |
 mainAgent: false
 model: pro
 enable_mcp_tools: true
+inheritCustomizations: true
 tools:
   - view_file
   - grep_search
