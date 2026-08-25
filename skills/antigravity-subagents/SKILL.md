@@ -40,6 +40,7 @@ When defining static sub-agents in `agents/<name>.md`, the frontmatter supports 
 | `mainAgent` | boolean | `true`, `false` | Specifies whether the agent can act as a primary entrypoint orchestrator. |
 | `model` | string | `inherit`, `pro`, `flash`, `flash_lite` | LLM model selection. `inherit` (default) uses parent agent's model. |
 | `enable_mcp_tools` | boolean | `true`, `false` | Enables access to registered Model Context Protocol (MCP) tools. |
+| `inheritCustomizations` | boolean | `true`, `false` | Inherits parent workspace/plugin skills, rules, and customizations. |
 | `tools` | list of strings | `- view_file`<br>`- grep_search`<br>`- run_command` | **Explicit whitelist of allowed tools.** (Required for file/command access!) |
 | `skills` | list of strings | `- start-work`<br>`- ast-grep`<br>`- ultrawork` | Pre-loads specific skills into the sub-agent's session context. |
 | `workspace` | string | `inherit`, `branch`, `share` | Execution workspace isolation mode. |
