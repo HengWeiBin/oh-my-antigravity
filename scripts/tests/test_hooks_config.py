@@ -49,6 +49,22 @@ class TestHooksConfig(unittest.TestCase):
         from hooks.utils import setup_utf8_streams
         setup_utf8_streams()
 
+    def test_stop_hook_configured(self):
+        """Verify hooks.json contains Stop lifecycle hook with python scripts/stop.py."""
+        root_dir = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+        hooks_json_path = os.path.join(root_dir, "hooks.json")
+        with open(hooks_json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        hooks = data.get("hooks", {})
+        self.assertIn("Stop", hooks)
+        stop_entries = hooks["Stop"]
+        self.assertIsInstance(stop_entries, list)
+        self.assertEqual(len(stop_entries), 1)
+        self.assertEqual(stop_entries[0].get("type"), "command")
+        self.assertEqual(stop_entries[0].get("command"), "python scripts/stop.py")
+        self.assertEqual(stop_entries[0].get("timeout"), 5)
+
 
 if __name__ == "__main__":
     unittest.main()

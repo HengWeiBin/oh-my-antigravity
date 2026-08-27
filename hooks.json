@@ -30,6 +30,13 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python scripts/stop.py",
+        "timeout": 5
+      }
     ]
   }
 }
