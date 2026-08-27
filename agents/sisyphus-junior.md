@@ -1,8 +1,10 @@
 ---
-name: Sisyphus-junior
+name: sisyphus-junior
 description: |
   Focused task executor agent that completes individual implementation tasks with strict discipline. (Sisyphus-Junior - Task Executor, Gemini Optimized)
 mainAgent: false
+subagent: true
+commandExecutionPolicy: auto
 model: flash
 enable_mcp_tools: true
 inheritCustomizations: true
