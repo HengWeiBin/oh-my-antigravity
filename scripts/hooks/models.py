@@ -30,6 +30,8 @@ class HookContext:
     tool_output: str | None = None
     user_prompt: str | None = None
     raw_payload: dict[str, Any] = field(default_factory=dict)
+    step_idx: int | None = None
+    model_name: str | None = None
 
 
 @dataclass
@@ -39,3 +41,4 @@ class HookResult:
     reason: str | None = None
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    permission_overrides: list[str] = field(default_factory=list)

@@ -194,7 +194,9 @@ class HookEngine:
             pipeline.register(PlanFormatValidatorHook())
 
         elif lifecycle == LifecycleEvent.STOP:
-            pass
+            from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+            pipeline.register(StopPlanContinuationHook())
 
         return pipeline
 
@@ -241,6 +243,24 @@ class HookEngine:
 
         user_prompt = extract_user_prompt(payload)
 
+        step_idx = payload.get("stepIdx")
+        if step_idx is None:
+            step_idx = payload.get("step_idx")
+        if isinstance(step_idx, bool) or not isinstance(step_idx, int):
+            try:
+                if isinstance(step_idx, str) and step_idx.isdigit():
+                    step_idx = int(step_idx)
+                else:
+                    step_idx = None
+            except Exception:
+                step_idx = None
+
+        model_name = payload.get("modelName")
+        if model_name is None:
+            model_name = payload.get("model_name")
+        if not isinstance(model_name, str):
+            model_name = None
+
         return HookContext(
             lifecycle=lifecycle,
             conversation_id=conversation_id,
@@ -250,6 +270,8 @@ class HookEngine:
             tool_output=tool_output,
             user_prompt=user_prompt if user_prompt else None,
             raw_payload=payload,
+            step_idx=step_idx,
+            model_name=model_name,
         )
 
     @classmethod
@@ -265,8 +287,9 @@ class HookEngine:
             out: dict = {}
             steps: list[dict] = []
             for res in results:
-                if res.decision and "decision" not in out:
-                    out["decision"] = res.decision
+                if res.decision and "terminationBehavior" not in out:
+                    if res.decision in ("force_continue", "terminate"):
+                        out["terminationBehavior"] = res.decision
                 if res.injected_steps:
                     steps.extend(res.injected_steps)
             if steps:
@@ -274,13 +297,26 @@ class HookEngine:
             return out
 
         elif lifecycle == LifecycleEvent.PRE_TOOL_USE:
+            overrides: list[str] = []
+            for res in results:
+                if res.permission_overrides:
+                    for ov in res.permission_overrides:
+                        if ov not in overrides:
+                            overrides.append(ov)
+
             for res in results:
                 if res.decision and res.decision.lower() in ("deny", "ask"):
                     out = {"decision": res.decision.lower()}
                     if res.reason:
                         out["reason"] = res.reason
+                    if overrides:
+                        out["permissionOverrides"] = overrides
                     return out
-            return {"decision": "allow"}
+
+            out = {"decision": "allow"}
+            if overrides:
+                out["permissionOverrides"] = overrides
+            return out
 
         elif lifecycle == LifecycleEvent.POST_TOOL_USE:
             contexts: list[str] = []
@@ -292,6 +328,9 @@ class HookEngine:
             return {}
 
         elif lifecycle == LifecycleEvent.STOP:
+            for res in results:
+                if res.decision == "continue":
+                    return {"decision": "continue", "reason": res.reason or "Tasks incomplete"}
             return {}
 
         return {}

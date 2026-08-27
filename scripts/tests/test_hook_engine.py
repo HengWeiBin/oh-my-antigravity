@@ -43,6 +43,8 @@ def test_hook_models() -> None:
         conversation_id="conv-123",
         cwd="/tmp",
         user_prompt="test prompt",
+        step_idx=2,
+        model_name="claude-3-5-sonnet",
     )
     assert ctx.lifecycle == LifecycleEvent.PRE_INVOCATION
     assert ctx.conversation_id == "conv-123"
@@ -50,6 +52,8 @@ def test_hook_models() -> None:
     assert ctx.user_prompt == "test prompt"
     assert ctx.tool_name is None
     assert ctx.tool_input == {}
+    assert ctx.step_idx == 2
+    assert ctx.model_name == "claude-3-5-sonnet"
 
     with pytest.raises(AttributeError):
         ctx.conversation_id = "new-id"  # type: ignore[misc]
@@ -66,6 +70,8 @@ def test_hook_models() -> None:
     )
     assert ctx_post.lifecycle == LifecycleEvent.POST_INVOCATION
     assert ctx_post.raw_payload == {"response": {"text": "summary"}}
+    assert ctx_post.step_idx is None
+    assert ctx_post.model_name is None
 
     ctx_stop = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -79,9 +85,11 @@ def test_hook_models() -> None:
     res = HookResult(
         decision="force_continue",
         injected_steps=[{"ephemeralMessage": "hello"}],
+        permission_overrides=["ALLOW_RUN_COMMAND"],
     )
     assert res.decision == "force_continue"
     assert res.injected_steps == [{"ephemeralMessage": "hello"}]
+    assert res.permission_overrides == ["ALLOW_RUN_COMMAND"]
 
 
 def test_hook_pipeline_error_containment() -> None:
@@ -112,7 +120,8 @@ def test_hook_engine_default_pipelines() -> None:
 
     stop_pipeline = HookEngine.create_default_pipeline(LifecycleEvent.STOP)
     assert isinstance(stop_pipeline, HookPipeline)
-    assert len(stop_pipeline.hooks) == 0
+    assert len(stop_pipeline.hooks) == 1
+    assert stop_pipeline.hooks[0].name == "stop_plan_continuation"
 
 
 def test_hook_engine_build_context_post_invocation_and_stop() -> None:
@@ -120,6 +129,8 @@ def test_hook_engine_build_context_post_invocation_and_stop() -> None:
         "conversationId": "conv-post-1",
         "cwd": "/workspace",
         "invocationNum": 2,
+        "stepIdx": 5,
+        "modelName": "claude-3-5-sonnet",
         "response": {"text": "Model output", "toolCalls": []},
         "usage": {"promptTokens": 100, "completionTokens": 50},
     }
@@ -127,7 +138,20 @@ def test_hook_engine_build_context_post_invocation_and_stop() -> None:
     assert ctx_post.lifecycle == LifecycleEvent.POST_INVOCATION
     assert ctx_post.conversation_id == "conv-post-1"
     assert ctx_post.cwd == "/workspace"
+    assert ctx_post.step_idx == 5
+    assert ctx_post.model_name == "claude-3-5-sonnet"
     assert ctx_post.raw_payload["response"] == {"text": "Model output", "toolCalls": []}
+
+    snake_payload = {
+        "conversation_id": "conv-snake-1",
+        "cwd": "/workspace",
+        "step_idx": 8,
+        "model_name": "gpt-4o",
+    }
+    ctx_snake = HookEngine.build_context(LifecycleEvent.PRE_INVOCATION, snake_payload)
+    assert ctx_snake.conversation_id == "conv-snake-1"
+    assert ctx_snake.step_idx == 8
+    assert ctx_snake.model_name == "gpt-4o"
 
     stop_payload = {
         "conversationId": "conv-stop-1",
@@ -140,6 +164,8 @@ def test_hook_engine_build_context_post_invocation_and_stop() -> None:
     assert ctx_stop.conversation_id == "conv-stop-1"
     assert ctx_stop.cwd == "/workspace"
     assert ctx_stop.raw_payload["stopReason"] == "completed"
+    assert ctx_stop.step_idx is None
+    assert ctx_stop.model_name is None
 
 
 def test_hook_engine_run_pre_invocation(capsys: pytest.CaptureFixture[str]) -> None:
@@ -189,7 +215,8 @@ def test_hook_engine_run_post_invocation_decision_and_steps(capsys: pytest.Captu
 
     captured = capsys.readouterr()
     output = json.loads(captured.out)
-    assert output["decision"] == "force_continue"
+    assert "decision" not in output
+    assert output["terminationBehavior"] == "force_continue"
     assert output["injectSteps"] == [
         {"ephemeralMessage": "continue loop"},
         {"ephemeralMessage": "additional step"},
@@ -214,7 +241,7 @@ def test_hook_engine_run_post_invocation_terminate(capsys: pytest.CaptureFixture
 
     captured = capsys.readouterr()
     output = json.loads(captured.out)
-    assert output == {"decision": "terminate"}
+    assert output == {"terminationBehavior": "terminate"}
 
 
 def test_hook_engine_run_post_invocation_empty(capsys: pytest.CaptureFixture[str]) -> None:
@@ -237,7 +264,7 @@ def test_hook_engine_run_post_invocation_empty(capsys: pytest.CaptureFixture[str
     assert output == {}
 
 
-def test_hook_engine_run_stop(capsys: pytest.CaptureFixture[str]) -> None:
+def test_hook_engine_run_stop_empty(capsys: pytest.CaptureFixture[str]) -> None:
     HookEngine.clear_pipelines()
 
     pipeline = HookPipeline([DummyHook("stop_hook", HookResult())])
@@ -255,6 +282,48 @@ def test_hook_engine_run_stop(capsys: pytest.CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
     output = json.loads(captured.out)
     assert output == {}
+
+
+def test_hook_engine_run_stop_continue_with_reason(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res = HookResult(decision="continue", reason="Custom unfinished tasks reason")
+    pipeline = HookPipeline([DummyHook("stop_hook", res)])
+    HookEngine.set_pipeline(LifecycleEvent.STOP, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-stop-3",
+        "cwd": "/workspace",
+        "terminationReason": "model_stop",
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.STOP, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {"decision": "continue", "reason": "Custom unfinished tasks reason"}
+
+
+def test_hook_engine_run_stop_continue_default_reason(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res = HookResult(decision="continue", reason=None)
+    pipeline = HookPipeline([DummyHook("stop_hook", res)])
+    HookEngine.set_pipeline(LifecycleEvent.STOP, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-stop-4",
+        "cwd": "/workspace",
+        "terminationReason": "model_stop",
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.STOP, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {"decision": "continue", "reason": "Tasks incomplete"}
 
 
 def test_hook_engine_run_pre_tool_use_allow_and_deny(capsys: pytest.CaptureFixture[str]) -> None:
@@ -330,4 +399,189 @@ def test_hook_engine_empty_and_malformed_input(capsys: pytest.CaptureFixture[str
     assert exit_code == 0
     captured = capsys.readouterr()
     assert json.loads(captured.out) == {"decision": "allow"}
+
+
+def test_hook_engine_run_pre_tool_use_permission_overrides(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res1 = HookResult(decision="allow", permission_overrides=["ALLOW_WRITE", "ALLOW_READ"])
+    res2 = HookResult(permission_overrides=["ALLOW_EXEC"])
+
+    pipeline = HookPipeline([DummyHook("h1", res1), DummyHook("h2", res2)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_TOOL_USE, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-overrides-1",
+        "tool_name": "run_command",
+        "tool_input": {"CommandLine": "ls"},
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.PRE_TOOL_USE, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output["decision"] == "allow"
+    assert output["permissionOverrides"] == ["ALLOW_WRITE", "ALLOW_READ", "ALLOW_EXEC"]
+
+
+def test_hook_engine_run_pre_tool_use_deny_with_permission_overrides(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res = HookResult(
+        decision="deny",
+        reason="Admin policy blocked",
+        permission_overrides=["ALLOW_READ"],
+    )
+
+    pipeline = HookPipeline([DummyHook("deny_hook", res)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_TOOL_USE, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-overrides-2",
+        "tool_name": "write_to_file",
+        "tool_input": {"TargetFile": "/etc/passwd"},
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.PRE_TOOL_USE, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output["decision"] == "deny"
+    assert output["reason"] == "Admin policy blocked"
+    assert output["permissionOverrides"] == ["ALLOW_READ"]
+
+
+def test_stop_plan_continuation_hook_with_uncompleted_plan(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "feature_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("# Task\n- [ ] Unfinished task 1\n- [x] Finished task 2\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-test",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "continue"
+    assert result.reason is not None
+    assert "incomplete task" in result.reason
+    assert "feature_plan.md" in result.reason
+
+
+def test_stop_plan_continuation_hook_when_all_completed(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "done_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("# Task\n- [x] Finished task 1\n- [x] Finished task 2\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-test-2",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_non_model_stop(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "feature_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("- [ ] Unfinished task 1\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-test-3",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "user_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_not_fully_idle(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "feature_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("- [ ] Unfinished task 1\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-test-4",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": False,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_no_plans(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-test-5",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
 

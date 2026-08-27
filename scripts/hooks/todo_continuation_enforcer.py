@@ -147,3 +147,6 @@ class TodoContinuationEnforcerHook(BaseHook):
     def execute(self, context: HookContext) -> HookResult:
         messages = get_todo_continuation_messages(context.raw_payload)
         return HookResult(injected_steps=messages)
+
+
+from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
