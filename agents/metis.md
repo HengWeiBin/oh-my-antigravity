@@ -1,8 +1,10 @@
 ---
-name: Metis
+name: metis
 description: |
   Pre-planning consultant agent. Analyzes user requests before planning to prevent over-engineering, scope creep, and ambiguities. (Metis - Plan Consultant)
 mainAgent: false
+subagent: true
+commandExecutionPolicy: auto
 model: flash
 enable_mcp_tools: true
 inheritCustomizations: true

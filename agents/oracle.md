@@ -1,8 +1,10 @@
 ---
-name: Oracle
+name: oracle
 description: |
   Strategic technical advisor for complex architecture decisions, tradeoffs, and debugging strategies. (Oracle - Advisor)
 mainAgent: false
+subagent: true
+commandExecutionPolicy: auto
 model: pro
 enable_mcp_tools: true
 inheritCustomizations: true

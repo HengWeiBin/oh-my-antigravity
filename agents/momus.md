@@ -1,8 +1,10 @@
 ---
-name: Momus
+name: momus
 description: |
   Practical work plan reviewer. Cruelly spots gaps, missing context, and unexecutable tasks in plans. (Momus - Plan Reviewer)
 mainAgent: false
+subagent: true
+commandExecutionPolicy: auto
 model: flash
 enable_mcp_tools: true
 inheritCustomizations: true

@@ -1,8 +1,10 @@
 ---
-name: Explore
+name: explore
 description: |
   Read-only codebase search specialist. Answers "Where is X?" and locates specific implementation patterns. (Explore - Contextual Grep)
 mainAgent: false
+subagent: true
+commandExecutionPolicy: auto
 model: flash
 enable_mcp_tools: true
 inheritCustomizations: true
