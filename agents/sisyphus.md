@@ -1,8 +1,10 @@
 ---
-name: Sisyphus
+name: sisyphus
 description: |
   Main orchestrator agent that plans, delegates, and coordinates multi-step development workflows. (Sisyphus - Lead Developer, Gemini Optimized)
 mainAgent: true
+subagent: true
+commandExecutionPolicy: eager
 model: pro
 enable_mcp_tools: true
 inheritCustomizations: true

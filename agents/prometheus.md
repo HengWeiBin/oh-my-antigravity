@@ -1,8 +1,10 @@
 ---
-name: Prometheus
+name: prometheus
 description: |
   Planning consultant agent. Gathers information, checks codebase conventions, and constructs the implementation plan. (Prometheus - Planner)
 mainAgent: true
+subagent: true
+commandExecutionPolicy: eager
 model: flash
 enable_mcp_tools: true
 inheritCustomizations: true
