@@ -10,6 +10,9 @@ from scripts.hooks.models import AgentRole
 UUID_PATTERN = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
 )
+UUID_SEARCH_PATTERN = re.compile(
+    r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE
+)
 KNOWN_AGENTS = {
     "sisyphus",
     "atlas",
@@ -107,38 +110,30 @@ def find_conversation_ids(obj: Any) -> list[str]:
     if isinstance(obj, dict):
         for k, v in obj.items():
             if k in ("conversationId", "conversation_id") and isinstance(v, str):
-                cids.append(v)
-            elif isinstance(v, str):
-                if (v.strip().startswith("{") and v.strip().endswith("}")) or (
-                    v.strip().startswith("[") and v.strip().endswith("]")
-                ):
-                    try:
-                        parsed = json.loads(v)
-                        cids.extend(find_conversation_ids(parsed))
-                    except Exception:  # noqa: BLE001, S110
-                        pass
-                elif is_probable_conversation_id(v):
+                if v not in cids and v.lower() not in KNOWN_AGENTS:
                     cids.append(v)
-            else:
+            elif isinstance(v, (dict, list, str)):
                 cids.extend(find_conversation_ids(v))
     elif isinstance(obj, list):
         for item in obj:
-            if isinstance(item, str) and is_probable_conversation_id(item):
-                cids.append(item)
-            else:
-                cids.extend(find_conversation_ids(item))
+            cids.extend(find_conversation_ids(item))
     elif isinstance(obj, str):
-        if (obj.strip().startswith("{") and obj.strip().endswith("}")) or (
-            obj.strip().startswith("[") and obj.strip().endswith("]")
+        stripped = obj.strip()
+        if (stripped.startswith("{") and stripped.endswith("}")) or (
+            stripped.startswith("[") and stripped.endswith("]")
         ):
             try:
                 parsed = json.loads(obj)
                 cids.extend(find_conversation_ids(parsed))
             except Exception:  # noqa: BLE001, S110
                 pass
-        elif is_probable_conversation_id(obj):
+        for match in UUID_SEARCH_PATTERN.finditer(obj):
+            cid = match.group(0)
+            if cid not in cids and cid.lower() not in KNOWN_AGENTS:
+                cids.append(cid)
+        if is_probable_conversation_id(obj) and obj not in cids:
             cids.append(obj)
-    return cids
+    return list(dict.fromkeys(cids))
 
 
 def parse_typename_from_log(
@@ -161,15 +156,20 @@ def parse_typename_from_log(
                     continue
 
                 line_lower = line.lower()
+                has_cid_match = (
+                    "conversationid" in line_lower
+                    or "conversation_id" in line_lower
+                    or UUID_SEARCH_PATTERN.search(line) is not None
+                )
                 if (
-                    "invoke_subagent" in line_lower
-                    and ("conversationid" in line_lower or "conversation_id" in line_lower)
+                    ("invoke_subagent" in line_lower or "subagent" in line_lower)
+                    and has_cid_match
                     and pending_type_names
                 ):
                     cids: list[str] = []
                     found_cids = find_conversation_ids(obj)
                     for cid in found_cids:
-                        if cid != parent_cid:
+                        if cid != parent_cid and cid not in cids:
                             cids.append(cid)
                     if cids:
                         tns = pending_type_names.pop(0)
