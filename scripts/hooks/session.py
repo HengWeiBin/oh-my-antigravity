@@ -188,7 +188,11 @@ class SessionResolver:
             return None
 
         try:
-            entries = os.listdir(brain_dir)
+            entries = sorted(
+                os.listdir(brain_dir),
+                key=lambda x: os.path.getmtime(os.path.join(brain_dir, x)) if os.path.exists(os.path.join(brain_dir, x)) else 0,
+                reverse=True
+            )
         except OSError:
             return None
 
@@ -198,6 +202,16 @@ class SessionResolver:
             cid_dir = os.path.join(brain_dir, cid)
             if not os.path.isdir(cid_dir):
                 continue
+            subagent_file = os.path.join(cid_dir, ".system_generated", "subagents", f"{conversation_id}.json")
+            if os.path.exists(subagent_file):
+                try:
+                    with open(subagent_file, "r", encoding="utf-8") as sf:
+                        data = json.load(sf)
+                        tn = data.get("subagentDescriptor", {}).get("typeName")
+                        if tn:
+                            return tn
+                except Exception:  # noqa: BLE001, S110
+                    pass
             logs_dir = os.path.join(cid_dir, ".system_generated", "logs")
             if not os.path.exists(logs_dir):
                 continue
