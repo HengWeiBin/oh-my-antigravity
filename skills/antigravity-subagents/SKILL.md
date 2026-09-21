@@ -67,22 +67,25 @@ In addition to static Markdown files, agents can be registered programmatically 
 
 ## 2. Complete YAML Frontmatter Specification
 
-Static agent definitions begin with a YAML frontmatter block enclosed between triple dashes (`---`). The table below outlines all official frontmatter fields:
+Static agent definitions begin with a YAML frontmatter block enclosed between triple dashes (`---`). The table below outlines official frontmatter fields defined by Antigravity:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `name` | `string` | **Required** | Unique identifier used when invoking via `invoke_subagent` or selecting from UI menus. |
 | `description` | `string` | **Required** | Detailed description of the agent's role, triggers, and capabilities. Used by orchestrators for autonomous routing. |
-| `tools` | `string[]` | `[]` | Explicit whitelist of permitted tools. **If omitted, no file system or execution tools are available!** |
-| `mainAgent` | `boolean` | `true` | Whether the agent appears as a selectable primary orchestrator in the main chat interface. Set to `false` for dedicated worker subagents. |
-| `subagent` | `boolean` | `true` | Whether the agent can be spawned as a child sub-agent via `invoke_subagent`. Set to `false` for main-only controllers. |
-| `model` | `string` | `inherit` | Model selection for agent reasoning: `inherit`, `flash`, or `pro`. (See model notes below). |
-| `commandExecutionPolicy` | `string` | `sandbox` | Terminal command execution policy: `off`, `auto`, `eager`, `sandbox`. |
-| `mcpServers` | `object[]` | `[]` | Scoped Model Context Protocol (MCP) servers configured specifically for this sub-agent session. |
-| `enable_mcp_tools` | `boolean` | `true` | Master toggle controlling access to registered MCP tools. |
-| `skills` or `plugins` | `string[]` | `[]` | Paths or names of skills (e.g. `skills/ast-grep`, `skills/debugging`) or plugin dependencies pre-loaded into context. |
-| `inheritCustomizations` | `boolean` | `true` | Whether to inherit project-level rules, instructions, and skill customizations from the parent workspace. |
-| `workspace` | `string` | `inherit` | Workspace isolation mode: `inherit` (same directory), `branch` (isolated branch), or `share` (git worktree). |
+| `tools` | `string[]` | `[]` | Explicit whitelist of permitted tools (e.g. `view_file`, `replace_file_content`, `grep_search`, `run_command`). **If omitted, no file system or execution tools are available!** |
+| `mainAgent` | `boolean` | `true` | If `true`, allows selection as the primary agent in chat interfaces. Set to `false` for dedicated worker subagents. |
+| `subagent` | `boolean` | `true` | If `true`, allows invocation via the `invoke_subagent` tool. Set to `false` for main-only controllers. |
+| `model` | `string` | `inherit` | Model tier used when invoked: `inherit`, `flash`, or `pro`. |
+| `commandExecutionPolicy` | `string` | `sandbox` | Auto-execution policy for shell commands: `off`, `auto`, `eager`, `sandbox`. |
+| `mcpServers` | `object[]` | `[]` | Custom Model Context Protocol (MCP) servers configured specifically for this subagent. |
+| `skills` / `plugins` | `string[]` | `[]` | Skill paths (e.g. `skills/my-helper-skill`, `skills/ast-grep`) or plugin dependencies pre-loaded into context. |
+
+> [!NOTE]
+> **Runtime Options**:
+> - `workspace`: Workspace isolation mode (`inherit`, `branch`, or `share`) is primarily an option passed to the `invoke_subagent` tool call (see [Workspace Isolation Modes](#workspace-isolation-modes-workspace)).
+> - `inheritCustomizations`: (Plugin extension, default `true`) controls whether project-level rules, instructions, and workspace customizations are inherited.
+> - `enable_mcp_tools`: (Default `true`) master toggle controlling access to registered MCP tools.
 
 ### Model Selection Guidelines
 
@@ -117,7 +120,7 @@ Static agent definitions begin with a YAML frontmatter block enclosed between tr
 >    - ❌ `find_files` / `glob` → ✅ `find_by_name`
 >    - ❌ `bash` / `terminal` → ✅ `run_command`
 >    - ❌ `read_url` → ✅ `read_url_content`
-> 3. If a newly created sub-agent hangs immediately after calling `invoke_subagent`, terminate it (`Ctrl+K` or UI "Stop Subagent") and audit its `tools:` list first.
+> 3. If a newly created sub-agent hangs immediately after calling `invoke_subagent`, terminate it (`k` in the `/agents` panel or click GUI **Stop Subagent**) and audit its `tools:` list first.
 
 ---
 
@@ -185,6 +188,7 @@ tools:
   - read_url_content
   - search_web
   - replace_file_content
+  - multi_replace_file_content
   - write_to_file
   - run_command
   - manage_task
@@ -261,29 +265,43 @@ stateDiagram-v2
     [*] --> Running: invoke_subagent
     Running --> Idle: Output emitted / Awaiting input
     Idle --> Running: send_message / notification
-    Running --> Killed: Stop Subagent / Ctrl+K / Error
+    Running --> Killed: Stop Subagent / k in /agents / Error
     Idle --> Killed: Session terminated / Task cleanup
     Killed --> [*]
 ```
 
 1. **`Running`**:
    - The subagent is actively executing code, reasoning, or calling tools.
-   - Can be stopped at any time via the GUI **"Stop Subagent"** button or CLI keyboard shortcuts (`Ctrl+K` or `k`).
+   - Can be stopped at any time via the GUI **"Stop Subagent"** button or CLI keyboard shortcut (`k` in the `/agents` panel).
 2. **`Idle`**:
-   - The subagent has concluded its current turn and is suspended waiting for incoming instructions.
+   - The subagent has concluded its current turn, sent its result message, and is suspended waiting for incoming instructions.
    - Context retention: All conversation history, scratchpad notes, and memory remain preserved in RAM.
    - Reactive wake-up: Automatically wakes to `Running` state upon receiving a message via `send_message` or a timer notification.
 3. **`Killed`**:
-   - The subagent execution has been terminated.
+   - The subagent execution has been terminated permanently.
    - Resource cleanup: Ephemeral workspaces and git worktrees are automatically torn down and removed.
    - Audit trail: Full conversation transcripts and generated artifacts remain saved for post-run analysis.
 
-### CLI Shortcuts & Controls
+### Interactive Management Panels
+
+- **Agent Manager Panel (`/agents`)**: Type `/agents` to inspect a live checklist of all active, completed, killed, or failed background agents.
+  - Displays: Identifier, Role, State, and Current Step.
+  - Press `↑`/`↓` to highlight an agent, then press `Enter` to open the **Subagent Detail View** (inspect private reasoning logs, inner thoughts, tool calls, and outputs). Press `Esc` to return.
+  - Press `k` on a highlighted subagent to cancel/terminate it.
+  - Switch custom agents or fork conversations directly from the panel.
+- **Background Tasks Panel (`/tasks`)**: Type `/tasks` to track non-agentic background operations (direct shell commands, test suites, or background queries initiated via `/btw`). Inspect stdout logs or terminate runaway terminal tasks.
+
+### CLI Shortcuts & Keyboard Ergonomics
+
+Antigravity CLI provides dedicated high-efficiency shortcuts to eliminate context switching when subagents require authorization:
 
 | Shortcut / Control | Environment | Action |
 |---|---|---|
-| `Alt+J` | Terminal CLI | View active subagents and switch active focus between agent console views. |
-| `Ctrl+K` or `k` | Terminal CLI | Stop / terminate the currently selected subagent. |
+| `Alt+J` | Terminal CLI | **Detailed "Teleport" Navigation**: Instantly teleports from your active prompt panel into the Detail View of the next subagent awaiting approval. Confirm or reject the action, then press `Esc` to teleport back. |
+| `Ctrl+K` | Terminal CLI | **"Fast-Path" Confirmations**: Instantly approves the pending subagent tool execution displayed in the inline prompt bar notification (e.g. `Subagent 12 asks to run "npm test"`) without switching panels or opening overlays. |
+| `k` | Terminal CLI (`/agents`) | Cancel / terminate the currently highlighted running subagent. |
+| `Enter` | Terminal CLI (`/agents`) | Open **Subagent Detail View** to inspect thoughts, tool calls, and execution outputs. |
+| `Esc` | Terminal CLI | Exit subagent Detail View and teleport back to the primary thread or Agent Manager list. |
 | **"Stop Subagent"** | Web / GUI UI | Immediately halts child subagent execution. |
 
 ---
@@ -345,12 +363,29 @@ The parent orchestrator maintains full read/write visibility into subagent works
 
 ---
 
-## 9. Multi-Agent Teamwork (`/teamwork-preview`)
+## 9. Multi-Agent Orchestrators (`/boost` & `/teamwork-preview`)
+
+Antigravity provides two official multi-agent orchestrators designed for different task scales and execution horizons:
+
+### 1. Boost Deep Reasoning (`/boost`)
 
 > [!NOTE]
-> `/teamwork-preview` is an advanced collaboration feature available on the **Ultra plan**.
+> **Plan Availability**: Available on **Google One AI Premium** (Pro and Ultra tiers) and **Enterprise** plans across Google Antigravity 2.0 and Antigravity CLI.
 
-Multi-Agent Teamwork allows multiple autonomous agents to cooperate simultaneously on shared repositories:
+Invoking `/boost` launches an advanced three-tier multi-agent reasoning hierarchy:
+$$\text{Orchestrator} \longrightarrow \text{DeepCoder / DeepInvestigator Coordinators} \longrightarrow \text{Isolated Execution Workers}$$
+
+- **Capabilities**: Tackles tough concurrency bugs, deep algorithmic puzzles, non-trivial multi-step refactoring, and complex architectural investigations.
+- **Verification**: Runs autonomous, independent verification loops with unit tests and assertion checks before presenting solutions.
+- **Horizon**: Operates across interactive coding sessions ranging from minutes to hours.
+
+### 2. Multi-Agent Teamwork (`/teamwork-preview`)
+
+> [!NOTE]
+> **Plan Availability**: Available on **paid plans** (Ultra, Pro, and Enterprise) across Google Antigravity 2.0 and Antigravity CLI.
+
+Using `/teamwork-preview` coordinates a team of specialized AI agents designed for large software projects, multi-file refactoring, and complex codebase initiatives:
+- **Autonomous Delegation**: Milestone decomposition, parallel task distribution, and independent verification checks.
 - **Shared Blackboard / Task Graph**: Agents claim, coordinate, and execute subtasks in parallel without step-by-step orchestrator intervention.
 - **Conflict-Free Synchronization**: Built-in AST-level reconciliation and git worktree isolation prevent overlapping file overwrite errors.
 - **Activation**: Initiate a collaborative teamwork session directly in chat using the `/teamwork-preview` command.
