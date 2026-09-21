@@ -57,27 +57,39 @@ def test_pre_tool_use_integration_notepad():
     result = run_script(PRE_TOOL_USE, payload)
     assert "decision" in result or not result
     
+def run_script_with_stderr(script_path, payload):
+    result = subprocess.run(
+        [sys.executable, script_path],
+        input=json.dumps(payload).encode("utf-8"),
+        capture_output=True,
+        check=False,
+    )
+    try:
+        data = json.loads(result.stdout.decode("utf-8"))
+    except Exception:  # noqa: BLE001
+        data = {}
+    return data, result.stderr.decode("utf-8")
+
+
 def test_post_tool_use_integration_invoke_subagent():
     payload = {
         "tool_name": "invoke_subagent",
-        "tool_response": "done"
+        "tool_response": "done",
     }
-    result = run_script(POST_TOOL_USE, payload)
-    assert "additionalContext" in result
-    assert "hookSpecificOutput" not in result
-    assert "EMPTY SUBAGENT RESPONSE DETECTED" in result["additionalContext"]
-    
+    result, stderr = run_script_with_stderr(POST_TOOL_USE, payload)
+    assert result == {}
+    assert "EMPTY SUBAGENT RESPONSE DETECTED" in stderr
+
+
 def test_post_tool_use_integration_write_file():
     payload = {
         "tool_name": "write_to_file",
         "tool_input": {
             "TargetFile": "/.omo/plans/test.md",
-            "CodeContent": "missing sections"
+            "CodeContent": "missing sections",
         },
-        "tool_response": {}
+        "tool_response": {},
     }
-    result = run_script(POST_TOOL_USE, payload)
-    assert "additionalContext" in result
-    assert "hookSpecificOutput" not in result
-    context = result["additionalContext"]
-    assert "PLAN FORMAT VALIDATOR" in context or "COMMENT CHECKER" in context
+    result, stderr = run_script_with_stderr(POST_TOOL_USE, payload)
+    assert result == {}
+    assert "PLAN FORMAT VALIDATOR" in stderr or "COMMENT CHECKER" in stderr

@@ -252,7 +252,7 @@ class HookEngine:
                     step_idx = int(step_idx)
                 else:
                     step_idx = None
-            except Exception:
+            except Exception:  # noqa: BLE001
                 step_idx = None
 
         model_name = payload.get("modelName")
@@ -287,9 +287,8 @@ class HookEngine:
             out: dict = {}
             steps: list[dict] = []
             for res in results:
-                if res.decision and "terminationBehavior" not in out:
-                    if res.decision in ("force_continue", "terminate"):
-                        out["terminationBehavior"] = res.decision
+                if res.decision and "terminationBehavior" not in out and res.decision in ("force_continue", "terminate"):
+                    out["terminationBehavior"] = res.decision
                 if res.injected_steps:
                     steps.extend(res.injected_steps)
             if steps:
@@ -319,12 +318,14 @@ class HookEngine:
             return out
 
         elif lifecycle == LifecycleEvent.POST_TOOL_USE:
+            # Official Google Antigravity contract for PostToolUse stdout is strictly {}
+            # Contextual warnings are routed to stderr to avoid protojson unmarshal errors
             contexts: list[str] = []
             for res in results:
                 if res.additional_context and res.additional_context.strip():
                     contexts.append(res.additional_context.strip())
             if contexts:
-                return {"additionalContext": "\n\n".join(contexts)}
+                sys.stderr.write("\n\n".join(contexts) + "\n")
             return {}
 
         elif lifecycle == LifecycleEvent.STOP:

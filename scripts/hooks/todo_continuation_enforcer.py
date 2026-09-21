@@ -149,4 +149,3 @@ class TodoContinuationEnforcerHook(BaseHook):
         return HookResult(injected_steps=messages)
 
 
-from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook

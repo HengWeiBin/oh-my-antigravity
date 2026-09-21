@@ -366,7 +366,8 @@ def test_hook_engine_run_post_tool_use(capsys: pytest.CaptureFixture[str]) -> No
 
     captured = capsys.readouterr()
     output = json.loads(captured.out)
-    assert output["additionalContext"] == "Warning 1\n\nWarning 2"
+    assert output == {}
+    assert "Warning 1\n\nWarning 2" in captured.err
 
 
 def test_hook_engine_empty_and_malformed_input(capsys: pytest.CaptureFixture[str]) -> None:
