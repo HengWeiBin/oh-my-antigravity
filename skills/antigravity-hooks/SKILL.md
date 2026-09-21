@@ -13,13 +13,15 @@ This guide details official hook configurations, named hook groups, event contra
 
 ## 1. Configuration & Scope
 
-Hooks are configured via `hooks.json` files and evaluated across three hierarchical scopes:
+Hooks are configured via `hooks.json` files and evaluated across three distinct Antigravity product environments and hierarchical scopes:
 
-| Scope | Location | Description |
-|---|---|---|
-| **Global** | `~/.gemini/config/hooks.json` | Applies globally across all workspaces and agent sessions for the user. |
-| **Workspace** | `<workspace>/.agents/hooks.json` | Scoped exclusively to the repository/workspace directory. |
-| **Plugin** | `<plugin_root>/hooks.json` | Bundled within an Antigravity plugin to deliver modular agent capabilities. |
+### Environment Locations & Discovery
+
+| Environment | Scope | Location | Notes / Controls |
+|---|---|---|---|
+| **Antigravity 2.0** | Workspace<br>Global | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` | View and toggle hooks from **Settings > Customizations > Hooks**.<br>`<app_data_dir>`: `~/.gemini/antigravity` |
+| **Antigravity CLI** | Workspace<br>Global<br>Plugin | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` (or `~/.gemini/antigravity-cli/settings.json`)<br>`<plugin_root>/hooks.json` | Inspect all active hooks interactively in TUI with `/hooks`.<br>`<app_data_dir>`: `~/.gemini/antigravity-cli` |
+| **Antigravity IDE** | Workspace<br>Global | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` | Manage active hooks from **… > Customizations > Hooks** in agent panel.<br>`<app_data_dir>`: `~/.gemini/antigravity-ide` |
 
 ### Configuration Schemes
 
@@ -37,6 +39,7 @@ Named hook groups organize hook handlers into logical, self-contained units (e.g
         "matcher": "run_command",
         "hooks": [
           {
+            "type": "command",
             "command": "./scripts/lint.sh",
             "timeout": 10
           }
@@ -54,6 +57,14 @@ Named hook groups organize hook handlers into logical, self-contained units (e.g
             "command": "./scripts/safety-check.sh"
           }
         ]
+      }
+    ]
+  },
+  "reminder": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "./scripts/reminder.sh"
       }
     ]
   }
@@ -119,18 +130,22 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
 ### Handler Properties & Defaults
 
 Within any hook definition list:
-- **`type`**: Execution handler type. Defaults to `"command"`. (May be omitted if using standard shell execution).
+- **`type`**: Execution handler type. Currently only `"command"` is supported. Defaults to `"command"`.
 - **`command`**: Command line string executed as a child process. Hook inputs are passed via standard input (`stdin`), and hook responses are captured from standard output (`stdout`).
 - **`timeout`**: Maximum execution time in seconds. Defaults to `30` seconds if not specified.
 - **`enabled`**: Boolean flag indicating if the hook or group is active. Defaults to `true`.
 
 ### Matcher Rules (`PreToolUse` & `PostToolUse`)
 
-For tool-related lifecycle events, the `matcher` property defines which tool calls trigger the hook using Regular Expressions:
+For `PreToolUse` and `PostToolUse`, the `matcher` property specifies which tool calls trigger the hook using Regular Expressions matching against the Tool Name:
 
-- **Wildcard Matcher (`*` or `.*`)**: Intercepts every tool call.
-- **Alternation / Exact Group (`^(run_command|write_to_file)$`)**: Matches designated tools precisely.
-- **Prefix Matching (`browser_.*`)**: Matches all tools starting with a prefix (e.g., `browser_click`, `browser_navigate`).
+- **Wildcard Matcher (`""` or `"*"` or `".*"`):** Matches all tools.
+- **Exact Tool Matcher (`"run_command"`):** Matches exactly `run_command`.
+- **Alternation / Exact Group (`"run_command|view_file"` or `"^(run_command|write_to_file)$"`):** Matches either designated tool.
+- **Prefix Matching (`"browser_.*"`):** Matches all tools starting with a prefix (e.g. `browser_click`, `browser_navigate`).
+
+> [!NOTE]
+> For `PreInvocation`, `PostInvocation`, and `Stop`, the structure is simpler (a list of handlers directly under the event key) and the `matcher` is ignored.
 
 ---
 
@@ -376,57 +391,57 @@ All lifecycle events provide the following base context fields on `stdin`:
 
 ## 3. Supported Antigravity Tools Catalog
 
-Antigravity provides standard tools organized into five functional categories:
+Antigravity provides standard tools organized into five functional categories. Matchers in `PreToolUse` and `PostToolUse` can inspect and gate any of these tool calls:
 
 ### 1. File & Directory Tools
-- **[`view_file`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Reads file content (supports text and binary media).
-  - *Args*: `AbsolutePath` (string, required), `StartLine` (int), `EndLine` (int), `ContentOffset` (int).
-- **[`write_to_file`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Creates or overwrites files.
-  - *Args*: `TargetFile` (string, required), `CodeContent` (string, required), `Overwrite` (bool, required), `Description` (string, required), `ArtifactMetadata` (object).
-- **[`replace_file_content`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Replaces a single contiguous code block.
-  - *Args*: `TargetFile` (string, required), `StartLine` (int, required), `EndLine` (int, required), `TargetContent` (string, required), `ReplacementContent` (string, required), `AllowMultiple` (bool, required), `Description` (string, required), `Instruction` (string, required).
-- **[`multi_replace_file_content`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Replaces multiple non-contiguous blocks in a single file.
-  - *Args*: `TargetFile` (string, required), `Replacements` (array of objects: `StartLine`, `EndLine`, `TargetContent`, `ReplacementContent`), `Description` (string, required).
-- **[`list_dir`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Lists directory entries and metadata.
-  - *Args*: `DirectoryPath` (string, required).
-- **[`find_by_name`](file:///skills/antigravity-hooks/SKILL.md#1-file--directory-tools)**: Fast file/directory search via glob patterns.
-  - *Args*: `SearchDirectory` (string, required), `Pattern` (string, required), `Type` (`"file" | "directory" | "any"`), `Extensions` (array), `Excludes` (array), `FullPath` (bool), `MaxDepth` (int).
+- **`view_file`**: Reads file content (supports text and binary media).
+  - *Arguments*: `AbsolutePath` (string, required), `StartLine` (int, optional), `EndLine` (int, optional), `IsSkillFile` (bool, optional), `ContentOffset` (int, optional).
+- **`write_to_file`**: Creates or overwrites files.
+  - *Arguments*: `TargetFile` (string, required), `Overwrite` (bool, required), `CodeContent` (string, required), `Description` (string, required), `IsArtifact` (bool, optional), `ArtifactMetadata` (object, optional).
+- **`replace_file_content`**: Replaces a single contiguous code block in a file.
+  - *Arguments*: `TargetFile` (string, required), `Instruction` (string, required), `Description` (string, required), `AllowMultiple` (bool, required), `TargetContent` (string, required), `ReplacementContent` (string, required), `StartLine` (int, required), `EndLine` (int, required), `TargetLintErrorIds` (string[], optional).
+- **`multi_replace_file_content`**: Makes multiple, non-contiguous edits to the same file.
+  - *Arguments*: `TargetFile` (string, required), `Instruction` (string, required), `Description` (string, required), `ReplacementChunks` (array of chunk objects with `StartLine`, `EndLine`, `TargetContent`, `ReplacementContent`, required), `TargetLintErrorIds` (string[], optional), `ArtifactMetadata` (object, optional).
+- **`list_dir`**: Lists directory entries and metadata.
+  - *Arguments*: `DirectoryPath` (string, required).
+- **`find_by_name`**: Fast file/directory search via glob patterns.
+  - *Arguments*: `SearchDirectory` (string, required), `Pattern` (string, required), `Type` (`"file" | "directory" | "any"`, optional), `Excludes` (string[], optional), `Extensions` (string[], optional), `FullPath` (bool, optional), `MaxDepth` (int, optional).
 
-### 2. Search Tools
-- **[`grep_search`](file:///skills/antigravity-hooks/SKILL.md#2-search-tools)**: Pattern search across files using ripgrep.
-  - *Args*: `SearchPath` (string, required), `Query` (string, required), `IsRegex` (bool), `CaseInsensitive` (bool), `MatchPerLine` (bool), `Includes` (array).
-- **[`search_web`](file:///skills/antigravity-hooks/SKILL.md#2-search-tools)**: Web search returning summaries and citations.
-  - *Args*: `query` (string, required), `domain` (string).
-- **[`read_url_content`](file:///skills/antigravity-hooks/SKILL.md#2-search-tools)**: Fetches and converts static HTTP URLs to markdown.
-  - *Args*: `Url` (string, required).
+### 2. Search & Research Tools
+- **`grep_search`**: Fast text searches within specific paths using ripgrep.
+  - *Arguments*: `SearchPath` (string, required), `Query` (string, required), `IsRegex` (bool, optional), `CaseInsensitive` (bool, optional), `Includes` (string[], optional), `MatchPerLine` (bool, optional).
+- **`search_web`**: Performs a general web search.
+  - *Arguments*: `query` (string, required), `domain` (string, optional).
+- **`read_url_content`**: Fetches and converts static HTTP URLs to markdown.
+  - *Arguments*: `Url` (string, required).
 
 ### 3. System & Execution Tools
-- **[`run_command`](file:///skills/antigravity-hooks/SKILL.md#3-system--execution-tools)**: Runs a shell command on the host machine.
-  - *Args*: `CommandLine` (string, required), `Cwd` (string, required), `WaitMsBeforeAsync` (int, required), `IsDaemon` (bool).
-- **[`manage_task`](file:///skills/antigravity-hooks/SKILL.md#3-system--execution-tools)**: Interacts with background tasks.
-  - *Args*: `Action` (`"list" | "kill" | "status" | "send_input"`, required), `TaskId` (string), `Input` (string).
-- **[`schedule`](file:///skills/antigravity-hooks/SKILL.md#3-system--execution-tools)**: Schedules one-shot timers or recurring cron tasks.
-  - *Args*: `Prompt` (string, required), `DurationSeconds` (int), `CronExpression` (string), `TimerCondition` (`"never" | "any" | <sender-id>`), `MaxIterations` (int), `IsDaemon` (bool).
-- **[`list_permissions`](file:///skills/antigravity-hooks/SKILL.md#3-system--execution-tools)**: Lists active permissions granted for the current session.
-  - *Args*: None or optional filter arguments.
-- **[`ask_permission`](file:///skills/antigravity-hooks/SKILL.md#3-system--execution-tools)**: Programmatically requests approval for protected resources.
-  - *Args*: `Permission` (string, required), `Reason` (string).
+- **`run_command`**: Executes shell commands on the host machine.
+  - *Arguments*: `CommandLine` (string, required), `Cwd` (string, required), `WaitMsBeforeAsync` (int, required), `RunPersistent` (bool, optional), `RequestedTerminalID` (string, optional), `IsDaemon` (bool, optional).
+- **`manage_task`**: Interacts with background tasks.
+  - *Arguments*: `Action` (`'list' | 'kill' | 'status' | 'send_input'`, required), `TaskId` (string, optional), `Input` (string, optional).
+- **`schedule`**: Sets timers or recurring cron tasks.
+  - *Arguments*: `Prompt` (string, required), `DurationSeconds` (int, optional), `CronExpression` (string, optional), `MaxIterations` (int, optional).
+- **`list_permissions`**: Lists active permissions granted for the current session.
+  - *Arguments*: None.
+- **`ask_permission`**: Programmatically requests additional scoped permissions.
+  - *Arguments*: `Action` (string, required), `Target` (string, required), `Reason` (string, required).
 
-### 4. Collaboration & Subagent Tools
-- **[`invoke_subagent`](file:///skills/antigravity-hooks/SKILL.md#4-collaboration--subagent-tools)**: Spawns a specialized subagent persona to execute a task.
-  - *Args*: `Prompt` (string, required), `TypeName` (string), `Description` (string), `AutoContinue` (bool).
-- **[`define_subagent`](file:///skills/antigravity-hooks/SKILL.md#4-collaboration--subagent-tools)**: Defines dynamic subagent personas with dedicated prompts and tools.
-  - *Args*: `Name` (string, required), `SystemPrompt` (string, required), `Description` (string), `Tools` (array).
-- **[`send_message`](file:///skills/antigravity-hooks/SKILL.md#4-collaboration--subagent-tools)**: Sends inter-agent messages between parent and subagents.
-  - *Args*: `Recipient` (string, required), `Message` (string, required).
-- **[`manage_subagents`](file:///skills/antigravity-hooks/SKILL.md#4-collaboration--subagent-tools)**: Lists, inspects, or terminates active subagents.
-  - *Args*: `Action` (`"list" | "terminate" | "inspect"`, required), `SubagentId` (string).
+### 4. Agent Collaboration Tools
+- **`invoke_subagent`**: Spawns specialized subagents to execute concurrent tasks.
+  - *Arguments*: `Subagents` (array of subagent specs: `Prompt`, `Role`, `TypeName`, `Workspace` (optional: `'inherit' | 'branch' | 'share'`), `Model` (optional: `'inherit' | 'flash' | 'pro'`)).
+- **`define_subagent`**: Creates and registers a dynamic custom subagent persona.
+  - *Arguments*: `name` (string, required), `description` (string, required), `system_prompt` (string, required), `enable_mcp_tools` (bool, optional), `enable_write_tools` (bool, optional), `enable_subagent_tools` (bool, optional).
+- **`send_message`**: Communicates with other agents (parent, children, or peers).
+  - *Arguments*: `Recipient` (string, required), `Message` (string, required).
+- **`manage_subagents`**: Lists or terminates active subagents.
+  - *Arguments*: `Action` (`'list' | 'kill' | 'kill_all'`, required), `ConversationIds` (string[], optional).
 
-### 5. Interaction & Asset Tools
-- **[`ask_question`](file:///skills/antigravity-hooks/SKILL.md#5-interaction--asset-tools)**: Asks the user an interactive question with optional choices.
-  - *Args*: `Question` (string, required), `Options` (array of strings).
-- **[`generate_image`](file:///skills/antigravity-hooks/SKILL.md#5-interaction--asset-tools)**: Generates UI designs or visual assets from text prompts.
-  - *Args*: `Prompt` (string, required), `ImageName` (string, required), `AspectRatio` (string), `ImagePaths` (array).
+### 5. Interaction & Media Tools
+- **`ask_question`**: Asks the user interactive questions with optional choices.
+  - *Arguments*: `questions` (array of objects with `question`, `options`, `is_multi_select`, required).
+- **`generate_image`**: Creates or edits images and UI mockups.
+  - *Arguments*: `Prompt` (string, required), `ImageName` (string, required), `ImagePaths` (string[], optional).
 
 ---
 
