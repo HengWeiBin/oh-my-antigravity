@@ -1,0 +1,59 @@
+name: Feature Request
+description: Propose a new feature, agent profile, skill, or hook enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an enhancement to oh-my-antigravity! Please describe your proposed feature or improvement below.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What part of oh-my-antigravity does this enhancement target?
+      options:
+        - New Subagent Profile (agents/)
+        - New Skill Workflow (skills/)
+        - Lifecycle Hook / Interceptor (scripts/hooks/)
+        - Hook Engine Architecture
+        - Developer Experience / CLI Tooling
+        - Documentation / Community
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: What problem does this solve, or what capability is currently missing?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & Design
+      description: How should this feature work? Describe the proposed implementation, agent instructions, or hook logic.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions, approaches, or workarounds?
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any relevant links, sample prompts, upstream references, or design notes here.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Contributor Checklist
+      options:
+        - label: I have searched existing issues and PRs to ensure this idea is not already tracked.
+          required: true
+        - label: I understand that any hook enhancements must adhere to standard-library only (0 runtime pip dependencies).
+          required: true
+        - label: I am willing to submit a pull request implementing this feature if accepted.
+          required: false

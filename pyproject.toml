@@ -1,7 +1,7 @@
 [project]
 name = "oh-my-antigravity"
 version = "0.1.0"
-description = "Add your description here"
+description = "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

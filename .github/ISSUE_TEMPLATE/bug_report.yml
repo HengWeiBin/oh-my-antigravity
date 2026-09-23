@@ -1,0 +1,95 @@
+name: Bug Report
+description: File a bug report to help improve oh-my-antigravity
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide as much detail as possible to help us investigate and reproduce the bug.
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Operating System & Antigravity Environment
+      description: Select your operating system and Antigravity flavor.
+      options:
+        - Windows (Antigravity 2.0 / CLI)
+        - macOS (Antigravity 2.0 / CLI)
+        - Linux (Antigravity 2.0 / CLI)
+        - Antigravity IDE
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin Version / Commit Hash
+      description: What version or git commit hash are you using?
+      placeholder: e.g., v0.1.0 or git rev-parse HEAD
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: Output of `python --version` or `uv run python --version`.
+      placeholder: e.g., Python 3.13.4
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of oh-my-antigravity is experiencing the problem?
+      options:
+        - Lifecycle Hooks (PreInvocation / PreToolUse / PostToolUse)
+        - Hook Engine (scripts/hooks/)
+        - Subagents (agents/)
+        - Skills (skills/)
+        - Installation / Manifest / Setup
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the problem is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Install plugin via '...'
+        2. Execute turn / tool call '...'
+        3. Observe error or unexpected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs or Terminal Output
+      description: Paste relevant terminal logs, stack traces, or debug output here.
+      render: shell
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Contributor Checklist
+      options:
+        - label: I have searched existing issues and verified this issue is not already reported.
+          required: true
+        - label: I am using Python 3.13+ with `uv`.
+          required: true
+        - label: I verified that test suite passes or checked failure via `uv run pytest scripts/tests/`.
+          required: false

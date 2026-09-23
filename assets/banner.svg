@@ -1,0 +1,300 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360">
+  <defs>
+    <!-- Background Canvas Gradient -->
+    <linearGradient id="bannerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19"/>
+      <stop offset="50%" stop-color="#0A0D14"/>
+      <stop offset="100%" stop-color="#06080F"/>
+    </linearGradient>
+
+    <!-- Top Accent Glow Line Gradient -->
+    <linearGradient id="topHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#06B6D4" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#6366F1" stop-opacity="0.9"/>
+      <stop offset="80%" stop-color="#8B5CF6" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Outer Frame Border Gradient -->
+    <linearGradient id="frameBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.4"/>
+      <stop offset="40%" stop-color="#6366F1" stop-opacity="0.2"/>
+      <stop offset="80%" stop-color="#8B5CF6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Typography Gradient -->
+    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="40%" stop-color="#F8FAFC"/>
+      <stop offset="70%" stop-color="#C7D2FE"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+
+    <!-- Nebula Ambient Glows -->
+    <radialGradient id="nebulaLeft" cx="15%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.22"/>
+      <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0A0D14" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="nebulaRight" cx="80%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.28"/>
+      <stop offset="40%" stop-color="#6366F1" stop-opacity="0.18"/>
+      <stop offset="80%" stop-color="#8B5CF6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0A0D14" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Singularity Radiant Core -->
+    <radialGradient id="singularityCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="25%" stop-color="#A5F3FC"/>
+      <stop offset="55%" stop-color="#06B6D4"/>
+      <stop offset="85%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#1E1B4B" stop-opacity="0.8"/>
+    </radialGradient>
+
+    <radialGradient id="ambientCoreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.45"/>
+      <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#0A0D14" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Orbital Trajectory Gradients -->
+    <linearGradient id="orbitGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#6366F1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <linearGradient id="orbitGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#38BDF8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Antigravity Blade Gradients -->
+    <linearGradient id="leftBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="40%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+
+    <linearGradient id="rightBladeGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC"/>
+      <stop offset="40%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+
+    <!-- Badge Background Gradients -->
+    <linearGradient id="cyanBadgeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <linearGradient id="indigoBadgeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <linearGradient id="purpleBadgeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <linearGradient id="skyBadgeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="techGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#FFFFFF" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+
+    <!-- Filters -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="titleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="#6366F1" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Base Canvas Background -->
+  <rect width="1200" height="360" rx="16" fill="url(#bannerBg)"/>
+
+  <!-- Subtle Tech Grid Overlay -->
+  <rect width="1200" height="360" rx="16" fill="url(#techGrid)"/>
+
+  <!-- Nebula Atmosphere Lighting -->
+  <circle cx="200" cy="120" r="320" fill="url(#nebulaLeft)"/>
+  <circle cx="970" cy="180" r="320" fill="url(#nebulaRight)"/>
+
+  <!-- Spacetime Geodesics & Curvature Lines -->
+  <path d="M 0 60 C 450 60 750 120 970 180" fill="none" stroke="#6366F1" stroke-opacity="0.08" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <path d="M 0 160 C 450 160 750 170 970 180" fill="none" stroke="#06B6D4" stroke-opacity="0.09" stroke-width="1.5" stroke-dasharray="3 6"/>
+  <path d="M 0 280 C 450 280 750 230 970 180" fill="none" stroke="#8B5CF6" stroke-opacity="0.08" stroke-width="1.5" stroke-dasharray="4 6"/>
+
+  <!-- Top Accent Highlight -->
+  <path d="M 16 1 L 1184 1" stroke="url(#topHighlight)" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Outer Frame Border -->
+  <rect x="0.5" y="0.5" width="1199" height="359" rx="16" fill="none" stroke="url(#frameBorder)" stroke-width="1"/>
+
+  <!-- ================= LEFT HERO COLUMN ================= -->
+  <!-- Eyebrow Pill Badge -->
+  <g transform="translate(70, 44)">
+    <rect width="300" height="30" rx="15" fill="#6366F1" fill-opacity="0.12" stroke="#6366F1" stroke-opacity="0.35" stroke-width="1"/>
+    <!-- Glowing status dot -->
+    <circle cx="16" cy="15" r="3.5" fill="#06B6D4" filter="url(#glow)"/>
+    <circle cx="16" cy="15" r="7" fill="none" stroke="#06B6D4" stroke-opacity="0.4" stroke-width="1"/>
+    <text x="32" y="19" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#38BDF8">GOOGLE ANTIGRAVITY 2.0 • AGENT HARNESS</text>
+  </g>
+
+  <!-- Prominent Title -->
+  <text x="68" y="132" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="54" font-weight="900" letter-spacing="-0.5" fill="url(#titleGradient)" filter="url(#titleShadow)">OH-MY-ANTIGRAVITY</text>
+
+  <!-- Tagline -->
+  <text x="70" y="174" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="19" font-weight="500" fill="#94A3B8" letter-spacing="0.1">The Ultimate Agent Orchestration Harness for Google Antigravity 2.0</text>
+
+  <!-- Sub-headline Architecture Highlights -->
+  <text x="70" y="208" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#64748B" letter-spacing="0.4">Autonomous Multi-Agent Swarms  •  Deterministic Hook Lifecycle  •  Zero-Lag Python Engine</text>
+
+  <!-- Integrated Visual Feature Badges Row -->
+  <g id="feature-badges" transform="translate(70, 244)">
+    <!-- Badge 1: Antigravity 2.0 Native -->
+    <g transform="translate(0, 0)">
+      <rect width="175" height="44" rx="10" fill="url(#cyanBadgeBg)" stroke="#06B6D4" stroke-opacity="0.4" stroke-width="1"/>
+      <!-- Sparkle Icon -->
+      <path d="M 22 14 Q 22 22 14 22 Q 22 22 22 30 Q 22 22 30 22 Q 22 22 22 14 Z" fill="#06B6D4" filter="url(#glow)"/>
+      <text x="38" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">Antigravity 2.0 Native</text>
+    </g>
+
+    <!-- Badge 2: 11 Orchestrated Agents -->
+    <g transform="translate(187, 0)">
+      <rect width="185" height="44" rx="10" fill="url(#indigoBadgeBg)" stroke="#6366F1" stroke-opacity="0.4" stroke-width="1"/>
+      <!-- Agent Swarm Network Icon -->
+      <g transform="translate(14, 13)">
+        <circle cx="4" cy="5" r="2.5" fill="#818CF8"/>
+        <circle cx="14" cy="5" r="2.5" fill="#818CF8"/>
+        <circle cx="9" cy="13" r="3" fill="#A5B4FC" filter="url(#glow)"/>
+        <line x1="4" y1="5" x2="9" y2="13" stroke="#818CF8" stroke-width="1.2"/>
+        <line x1="14" y1="5" x2="9" y2="13" stroke="#818CF8" stroke-width="1.2"/>
+        <line x1="4" y1="5" x2="14" y2="5" stroke="#818CF8" stroke-width="1.2"/>
+      </g>
+      <text x="40" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">11 Orchestrated Agents</text>
+    </g>
+
+    <!-- Badge 3: 42 Bundled Skills -->
+    <g transform="translate(384, 0)">
+      <rect width="160" height="44" rx="10" fill="url(#purpleBadgeBg)" stroke="#8B5CF6" stroke-opacity="0.4" stroke-width="1"/>
+      <!-- Capability Lightning Icon -->
+      <path d="M 23 13 L 15 23 L 20 23 L 17 31 L 27 20 L 22 20 Z" fill="#C084FC" filter="url(#glow)"/>
+      <text x="35" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">42 Bundled Skills</text>
+    </g>
+
+    <!-- Badge 4: Python 3.13 Hook Engine -->
+    <g transform="translate(556, 0)">
+      <rect width="195" height="44" rx="10" fill="url(#skyBadgeBg)" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="1"/>
+      <!-- Python Engine Icon -->
+      <g transform="translate(14, 13)">
+        <path d="M 8 1 C 5 1 3 3 3 6 L 3 9 L 9 9 L 9 10 L 1 10 C -0.5 10 -1 11.5 -1 13.5 L -1 16.5 C -1 18.5 0.5 20 3 20 L 5 20 L 5 18 C 5 16 7 14 9 14 L 12 14 C 14 14 16 12 16 10 L 16 6 C 16 3 12 1 8 1 Z" fill="#38BDF8" transform="scale(0.85) translate(4, 1)"/>
+        <path d="M 12 20 C 15 20 17 18 17 15 L 17 12 L 11 12 L 11 11 L 19 11 C 20.5 11 21 9.5 21 7.5 L 21 4.5 C 21 2.5 19.5 1 17 1 L 15 1 L 15 3 C 15 5 13 7 11 7 L 8 7 C 6 7 4 9 4 11 L 4 15 C 4 18 8 20 12 20 Z" fill="#06B6D4" transform="scale(0.85) translate(4, 1)"/>
+      </g>
+      <text x="40" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">Python 3.13 Hook Engine</text>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT VISUAL SYSTEM ================= -->
+  <!-- Gravitational Multi-Agent Swarm (Center at 970, 180) -->
+  <g id="gravitational-system">
+    <!-- Concentric Gravitational Event Horizons -->
+    <circle cx="970" cy="180" r="148" fill="none" stroke="#6366F1" stroke-width="1" stroke-opacity="0.12" stroke-dasharray="4 8"/>
+    <circle cx="970" cy="180" r="116" fill="none" stroke="#8B5CF6" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="3 6"/>
+    <circle cx="970" cy="180" r="84" fill="none" stroke="#06B6D4" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="2 4"/>
+    <circle cx="970" cy="180" r="52" fill="none" stroke="#38BDF8" stroke-width="1.5" stroke-opacity="0.45"/>
+
+    <!-- Orbital Trajectories -->
+    <!-- Orbit 1: Tilted -28 deg -->
+    <ellipse cx="970" cy="180" rx="142" ry="48" fill="none" stroke="url(#orbitGrad1)" stroke-width="2.2" transform="rotate(-28 970 180)" stroke-opacity="0.85"/>
+
+    <!-- Orbit 2: Tilted +35 deg -->
+    <ellipse cx="970" cy="180" rx="138" ry="46" fill="none" stroke="url(#orbitGrad2)" stroke-width="2.2" transform="rotate(35 970 180)" stroke-opacity="0.85"/>
+
+    <!-- Orbit 3: Polar Gyroscope Ring -->
+    <ellipse cx="970" cy="180" rx="130" ry="30" fill="none" stroke="#38BDF8" stroke-width="1.4" transform="rotate(82 970 180)" stroke-dasharray="5 3" stroke-opacity="0.45"/>
+
+    <!-- Antigravity Core Sovereign Glyph (Center Emblem) -->
+    <!-- Levitation Sub-gravity Wave -->
+    <path d="M 948 222 C 958 216 982 216 992 222" fill="none" stroke="#06B6D4" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+
+    <!-- Left Wing Blade -->
+    <path d="M 965 118 L 926 210 C 924 213 927 216 931 216 L 948 216 C 951 216 953 214 954 212 L 965 174 Z" fill="url(#leftBladeGrad)" filter="url(#glow)"/>
+
+    <!-- Right Wing Blade -->
+    <path d="M 975 118 L 975 174 L 986 212 C 987 214 989 216 992 216 L 1009 216 C 1013 216 1016 213 1014 210 Z" fill="url(#rightBladeGrad)" filter="url(#glow)"/>
+
+    <!-- Apex Focus Shard -->
+    <polygon points="970,108 974,119 970,123 966,119" fill="#38BDF8" filter="url(#glow)"/>
+    <polygon points="970,111 973,119 970,121 967,119" fill="#FFFFFF"/>
+
+    <!-- Singularity Radiant Sphere -->
+    <circle cx="970" cy="172" r="22" fill="url(#ambientCoreGlow)"/>
+    <circle cx="970" cy="172" r="13" fill="url(#singularityCore)" filter="url(#glow)"/>
+    <circle cx="970" cy="172" r="5.5" fill="#FFFFFF"/>
+    <circle cx="970" cy="172" r="2.2" fill="#A5F3FC"/>
+
+    <!-- Gravitational Horizon Energy Beams -->
+    <line x1="935" y1="172" x2="1005" y2="172" stroke="#22D3EE" stroke-width="1.5" stroke-linecap="round" opacity="0.8" filter="url(#glow)"/>
+    <line x1="970" y1="138" x2="970" y2="206" stroke="#C084FC" stroke-width="1.5" stroke-linecap="round" opacity="0.6" filter="url(#glow)"/>
+
+    <!-- Orbiting Swarm Agents with Holographic Callouts -->
+    <!-- Agent 1: Atlas (Top-Left) -->
+    <circle cx="855" cy="118" r="5" fill="#06B6D4" filter="url(#glow)"/>
+    <circle cx="855" cy="118" r="2.2" fill="#FFFFFF"/>
+    <g transform="translate(815, 88)">
+      <rect width="52" height="20" rx="5" fill="#090D17" fill-opacity="0.9" stroke="#06B6D4" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="26" y="14" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" fill="#38BDF8" text-anchor="middle">Atlas</text>
+    </g>
+
+    <!-- Agent 2: Prometheus (Top-Right) -->
+    <circle cx="1080" cy="112" r="5" fill="#A855F7" filter="url(#glow)"/>
+    <circle cx="1080" cy="112" r="2.2" fill="#FFFFFF"/>
+    <g transform="translate(1048, 82)">
+      <rect width="78" height="20" rx="5" fill="#090D17" fill-opacity="0.9" stroke="#A855F7" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="39" y="14" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" fill="#C084FC" text-anchor="middle">Prometheus</text>
+    </g>
+
+    <!-- Agent 3: Sisyphus (Bottom-Right) -->
+    <circle cx="1070" cy="238" r="4.5" fill="#6366F1" filter="url(#glow)"/>
+    <circle cx="1070" cy="238" r="2" fill="#FFFFFF"/>
+    <g transform="translate(1045, 250)">
+      <rect width="64" height="20" rx="5" fill="#090D17" fill-opacity="0.9" stroke="#6366F1" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="32" y="14" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" fill="#818CF8" text-anchor="middle">Sisyphus</text>
+    </g>
+
+    <!-- Agent 4: Hephaestus (Bottom-Left) -->
+    <circle cx="870" cy="242" r="4.5" fill="#22D3EE" filter="url(#glow)"/>
+    <circle cx="870" cy="242" r="2" fill="#FFFFFF"/>
+    <g transform="translate(826, 254)">
+      <rect width="78" height="20" rx="5" fill="#090D17" fill-opacity="0.9" stroke="#22D3EE" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="39" y="14" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" fill="#22D3EE" text-anchor="middle">Hephaestus</text>
+    </g>
+  </g>
+
+  <!-- ================= TECHNICAL HUD METADATA ================= -->
+  <text x="1150" y="38" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">CORE_SYS // AG-2.0</text>
+  <text x="1150" y="338" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">ORCHESTRATION_HARNESS v0.1.0</text>
+
+  <!-- Precision Crosshairs -->
+  <g stroke="#334155" stroke-width="1">
+    <path d="M 20 24 L 28 24 M 24 20 L 24 28"/>
+    <path d="M 1172 24 L 1180 24 M 1176 20 L 1176 28"/>
+    <path d="M 20 336 L 28 336 M 24 332 L 24 340"/>
+    <path d="M 1172 336 L 1180 336 M 1176 332 L 1176 340"/>
+  </g>
+</svg>
