@@ -196,13 +196,11 @@ class SessionResolver:
         except OSError:
             return None
 
+        # Fast path 1: Check Antigravity subagent metadata across entries (<50ms)
         for cid in entries:
             if cid == conversation_id:
                 continue
-            cid_dir = os.path.join(brain_dir, cid)
-            if not os.path.isdir(cid_dir):
-                continue
-            subagent_file = os.path.join(cid_dir, ".system_generated", "subagents", f"{conversation_id}.json")
+            subagent_file = os.path.join(brain_dir, cid, ".system_generated", "subagents", f"{conversation_id}.json")
             if os.path.exists(subagent_file):
                 try:
                     with open(subagent_file, "r", encoding="utf-8") as sf:
@@ -212,15 +210,16 @@ class SessionResolver:
                             return tn
                 except Exception:  # noqa: BLE001, S110
                     pass
-            logs_dir = os.path.join(cid_dir, ".system_generated", "logs")
-            if not os.path.exists(logs_dir):
+
+        # Fallback path 2: Check transcript.jsonl in the 10 most recent sessions only
+        for cid in entries[:10]:
+            if cid == conversation_id:
                 continue
-            for name in ["transcript.jsonl", "transcript_full.jsonl"]:
-                log_path = os.path.join(logs_dir, name)
-                if os.path.exists(log_path):
-                    parsed_typename = parse_typename_from_log(log_path, conversation_id, cid)
-                    if parsed_typename:
-                        return parsed_typename
+            log_path = os.path.join(brain_dir, cid, ".system_generated", "logs", "transcript.jsonl")
+            if os.path.exists(log_path):
+                parsed_typename = parse_typename_from_log(log_path, conversation_id, cid)
+                if parsed_typename:
+                    return parsed_typename
         return None
 
     @classmethod

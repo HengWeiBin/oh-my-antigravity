@@ -141,20 +141,25 @@ def check_subagent_in_brain_dir(brain_dir: str, cid: str) -> bool:
     if not brain_dir or not os.path.isdir(brain_dir):
         return False
     try:
-        for entry in os.listdir(brain_dir):
-            convo_dir = os.path.join(brain_dir, entry)
-            if not os.path.isdir(convo_dir):
-                continue
+        entries = sorted(
+            os.listdir(brain_dir),
+            key=lambda x: os.path.getmtime(os.path.join(brain_dir, x)) if os.path.exists(os.path.join(brain_dir, x)) else 0,
+            reverse=True
+        )
+        # Fast path 1: check subagent metadata
+        for entry in entries:
             if entry == cid:
-                continue # Skip checking own directory
-            
-            # check transcript
-            t_path = os.path.join(convo_dir, ".system_generated", "logs", "transcript.jsonl")
-            if is_cid_invoked_in_log(t_path, cid):
+                continue
+            subagent_file = os.path.join(brain_dir, entry, ".system_generated", "subagents", f"{cid}.json")
+            if os.path.exists(subagent_file):
                 return True
-                
-            tf_path = os.path.join(convo_dir, ".system_generated", "logs", "transcript_full.jsonl")
-            if is_cid_invoked_in_log(tf_path, cid):
+
+        # Fallback path 2: check transcript.jsonl in top 10 most recent
+        for entry in entries[:10]:
+            if entry == cid:
+                continue
+            t_path = os.path.join(brain_dir, entry, ".system_generated", "logs", "transcript.jsonl")
+            if is_cid_invoked_in_log(t_path, cid):
                 return True
     except OSError:
         pass
