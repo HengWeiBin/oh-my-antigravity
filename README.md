@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.1.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.1.1-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
 
@@ -304,7 +304,7 @@ The plugin manifest declares metadata loaded by Antigravity:
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }
