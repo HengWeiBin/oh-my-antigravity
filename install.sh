@@ -223,7 +223,7 @@ print_success() {
   printf "${GREEN}══════════════════════════════════════════════════════════════════════${RESET}\n\n"
 
   printf "  ${BOLD}Install Location:${RESET} %s\n" "$TARGET_DIR"
-  printf "  ${BOLD}Version:${RESET}          0.1.0\n"
+  printf "  ${BOLD}Version:${RESET}          0.1.1\n"
   printf "  ${BOLD}Status:${RESET}           Ready for Google Antigravity 2.0\n\n"
 
   printf "${BOLD}Next Steps:${RESET}\n"

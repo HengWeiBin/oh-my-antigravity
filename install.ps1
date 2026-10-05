@@ -239,7 +239,7 @@ function Show-Success {
     Write-Host "========================================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Install Location: $TargetDir" -ForegroundColor White
-    Write-Host "  Version:          0.1.0" -ForegroundColor White
+    Write-Host "  Version:          0.1.1" -ForegroundColor White
     Write-Host "  Status:           Ready for Google Antigravity 2.0" -ForegroundColor White
     Write-Host ""
 

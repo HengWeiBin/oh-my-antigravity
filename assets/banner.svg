@@ -288,7 +288,7 @@
 
   <!-- ================= TECHNICAL HUD METADATA ================= -->
   <text x="1150" y="38" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">CORE_SYS // AG-2.0</text>
-  <text x="1150" y="338" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">ORCHESTRATION_HARNESS v0.1.0</text>
+  <text x="1150" y="338" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">ORCHESTRATION_HARNESS v0.1.1</text>
 
   <!-- Precision Crosshairs -->
   <g stroke="#334155" stroke-width="1">
