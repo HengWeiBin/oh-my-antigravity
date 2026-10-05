@@ -112,14 +112,31 @@ def test_manifest_hooks_json():
         assert phase in hooks, f"Missing required hook phase: {phase}"
 
     # Verify script targets exist
+    def collect_commands(entry):
+        cmds = []
+        if isinstance(entry, dict):
+            if "command" in entry and isinstance(entry["command"], str):
+                cmds.append(entry["command"])
+            if "hooks" in entry:
+                cmds.extend(collect_commands(entry["hooks"]))
+        elif isinstance(entry, list):
+            for sub in entry:
+                cmds.extend(collect_commands(sub))
+        return cmds
+
     for phase, hook_list in hooks.items():
         assert isinstance(hook_list, list), f"Phase {phase} hooks must be a list"
-        for item in hook_list:
-            if "command" in item:
-                cmd_parts = item["command"].split()
-                if len(cmd_parts) >= 2 and cmd_parts[0] == "python":
-                    script_path = REPO_ROOT / cmd_parts[1]
-                    assert script_path.is_file(), f"Hook script does not exist: {script_path}"
+        cmds = collect_commands(hook_list)
+        assert len(cmds) > 0, f"No commands found for phase: {phase}"
+        for cmd in cmds:
+            match = re.search(r"scripts[/\\]([a-zA-Z0-9_]+\.py)", cmd)
+            if match:
+                script_path = REPO_ROOT / "scripts" / match.group(1)
+            else:
+                cmd_parts = cmd.split()
+                assert len(cmd_parts) >= 2 and cmd_parts[0] == "python"
+                script_path = REPO_ROOT / cmd_parts[1]
+            assert script_path.is_file(), f"Hook script does not exist: {script_path}"
 
 
 def test_manifest_pyproject_toml():
