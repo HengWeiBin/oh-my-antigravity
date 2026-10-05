@@ -85,8 +85,15 @@ class PermissionPolicy:
             is_plan = "plan" in basename or "task" in basename or normalized_path.endswith(".md")
             is_agents = "/.agents/" in normalized_path or normalized_path.startswith(".agents/")
             is_omo = "/.omo/" in normalized_path or normalized_path.startswith(".omo/")
+            is_scratch = (
+                "/scratch/" in normalized_path
+                or "/.scratch/" in normalized_path
+                or normalized_path.startswith(("scratch/", ".scratch/"))
+            )
+            is_brain = "/brain/" in normalized_path or normalized_path.startswith("brain/")
+            is_allowed = is_plan or is_agents or is_omo or is_scratch or is_brain
 
-            if not (is_plan or is_agents or is_omo):
+            if not is_allowed:
                 return PermissionDecision(
                     allowed=False,
                     decision="ask",

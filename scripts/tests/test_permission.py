@@ -40,6 +40,21 @@ def test_orchestrator_allowed_paths() -> None:
         assert res.decision == "allow"
 
 
+def test_orchestrator_scratch_and_brain_allowed() -> None:
+    for path in [
+        ".scratch/test.py",
+        "C:/Users/test/.gemini/antigravity/brain/conv123/scratch/script.py",
+        "brain/conv123/artifact.md",
+    ]:
+        res = PermissionPolicy.evaluate(
+            role=AgentRole.ORCHESTRATOR,
+            tool_name="write_to_file",
+            target_path=path,
+        )
+        assert res.allowed, f"Failed on path: {path}"
+        assert res.decision == "allow"
+
+
 def test_worker_restrictions() -> None:
     # Subagent writing to .omo/plans/plan.md should be denied
     res1 = PermissionPolicy.evaluate(
