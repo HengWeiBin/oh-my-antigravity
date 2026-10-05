@@ -81,7 +81,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
     "PreInvocation": [
       {
         "type": "command",
-        "command": "python scripts/pre_invocation.py",
+        "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/pre_invocation.py",
         "timeout": 8
       }
     ],
@@ -91,7 +91,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/pre_tool_use.py",
+            "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/pre_tool_use.py",
             "timeout": 5
           }
         ]
@@ -103,29 +103,34 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/post_tool_use.py",
+            "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/post_tool_use.py",
             "timeout": 5
           }
         ]
       }
     ],
-    "PostInvocation": [
-      {
-        "type": "command",
-        "command": "python scripts/post_invocation.py",
-        "timeout": 10
-      }
-    ],
     "Stop": [
       {
         "type": "command",
-        "command": "python scripts/stop.py",
+        "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/stop.py",
         "timeout": 5
       }
     ]
   }
 }
 ```
+
+> [!WARNING]
+> **Cross-Workspace Hook Execution & Windows Quote Stripping Pitfall**:
+> 1. **CWD Pitfall**: When Antigravity executes hooks defined in a plugin's `hooks.json`, it runs the command using the **active workspace directory as CWD**, *not* the plugin's install directory. Naive relative commands like `python scripts/pre_tool_use.py` fail immediately with **`Errno 2 (File not found)`** in external workspaces.
+> 2. **Windows Quote-Stripping Pitfall**: Avoid using `python -c "..."` inline scripts with nested double quotes in `hooks.json`. On Windows, commands are executed via `cmd.exe /c`, which strips outer quotation marks and causes `SyntaxError: unterminated string literal`, locking all intercepted tools.
+>
+> **Best Practice Pattern (Clean Environment Path)**:
+> Use direct, quote-free script paths leveraging `%USERPROFILE%` on Windows:
+> ```json
+> "command": "python %USERPROFILE%/.gemini/config/plugins/<plugin-name>/scripts/<hook>.py"
+> ```
+> Each hook script resolves its own root directory via `os.path.dirname(os.path.abspath(__file__))` and adds it to `sys.path`, ensuring universal compatibility across any active workspace, directory, or drive letter.
 
 ### Handler Properties & Defaults
 
@@ -819,14 +824,16 @@ def test_pipeline_isolates_fault():
    - Keep hook execution fast (< 5s). Avoid blocking network requests or expensive operations.
 4. **Subagent Awareness**:
    - Inspect `conversationId` and parent session transcripts to adapt behaviors between orchestrators and workers.
-5. **Path Formatting**:
-   - In `hooks.json`, use forward slashes (`/`) or relative paths (`python scripts/pre_invocation.py`) to avoid Windows backslash escape errors.
+5. **Path Formatting & Cross-Workspace Safety**:
+   - In `hooks.json`, avoid assuming CWD is the plugin folder. Use forward slashes (`/`) and adopt direct, quote-free script paths leveraging `%USERPROFILE%` (e.g. `python %USERPROFILE%/.gemini/config/plugins/<plugin-name>/scripts/<hook>.py`). Avoid complex `python -c "..."` inline scripts that trigger Windows `cmd.exe /c` quote-stripping syntax errors.
 
 ### Troubleshooting Matrix
 
 | Symptom | Probable Cause | Corrective Action |
 |---|---|---|
 | Hook does not execute | Incorrect matcher regex, file path error, or `"enabled": false` | Verify regex with test strings, ensure script exists at relative path, and check `enabled: true`. |
+| Hook fails with FileNotFoundError (Errno 2) in external workspace | Antigravity runs hook commands with CWD set to active workspace, so naive relative paths like `python scripts/...` fail | Use direct, quote-free paths via `%USERPROFILE%` (e.g. `python %USERPROFILE%/.gemini/config/plugins/.../scripts/<hook>.py`). |
+| Hook fails with SyntaxError (unterminated string literal) | Windows `cmd.exe /c` strips outer double quotes around inline `python -c "..."` commands | Eliminate double quotes and inline scripts; use clean environment path pointing directly to script file. |
 | Agent runtime JSON error | Non-JSON text printed to `stdout` by hook script | Redirect all `print(...)` and diagnostic logging statements to `sys.stderr`. |
 | Hook execution timeout | Script blocked on stdin reading or hanging subprocess | Read full stdin synchronously (`sys.stdin.read()`), ensure subprocess timeouts, and keep operations lightweight. |
 | Permission overrides ignored | `permissionOverrides` passed as `{}` instead of `string[]` | Return a string array format, e.g. `["command(npm test)", "read_file(/path/*)"]`. |
