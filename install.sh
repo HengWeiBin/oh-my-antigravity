@@ -94,6 +94,7 @@ check_prerequisites() {
   # Check Python >= 3.13 or uv
   runtime_found=0
   runtime_desc=""
+  detected_python=""
 
   # Try python3
   if command -v python3 >/dev/null 2>&1; then
@@ -101,6 +102,7 @@ check_prerequisites() {
       py_ver="$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}")' 2>/dev/null || echo ">=3.13")"
       runtime_found=1
       runtime_desc="python3 (v${py_ver})"
+      detected_python="python3"
     fi
   fi
 
@@ -110,6 +112,7 @@ check_prerequisites() {
       py_ver="$(python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}")' 2>/dev/null || echo ">=3.13")"
       runtime_found=1
       runtime_desc="python (v${py_ver})"
+      detected_python="python"
     fi
   fi
 
@@ -121,6 +124,7 @@ check_prerequisites() {
     else
       runtime_found=1
       runtime_desc="${uv_ver}"
+      detected_python="uv run python"
     fi
   fi
 
@@ -192,7 +196,29 @@ install_or_update() {
 }
 
 # ------------------------------------------------------------------------------
-# 4. Integrity Verification
+# 4. Lifecycle Hooks Configuration from Template
+# ------------------------------------------------------------------------------
+configure_hooks() {
+  log_info "Configuring hooks from template..."
+  configured=0
+
+  py_exec="${detected_python:-python3}"
+
+  if [ -f "$TARGET_DIR/scripts/setup_hooks.py" ] && [ -f "$TARGET_DIR/hooks.template.json" ]; then
+    if $py_exec "$TARGET_DIR/scripts/setup_hooks.py" --python "$py_exec" --plugin-dir "$TARGET_DIR" >/dev/null 2>&1; then
+      configured=1
+      log_success "Hooks configured successfully via setup_hooks.py."
+    fi
+  fi
+
+  if [ "$configured" -eq 0 ] && [ -f "$TARGET_DIR/hooks.template.json" ]; then
+    sed -e "s|{{PYTHON}}|$py_exec|g" -e "s|{{PLUGIN_DIR}}|$TARGET_DIR|g" "$TARGET_DIR/hooks.template.json" > "$TARGET_DIR/hooks.json"
+    log_success "Hooks configured via template fallback."
+  fi
+}
+
+# ------------------------------------------------------------------------------
+# 5. Integrity Verification
 # ------------------------------------------------------------------------------
 verify_installation() {
   log_info "Verifying plugin integrity..."
@@ -200,6 +226,9 @@ verify_installation() {
   missing=""
   if [ ! -f "$TARGET_DIR/plugin.json" ]; then
     missing="${missing} plugin.json"
+  fi
+  if [ ! -f "$TARGET_DIR/hooks.template.json" ]; then
+    missing="${missing} hooks.template.json"
   fi
   if [ ! -f "$TARGET_DIR/hooks.json" ]; then
     missing="${missing} hooks.json"
@@ -210,11 +239,11 @@ verify_installation() {
     exit 1
   fi
 
-  log_success "Integrity check passed (plugin.json and hooks.json present)."
+  log_success "Integrity check passed (plugin.json, hooks.template.json, and hooks.json present)."
 }
 
 # ------------------------------------------------------------------------------
-# 5. Success Message & Next Steps
+# 6. Success Message & Next Steps
 # ------------------------------------------------------------------------------
 print_success() {
   printf "\n"
@@ -242,6 +271,7 @@ main() {
   resolve_target_dir
   check_prerequisites
   install_or_update
+  configure_hooks
   verify_installation
   print_success
 }

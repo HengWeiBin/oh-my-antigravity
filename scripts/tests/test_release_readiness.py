@@ -103,10 +103,23 @@ def test_manifest_plugin_json():
 
 
 def test_manifest_hooks_json():
-    """Verify hooks.json structure and standard interceptor registrations."""
-    hooks_path = REPO_ROOT / "hooks.json"
-    assert hooks_path.is_file(), "hooks.json must exist at repo root"
+    """Verify hooks.template.json and hooks.json structure and standard interceptor registrations."""
+    template_path = REPO_ROOT / "hooks.template.json"
+    assert template_path.is_file(), "hooks.template.json must exist at repo root"
 
+    template_data = json.loads(template_path.read_text(encoding="utf-8"))
+    assert "hooks" in template_data, "hooks.template.json must contain top-level 'hooks' key"
+    template_hooks = template_data["hooks"]
+
+    for phase in ["PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
+        assert phase in template_hooks, f"Missing required hook phase in template: {phase}"
+
+    hooks_path = REPO_ROOT / "hooks.json"
+    if not hooks_path.is_file():
+        from scripts.setup_hooks import render_hooks
+        render_hooks(plugin_dir=REPO_ROOT)
+
+    assert hooks_path.is_file(), "hooks.json must exist at repo root"
     data = json.loads(hooks_path.read_text(encoding="utf-8"))
     assert "hooks" in data, "hooks.json must contain top-level 'hooks' key"
     hooks = data["hooks"]
@@ -128,19 +141,20 @@ def test_manifest_hooks_json():
                 cmds.extend(collect_commands(sub))
         return cmds
 
-    for phase, hook_list in hooks.items():
-        assert isinstance(hook_list, list), f"Phase {phase} hooks must be a list"
-        cmds = collect_commands(hook_list)
-        assert len(cmds) > 0, f"No commands found for phase: {phase}"
-        for cmd in cmds:
-            match = re.search(r"scripts[/\\]([a-zA-Z0-9_]+\.py)", cmd)
-            if match:
-                script_path = REPO_ROOT / "scripts" / match.group(1)
-            else:
-                cmd_parts = cmd.split()
-                assert len(cmd_parts) >= 2 and cmd_parts[0] == "python"
-                script_path = REPO_ROOT / cmd_parts[1]
-            assert script_path.is_file(), f"Hook script does not exist: {script_path}"
+    for source_name, source_hooks in [("hooks.template.json", template_hooks), ("hooks.json", hooks)]:
+        for phase, hook_list in source_hooks.items():
+            assert isinstance(hook_list, list), f"Phase {phase} hooks must be a list in {source_name}"
+            cmds = collect_commands(hook_list)
+            assert len(cmds) > 0, f"No commands found for phase: {phase} in {source_name}"
+            for cmd in cmds:
+                match = re.search(r"scripts[/\\]([a-zA-Z0-9_]+\.py)", cmd)
+                if match:
+                    script_path = REPO_ROOT / "scripts" / match.group(1)
+                else:
+                    cmd_parts = cmd.split()
+                    assert len(cmd_parts) >= 2 and cmd_parts[0] == "python"
+                    script_path = REPO_ROOT / cmd_parts[1]
+                assert script_path.is_file(), f"Hook script does not exist ({source_name}): {script_path}"
 
 
 def test_manifest_pyproject_toml():
@@ -236,6 +250,12 @@ def test_installer_scripts_validation():
     # uv package manager validation
     assert "uv" in sh_content
     assert "uv" in ps1_content
+
+    # Hooks configuration validation
+    assert "hooks.template.json" in sh_content
+    assert "hooks.template.json" in ps1_content
+    assert "hooks.json" in sh_content
+    assert "hooks.json" in ps1_content
 
 
 # ==============================================================================

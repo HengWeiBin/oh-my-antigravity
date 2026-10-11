@@ -71,9 +71,9 @@ Named hook groups organize hook handlers into logical, self-contained units (e.g
 }
 ```
 
-#### B. Plugin Root Hooks Format
+#### B. Plugin Root Hooks Format & Template Rendering
 
-Plugins bundle hooks using the standard `"hooks"` root object containing lifecycle event arrays:
+Plugins bundle hook configurations using `hooks.template.json` with dynamic placeholders, which are rendered into `hooks.json` during installation or setup:
 
 ```json
 {
@@ -81,7 +81,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
     "PreInvocation": [
       {
         "type": "command",
-        "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/pre_invocation.py",
+        "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/pre_invocation.py",
         "timeout": 8
       }
     ],
@@ -91,7 +91,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
         "hooks": [
           {
             "type": "command",
-            "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/pre_tool_use.py",
+            "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/pre_tool_use.py",
             "timeout": 5
           }
         ]
@@ -103,7 +103,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
         "hooks": [
           {
             "type": "command",
-            "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/post_tool_use.py",
+            "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/post_tool_use.py",
             "timeout": 5
           }
         ]
@@ -112,7 +112,7 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
     "Stop": [
       {
         "type": "command",
-        "command": "python %USERPROFILE%/.gemini/config/plugins/oh-my-antigravity/scripts/stop.py",
+        "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/stop.py",
         "timeout": 5
       }
     ]
@@ -120,17 +120,19 @@ Plugins bundle hooks using the standard `"hooks"` root object containing lifecyc
 }
 ```
 
-> [!WARNING]
-> **Cross-Workspace Hook Execution & Windows Quote Stripping Pitfall**:
-> 1. **CWD Pitfall**: When Antigravity executes hooks defined in a plugin's `hooks.json`, it runs the command using the **active workspace directory as CWD**, *not* the plugin's install directory. Naive relative commands like `python scripts/pre_tool_use.py` fail immediately with **`Errno 2 (File not found)`** in external workspaces.
-> 2. **Windows Quote-Stripping Pitfall**: Avoid using `python -c "..."` inline scripts with nested double quotes in `hooks.json`. On Windows, commands are executed via `cmd.exe /c`, which strips outer quotation marks and causes `SyntaxError: unterminated string literal`, locking all intercepted tools.
->
-> **Best Practice Pattern (Clean Environment Path)**:
-> Use direct, quote-free script paths leveraging `%USERPROFILE%` on Windows:
-> ```json
-> "command": "python %USERPROFILE%/.gemini/config/plugins/<plugin-name>/scripts/<hook>.py"
-> ```
-> Each hook script resolves its own root directory via `os.path.dirname(os.path.abspath(__file__))` and adds it to `sys.path`, ensuring universal compatibility across any active workspace, directory, or drive letter.
+> [!IMPORTANT]
+> **Cross-Platform Template Rendering (`hooks.template.json` -> `hooks.json`)**:
+> 1. **POSIX Shell vs Windows Variables**: Hardcoding `%USERPROFILE%` fails on Linux and macOS because POSIX shells (`/bin/sh`) do not expand `%USERPROFILE%`, causing `FileNotFoundError`.
+> 2. **Python Binary Discrepancies**: On Linux and macOS, the system Python 3 runtime is typically named `python3`, whereas on Windows it is often `python`.
+> 3. **Custom Installation Paths**: Users installing via `$ANTIGRAVITY_PLUGINS_DIR` require paths resolved to their specific target directory.
+> 
+> **Rendering Mechanism**:
+> - **Template Placeholders**: `{{PYTHON}}` and `{{PLUGIN_DIR}}` (normalized with forward slashes `/`).
+> - **Automated Generation**: Run during installation via `install.sh`, `install.ps1`, or manually with:
+>   ```bash
+>   python scripts/setup_hooks.py [--python <path>] [--plugin-dir <path>]
+>   ```
+> - **Git Untracking**: `hooks.template.json` is committed to version control; `hooks.json` is generated locally and ignored in `.gitignore` to prevent dirty working trees and git pull conflicts.
 
 ### Handler Properties & Defaults
 
@@ -834,16 +836,18 @@ def test_pipeline_isolates_fault():
    - Keep hook execution fast (< 5s). Avoid blocking network requests or expensive operations.
 4. **Subagent Awareness**:
    - Inspect `conversationId` and parent session transcripts to adapt behaviors between orchestrators and workers.
-5. **Path Formatting & Cross-Workspace Safety**:
-   - In `hooks.json`, avoid assuming CWD is the plugin folder. Use forward slashes (`/`) and adopt direct, quote-free script paths leveraging `%USERPROFILE%` (e.g. `python %USERPROFILE%/.gemini/config/plugins/<plugin-name>/scripts/<hook>.py`). Avoid complex `python -c "..."` inline scripts that trigger Windows `cmd.exe /c` quote-stripping syntax errors.
+5. **Path Formatting & Cross-Platform Template Rendering**:
+   - In `hooks.template.json`, use template placeholders `{{PYTHON}}` and `{{PLUGIN_DIR}}` with forward slashes (`/`).
+   - Hardcoding Windows `%USERPROFILE%` fails on POSIX shells (`/bin/sh`) on Linux/macOS. Always render `hooks.json` from `hooks.template.json` using `setup_hooks.py` or the installers (`install.sh`, `install.ps1`).
 
 ### Troubleshooting Matrix
 
 | Symptom | Probable Cause | Corrective Action |
 |---|---|---|
 | Hook does not execute | Incorrect matcher regex, file path error, or `"enabled": false` | Verify regex with test strings, ensure script exists at relative path, and check `enabled: true`. |
-| Hook fails with FileNotFoundError (Errno 2) in external workspace | Antigravity runs hook commands with CWD set to active workspace, so naive relative paths like `python scripts/...` fail | Use direct, quote-free paths via `%USERPROFILE%` (e.g. `python %USERPROFILE%/.gemini/config/plugins/.../scripts/<hook>.py`). |
-| Hook fails with SyntaxError (unterminated string literal) | Windows `cmd.exe /c` strips outer double quotes around inline `python -c "..."` commands | Eliminate double quotes and inline scripts; use clean environment path pointing directly to script file. |
+| Hook fails with FileNotFoundError (literal `%USERPROFILE%`) on Linux/macOS | POSIX shell does not expand `%USERPROFILE%` Windows variables | Run `python scripts/setup_hooks.py` or `install.sh` to render `hooks.json` from `hooks.template.json`. |
+| Hook fails with FileNotFoundError (Errno 2) in external workspace | Antigravity runs hook commands with CWD set to active workspace, so naive relative paths like `python scripts/...` fail | Render `hooks.json` with absolute `{{PLUGIN_DIR}}` using `scripts/setup_hooks.py`. |
+| Hook fails with SyntaxError (unterminated string literal) | Windows `cmd.exe /c` strips outer double quotes around inline `python -c "..."` commands | Eliminate double quotes and inline scripts; use clean template pointing directly to script file. |
 | Agent runtime JSON error | Non-JSON text printed to `stdout` by hook script | Redirect all `print(...)` and diagnostic logging statements to `sys.stderr`. |
 | Hook execution timeout | Script blocked on stdin reading or hanging subprocess | Read full stdin synchronously (`sys.stdin.read()`), ensure subprocess timeouts, and keep operations lightweight. |
 | Permission overrides ignored | `permissionOverrides` passed as `{}` instead of `string[]` | Return a string array format, e.g. `["command(npm test)", "read_file(/path/*)"]`. |

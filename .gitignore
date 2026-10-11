@@ -126,3 +126,6 @@ Thumbs.db
 
 # Agent Files
 .omo/
+
+# Generated hook configuration
+hooks.json

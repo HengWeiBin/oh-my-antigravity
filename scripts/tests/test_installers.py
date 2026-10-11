@@ -69,6 +69,7 @@ def test_install_sh_content_requirements():
     assert "git pull --ff-only" in content
     assert "git clone" in content
     assert "plugin.json" in content
+    assert "hooks.template.json" in content
     assert "hooks.json" in content
     assert "agy plugin list" in content
 
@@ -84,6 +85,7 @@ def test_install_ps1_content_requirements():
     assert "git pull --ff-only" in content
     assert "git clone" in content
     assert "plugin.json" in content
+    assert "hooks.template.json" in content
     assert "hooks.json" in content
     assert "agy plugin list" in content
 
@@ -136,6 +138,7 @@ def test_install_sh_idempotent_dry_run(tmp_path):
     # Initialize mock git repo
     subprocess.run(["git", "init"], cwd=str(test_plugin_dir), check=True, capture_output=True)
     (test_plugin_dir / "plugin.json").write_text("{}", encoding="utf-8")
+    (test_plugin_dir / "hooks.template.json").write_text("{\"hooks\": {}}", encoding="utf-8")
     (test_plugin_dir / "hooks.json").write_text("{}", encoding="utf-8")
 
     env = os.environ.copy()
@@ -168,6 +171,7 @@ def test_install_ps1_idempotent_dry_run(tmp_path):
     # Initialize mock git repo
     subprocess.run(["git", "init"], cwd=str(test_plugin_dir), check=True, capture_output=True)
     (test_plugin_dir / "plugin.json").write_text("{}", encoding="utf-8")
+    (test_plugin_dir / "hooks.template.json").write_text("{\"hooks\": {}}", encoding="utf-8")
     (test_plugin_dir / "hooks.json").write_text("{}", encoding="utf-8")
 
     env = os.environ.copy()

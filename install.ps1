@@ -81,6 +81,7 @@ function Test-Prerequisites {
     # Check Python >= 3.13 or uv
     $runtimeFound = $false
     $runtimeDesc = ""
+    $script:DetectedPython = ""
 
     # Check uv
     $uvCmd = Get-Command "uv" -ErrorAction SilentlyContinue
@@ -88,6 +89,7 @@ function Test-Prerequisites {
         $uvVersion = (uv --version 2>&1).Trim()
         $runtimeFound = $true
         $runtimeDesc = $uvVersion
+        $script:DetectedPython = "uv run python"
     }
 
     # Check py launcher (py -3.13)
@@ -99,6 +101,7 @@ function Test-Prerequisites {
                 $runtimeFound = $true
                 $desc = "py -3.13 (v$($pyOutput.Trim()))"
                 $runtimeDesc = if ($runtimeDesc) { "$runtimeDesc + $desc" } else { $desc }
+                $script:DetectedPython = "py -3.13"
             }
         } catch {}
     }
@@ -113,6 +116,7 @@ function Test-Prerequisites {
                 $runtimeFound = $true
                 $desc = "python (v$pyOutput)"
                 $runtimeDesc = if ($runtimeDesc) { "$runtimeDesc + $desc" } else { $desc }
+                $script:DetectedPython = "python"
             }
         } catch {}
     }
@@ -126,6 +130,7 @@ function Test-Prerequisites {
                 $pyOutput = (& python3 -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}')" 2>$null).Trim()
                 $runtimeFound = $true
                 $runtimeDesc = "python3 (v$pyOutput)"
+                $script:DetectedPython = "python3"
             }
         } catch {}
     }
@@ -210,16 +215,57 @@ function Install-OrUpdate {
     }
 }
 
+function Configure-Hooks {
+    param([string]$TargetDir)
+
+    Write-Info "Configuring hooks from template..."
+    $templatePath = Join-Path $TargetDir "hooks.template.json"
+    $hooksPath = Join-Path $TargetDir "hooks.json"
+    $setupScript = Join-Path $TargetDir "scripts\setup_hooks.py"
+
+    $normTargetDir = $TargetDir.Replace("\", "/")
+    $pyCmd = if ($script:DetectedPython) { $script:DetectedPython } else { "python" }
+
+    $configured = $false
+    if (Test-Path $setupScript) {
+        try {
+            if ($pyCmd -eq "py -3.13") {
+                & py -3.13 "$setupScript" --python "python" --plugin-dir "$normTargetDir" | Out-Null
+            } elseif ($pyCmd.StartsWith("uv run")) {
+                & uv run python "$setupScript" --python "python" --plugin-dir "$normTargetDir" | Out-Null
+            } else {
+                & $pyCmd "$setupScript" --python "$pyCmd" --plugin-dir "$normTargetDir" | Out-Null
+            }
+            if ($LASTEXITCODE -eq 0 -and (Test-Path $hooksPath)) {
+                $configured = $true
+                Write-Success "Hooks configured successfully via setup_hooks.py."
+            }
+        } catch {
+            Write-WarningMsg "setup_hooks.py invocation failed; falling back to direct template replacement."
+        }
+    }
+
+    if (-not $configured -and (Test-Path $templatePath)) {
+        $templateContent = [System.IO.File]::ReadAllText($templatePath, [System.Text.Encoding]::UTF8)
+        $fallbackPy = if ($pyCmd -eq "py -3.13" -or $pyCmd.StartsWith("uv run")) { "python" } else { $pyCmd }
+        $rendered = $templateContent.Replace("{{PYTHON}}", $fallbackPy).Replace("{{PLUGIN_DIR}}", $normTargetDir)
+        [System.IO.File]::WriteAllText($hooksPath, $rendered, [System.Text.UTF8Encoding]::new($false))
+        Write-Success "Hooks configured via template fallback."
+    }
+}
+
 function Verify-Installation {
     param([string]$TargetDir)
 
     Write-Info "Verifying plugin integrity..."
 
     $pluginJson = Join-Path $TargetDir "plugin.json"
+    $hooksTemplateJson = Join-Path $TargetDir "hooks.template.json"
     $hooksJson = Join-Path $TargetDir "hooks.json"
 
     $missing = @()
     if (-not (Test-Path $pluginJson)) { $missing += "plugin.json" }
+    if (-not (Test-Path $hooksTemplateJson)) { $missing += "hooks.template.json" }
     if (-not (Test-Path $hooksJson)) { $missing += "hooks.json" }
 
     if ($missing.Count -gt 0) {
@@ -227,7 +273,7 @@ function Verify-Installation {
         exit 1
     }
 
-    Write-Success "Integrity check passed (plugin.json and hooks.json present)."
+    Write-Success "Integrity check passed (plugin.json, hooks.template.json, and hooks.json present)."
 }
 
 function Show-Success {
@@ -261,6 +307,7 @@ function Main {
     $targetDir = Resolve-TargetDir
     Test-Prerequisites
     Install-OrUpdate -TargetDir $targetDir
+    Configure-Hooks -TargetDir $targetDir
     Verify-Installation -TargetDir $targetDir
     Show-Success -TargetDir $targetDir
 }
