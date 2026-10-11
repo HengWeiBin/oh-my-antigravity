@@ -5,7 +5,7 @@ description: |
 mainAgent: false
 subagent: true
 commandExecutionPolicy: auto
-model: pro
+model: flash
 enable_mcp_tools: true
 inheritCustomizations: true
 tools:

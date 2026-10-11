@@ -4,11 +4,11 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
-[![Antigravity](https://img.shields.io/badge/Antigravity-2.0%2B-blue?logo=google&style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity)
+[![Antigravity](https://img.shields.io/badge/Antigravity-2.22.0%2B-blue?logo=google&style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity)
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.1.1-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.2.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 **Oh-My-Antigravity** is the premier multi-agent orchestration harness engineered specifically for **Google Antigravity 2.0**.
 
-Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 42 turnkey domain skills.
+Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 43 turnkey domain skills.
 
 ### Key Pillars
 
@@ -203,23 +203,23 @@ sequenceDiagram
 
 | Agent | Type / Role | Model Tier | Description | Permitted Tools Scope |
 |---|---|---|---|---|
-| **`sisyphus`** | Lead Orchestrator | `pro` | Primary workflow coordinator. Plans, breaks down epics, delegates tasks to workers, and tracks completion. Blocked from editing source code. | `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`, `invoke_subagent`, `manage_task`, `define_subagent`, `manage_subagents`, `.md` / `.omo/` writes. |
+| **`sisyphus`** | Lead Orchestrator | `inherit` | Primary workflow coordinator. Plans, breaks down epics, delegates tasks to workers, and tracks completion. Blocked from editing source code. | `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`, `invoke_subagent`, `manage_task`, `define_subagent`, `manage_subagents`, `.md` / `.omo/` writes. |
 | **`atlas`** | Master Orchestrator | `flash` | Relentless execution driver. Tracks multi-item todo lists and work plans, continuously delegating until all checklist tasks are 100% finished. | Read tools, web search, `invoke_subagent`, task management, `.md` / plan state updates. |
 | **`prometheus`** | Strategic Planner | `flash` | Strategic planning consultant. Investigates conventions, gathers codebase facts, and synthesizes complete, decision-complete work plans. | Read tools, web search, `invoke_subagent`, task management, `.md` / plan documentation. |
 | **`metis`** | Pre-Planning Consultant | `flash` | Pre-planning analyst. Scrutinizes requirements before planning starts to prevent over-engineering, scope creep, and ambiguous specifications. | Read-only inspection tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
 | **`momus`** | Plan Reviewer | `flash` | Hostile plan auditor. Ruthlessly challenges assumptions, spots missing files, identifies unexecutable steps, and exposes blind spots. | Read-only inspection tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`hephaestus`** | Deep Worker | `flash` (Pro Capable) | Senior staff autonomous engineer. Handles complex, multi-step implementations, architectural refactors, and test suites end-to-end. | Full tool access: all read tools, file edits (`write_to_file`, `replace_file_content`), command execution (`run_command`), subagents. Config-protected. |
+| **`hephaestus`** | Deep Worker | `flash` | Senior staff autonomous engineer. Handles complex, multi-step implementations, architectural refactors, and test suites end-to-end. | Full tool access: all read tools, file edits (`write_to_file`, `replace_file_content`), command execution (`run_command`), subagents. Config-protected. |
 | **`sisyphus-junior`** | Task Executor | `flash` | Fast, disciplined executor focused on bite-sized implementations, bug fixes, and surgical edits with strict adherence to instructions. | Full tool access: all read tools, file edits (`write_to_file`, `replace_file_content`), command execution (`run_command`). Config-protected. |
 | **`explore`** | Contextual Search | `flash` | Lightning-fast codebase researcher. Locates symbol definitions, implementation files, and usages without modifying files. | Read-only exploration (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
 | **`librarian`** | Docs & OSS Specialist | `flash` | External research specialist. Fetches official documentation, external package references, and open-source implementation patterns. | Read-only web and local inspection (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`oracle`** | Architecture Advisor | `pro` | Strategic technical advisor. Provides deep reasoning for architectural trade-offs, deadlock resolution, security postures, and system debugging. | Read-only analytical tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`oracle`** | Architecture Advisor | `flash` | Strategic technical advisor. Provides deep reasoning for architectural trade-offs, deadlock resolution, security postures, and system debugging. | Read-only analytical tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
 | **`multimodal-looker`**| Media Analyst | `flash` | Visual inspector for UI screenshots, architecture diagrams, PDF documentation, and visual regression artifacts. | Read-only media & file inspection (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
 
 ---
 
 ## Bundled Skills Catalog
 
-`oh-my-antigravity` includes **42 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
+`oh-my-antigravity` includes **43 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
 
 ### 1. Planning & Strategy
 
@@ -227,24 +227,26 @@ sequenceDiagram
 |---|---|---|
 | `/hyperplan` | `hyperplan` | Hostile multi-agent planning orchestrating 5 competing perspectives for battle-tested blueprints. |
 | `/ulw-plan` | `ulw-plan` | Explore-first planning engine (Prometheus) producing decision-complete execution plans before coding. |
-| `/teammode` | `teammode` | Orchestrates parallel cooperating subagent workers for concurrent workflow execution. |
-| `/domain-modeling` | `domain-modeling` | Formulates ubiquitous domain language, architectural decision records, and boundaries. |
-| `/codebase-design` | `codebase-design` | Principles for deep module interfaces, minimal surface areas, and testable seams. |
 | `/start-work` | `start-work` | Executes Prometheus work plans with boulder state tracking and Stop-hook resumption. |
+| `/teammode` | `teammode` | Orchestrates parallel cooperating subagent workers for concurrent workflow execution. |
+| `/ultrawork` | `ultrawork` | Binding ultrawork mode enforcing parallel execution, proactive debugging, and 100% completion. |
+| `/ulw-loop` | `ulw-loop` | Systematic evidence-bound task iteration loop breaking goals into atomic verification steps. |
+| `/pi-goal` | `pi-goal` | Persistent long-running goal tracking, state auditing, and session progress resumption. |
 
 ### 2. Engineering & Modernization
 
 | Command | Skill | Description |
 |---|---|---|
 | `/programming` | `programming` | Modern strict typing (.py, .rs, .ts, .go), parse-don't-validate, zero unwrap/panic, 250 LOC ceiling. |
+| `/frontend` | `frontend` | Production UI/UX design, modern CSS/React architecture, animations, and typography excellence. |
 | `/refactor` | `refactor` | Intelligent code modernization, structural refactoring, and simplification. |
 | `/remove-ai-slops` | `remove-ai-slops` | Purges repetitive AI code smells, verbose boilerplate, and oversized modules locked by tests. |
 | `/remove-deadcode` | `remove-deadcode` | Safely detects and purges unused code backed by LSP validation and atomic commits. |
 | `/ast-grep` | `ast-grep` | AST-aware structural search and deterministic codemods across 25 programming languages. |
-| `/tdd` | `tdd` | Test-Driven Development workflow enforcing red-green-refactor cycles and regression locks. |
-| `/prototype` | `prototype` | Rapid throwaway prototyping to validate experimental designs and interface ergonomics. |
+| `/data-scientist` | `data-scientist` | High-throughput exploratory data analysis, tabular profiling, and DuckDB/Polars analytics. |
+| `/visualize` | `visualize` | Autonomous interactive HTML data visualization, charts, and standalone dashboards. |
 
-### 3. Verification, QA & Debugging
+### 3. Verification, QA & Research
 
 | Command | Skill | Description |
 |---|---|---|
@@ -252,8 +254,9 @@ sequenceDiagram
 | `/review-work` | `review-work` | Nuclear 5-agent post-implementation review gate covering correctness, security, and quality. |
 | `/pre-publish-review` | `pre-publish-review`| 16-agent release barrier analyzing all unpublished changes prior to distribution. |
 | `/debugging` | `debugging` | Hypothesis-driven debugging loop forming ≥3 orthogonal hypotheses with failing regression tests. |
-| `/diagnosing-bugs` | `diagnosing-bugs` | Systematic diagnostic investigation loop for hard defects and performance regressions. |
 | `/comment-checker` | `comment-checker` | Intercepts code modifications to flag misleading, stale, or superfluous code comments. |
+| `/ulw-research` | `ulw-research` | Maximum-saturation research swarm orchestrating parallel explore and librarian agents. |
+| `/ultraresearch` | `ultraresearch` | Fast alias for ulw-research deep investigation and exhaustive codebase exploration. |
 
 ### 4. Browser Automation
 
@@ -262,18 +265,15 @@ sequenceDiagram
 | `/agent-browser` | `agent-browser` | Headless browser driver for web testing, form completion, and DOM extraction. |
 | `/dev-browser` | `dev-browser` | Persistent-session browser automation for interactive testing and stateful workflows. |
 | `/ultimate-browsing` | `ultimate-browsing` | Stealth browser automation with WAF/bot bypass, TLS impersonation, and anti-scraping evasion. |
-| `/playwright-cli` | `playwright-cli` | Playwright CLI automation runner for end-to-end browser test execution and diagnostics. |
 
 ### 5. Git, Releases & Triage
 
 | Command | Skill | Description |
 |---|---|---|
 | `/git-master` | `git-master` | Atomic git commits, clean interactive rebasing, branch squashing, and bisect search. |
-| `/git-sync-upstream` | `git-sync-upstream` | Linear sync with upstream repositories via rebase and automatic fork alignment. |
 | `/github-triage` | `github-triage` | Read-only triage for GitHub issues and PRs with evidence-backed Markdown reports. |
 | `/work-with-pr` | `work-with-pr` | End-to-end PR workflow inside isolated task worktrees with CI gates and automatic merging. |
 | `/publish` | `publish` | Automated release pipeline triggering GitHub Actions and verifying deployment artifacts. |
-| `/whats-new` | `whats-new` | Formats standardized changelog release notes and synchronizes README update logs. |
 | `/get-unpublished-changes` | `get-unpublished-changes` | Computes diffs between HEAD and published package registry versions. |
 
 ### 6. Antigravity System Tools & Extended Specialists
@@ -292,6 +292,7 @@ sequenceDiagram
 | `/coding-agent-sessions`| `coding-agent-sessions`| Searches and reconstructs past agent transcripts, session IDs, and context logs. |
 | `/security-research` | `security-research` | Multi-agent vulnerability hunting, threat modeling, and exploitability verification. |
 | `/tech-debt-audit` | `tech-debt-audit` | 9-dimensional technical debt assessment producing prioritized remediation ledgers. |
+| `/omomomo` | `omomomo` | Easter egg module celebrating oh-my-opencode roots and architecture history. |
 
 ---
 
@@ -304,7 +305,7 @@ The plugin manifest declares metadata loaded by Antigravity:
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }

@@ -1,6 +1,6 @@
 ---
 name: antigravity-hooks
-description: Guide and best practices for creating, configuring, and testing Google Antigravity Hooks (PreInvocation, PostInvocation, PreToolUse, PostToolUse, Stop). Use this skill when asked to define, create, inspect, debug, or write hooks.json configurations and hook script files.
+description: Guide and best practices for creating, configuring, and testing Google Antigravity Hooks. Use this skill when asked to define, create, inspect, debug, or write hooks.json configurations and hook script files.
 ---
 
 # Google Antigravity Hooks Guide
@@ -194,6 +194,9 @@ All lifecycle events provide the following base context fields on `stdin`:
 }
 ```
 
+> [!NOTE]
+> `user_prompt` is **not** a guaranteed top-level payload field in `stdin`. The standard practice for hooks needing access to the user prompt (such as keyword detectors or instruction augmenters) is to read `transcriptPath` (JSONL) and parse the latest entry with `step_type` matching `USER_INPUT` or `USER_EXPLICIT`.
+
 #### `PreInvocation` Stdout Response Contract
 ```json
 {
@@ -350,8 +353,7 @@ All lifecycle events provide the following base context fields on `stdin`:
 ```
 
 > [!IMPORTANT]
-> The official Antigravity standard response contract for `PostToolUse` is an empty JSON object `{}`.
-> Internal plugin engines (including `oh-my-antigravity`) may return `{"additionalContext": "..."}` as an internal engine extension to provide feedback directly into the prompt context. Official tool runners expect `{}`.
+> The official Antigravity standard response contract for `PostToolUse` requires `stdout` to be strictly empty JSON `{}`. Any non-empty response triggers protojson unmarshal errors in the standard tool runner. All diagnostic logging, linter outputs, or warnings MUST be directed to `stderr` (which is safely surfaced in logs and agent debugging streams without breaking protojson deserialization).
 
 ---
 
@@ -396,7 +398,7 @@ All lifecycle events provide the following base context fields on `stdin`:
 
 ## 3. Supported Antigravity Tools Catalog
 
-Antigravity provides standard tools organized into five functional categories. Matchers in `PreToolUse` and `PostToolUse` can inspect and gate any of these tool calls:
+Antigravity provides standard tools organized into six functional categories. Matchers in `PreToolUse` and `PostToolUse` can inspect and gate any of these tool calls:
 
 ### 1. File & Directory Tools
 - **`view_file`**: Reads file content (supports text and binary media).
@@ -447,6 +449,14 @@ Antigravity provides standard tools organized into five functional categories. M
   - *Arguments*: `questions` (array of objects with `question`, `options`, `is_multi_select`, required).
 - **`generate_image`**: Creates or edits images and UI mockups.
   - *Arguments*: `Prompt` (string, required), `ImageName` (string, required), `ImagePaths` (string[], optional).
+
+### 6. MCP (Model Context Protocol) Tools
+- **`call_mcp_tool`**: Calls a lazily-loaded MCP tool.
+  - *Arguments*: `ServerName` (string, required), `ToolName` (string, required), `Arguments` (object, required).
+- **`list_resources`**: Lists available resources from an MCP server.
+  - *Arguments*: `ServerName` (string, required).
+- **`read_resource`**: Retrieves content of a specified MCP resource.
+  - *Arguments*: `ServerName` (string, required), `Uri` (string, required).
 
 ---
 

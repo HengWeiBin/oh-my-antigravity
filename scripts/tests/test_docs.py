@@ -44,11 +44,11 @@ def test_hero_banner_and_language_switch(english_readme, chinese_readme):
 def test_badges_present(english_readme, chinese_readme):
     """Verify all 5 required shields.io badges are present."""
     required_badge_snippets = [
-        "badge/Antigravity-2.0%2B-blue",
+        "badge/Antigravity-2.22.0%2B-blue",
         "badge/Python-3.13%2B-blue",
         "badge/License-MIT-green",
         "badge/Tests-Passing-brightgreen",
-        "badge/Release-v0.1.1-orange",
+        "badge/Release-v0.2.0-orange",
     ]
     for content in [english_readme, chinese_readme]:
         for snippet in required_badge_snippets:
@@ -83,22 +83,61 @@ def test_all_11_agents_roster(english_readme, chinese_readme):
             assert f"`{agent}`" in content, f"Missing agent {agent} in documentation"
 
 
-def test_all_42_skills_catalog(english_readme, chinese_readme):
-    """Verify all 42 skills are cataloged in both READMEs with slash triggers."""
+def test_all_43_skills_catalog(english_readme, chinese_readme):
+    """Verify all 43 skills are cataloged in both READMEs with slash triggers."""
     skills = [
-        "hyperplan", "ulw-plan", "teammode", "domain-modeling", "codebase-design", "start-work",
-        "programming", "refactor", "remove-ai-slops", "remove-deadcode", "ast-grep", "tdd", "prototype",
-        "visual-qa", "review-work", "pre-publish-review", "debugging", "diagnosing-bugs", "comment-checker",
-        "agent-browser", "dev-browser", "ultimate-browsing", "playwright-cli",
-        "git-master", "git-sync-upstream", "github-triage", "work-with-pr", "publish", "whats-new", "get-unpublished-changes",
-        "antigravity-hooks", "antigravity-subagents", "lsp", "lsp-setup", "rules", "init", "init-deep",
-        "call-atlas", "call-prometheus", "coding-agent-sessions", "security-research", "tech-debt-audit",
+        "agent-browser",
+        "antigravity-hooks",
+        "antigravity-subagents",
+        "ast-grep",
+        "call-atlas",
+        "call-prometheus",
+        "coding-agent-sessions",
+        "comment-checker",
+        "data-scientist",
+        "debugging",
+        "dev-browser",
+        "frontend",
+        "get-unpublished-changes",
+        "git-master",
+        "github-triage",
+        "hyperplan",
+        "init",
+        "init-deep",
+        "lsp",
+        "lsp-setup",
+        "omomomo",
+        "pi-goal",
+        "pre-publish-review",
+        "programming",
+        "publish",
+        "refactor",
+        "remove-ai-slops",
+        "remove-deadcode",
+        "review-work",
+        "rules",
+        "security-research",
+        "start-work",
+        "teammode",
+        "tech-debt-audit",
+        "ultimate-browsing",
+        "ultraresearch",
+        "ultrawork",
+        "ulw-loop",
+        "ulw-plan",
+        "ulw-research",
+        "visual-qa",
+        "visualize",
+        "work-with-pr",
     ]
-    assert len(skills) == 42
+    assert len(skills) == 43
     for content in [english_readme, chinese_readme]:
         for skill in skills:
             assert f"/{skill}" in content, f"Missing slash trigger /{skill}"
             assert f"`{skill}`" in content, f"Missing skill identifier `{skill}`"
+
+
+test_all_42_skills_catalog = test_all_43_skills_catalog
 
 
 def test_installation_methods(english_readme, chinese_readme):

@@ -1,11 +1,11 @@
-"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.1.1.
+"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.2.0.
 
 Validates:
 1. Manifest & Config integrity (plugin.json, hooks.json, pyproject.toml).
 2. Vector Assets compliance (assets/logo.svg, assets/banner.svg).
 3. Installer scripts robustness (install.sh, install.ps1).
 4. Documentation & Community suite completeness (bilingual READMEs, CONTRIBUTING.md,
-   LICENSE attribution, GitHub templates, link validation, 11 agents, 42 skills).
+   LICENSE attribution, GitHub templates, link validation, 11 agents, 43 skills).
 """
 
 import json
@@ -30,50 +30,54 @@ EXPECTED_11_AGENTS = {
     "sisyphus-junior",
 }
 
-EXPECTED_42_SKILLS = [
-    "hyperplan",
-    "ulw-plan",
-    "teammode",
-    "domain-modeling",
-    "codebase-design",
-    "start-work",
-    "programming",
-    "refactor",
-    "remove-ai-slops",
-    "remove-deadcode",
-    "ast-grep",
-    "tdd",
-    "prototype",
-    "visual-qa",
-    "review-work",
-    "pre-publish-review",
-    "debugging",
-    "diagnosing-bugs",
-    "comment-checker",
+EXPECTED_SKILLS = [
     "agent-browser",
-    "dev-browser",
-    "ultimate-browsing",
-    "playwright-cli",
-    "git-master",
-    "git-sync-upstream",
-    "github-triage",
-    "work-with-pr",
-    "publish",
-    "whats-new",
-    "get-unpublished-changes",
     "antigravity-hooks",
     "antigravity-subagents",
-    "lsp",
-    "lsp-setup",
-    "rules",
-    "init",
-    "init-deep",
+    "ast-grep",
     "call-atlas",
     "call-prometheus",
     "coding-agent-sessions",
+    "comment-checker",
+    "data-scientist",
+    "debugging",
+    "dev-browser",
+    "frontend",
+    "get-unpublished-changes",
+    "git-master",
+    "github-triage",
+    "hyperplan",
+    "init",
+    "init-deep",
+    "lsp",
+    "lsp-setup",
+    "omomomo",
+    "pi-goal",
+    "pre-publish-review",
+    "programming",
+    "publish",
+    "refactor",
+    "remove-ai-slops",
+    "remove-deadcode",
+    "review-work",
+    "rules",
     "security-research",
+    "start-work",
+    "teammode",
     "tech-debt-audit",
+    "ultimate-browsing",
+    "ultraresearch",
+    "ultrawork",
+    "ulw-loop",
+    "ulw-plan",
+    "ulw-research",
+    "visual-qa",
+    "visualize",
+    "work-with-pr",
 ]
+
+EXPECTED_42_SKILLS = EXPECTED_SKILLS
+EXPECTED_43_SKILLS = EXPECTED_SKILLS
 
 
 # ==============================================================================
@@ -88,7 +92,7 @@ def test_manifest_plugin_json():
 
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert data.get("name") == "oh-my-antigravity", "Plugin name must be 'oh-my-antigravity'"
-    assert data.get("version") == "0.1.1", "Plugin version must be '0.1.1'"
+    assert data.get("version") == "0.2.0", "Plugin version must be '0.2.0'"
     assert data.get("description"), "Plugin must contain a non-empty description"
 
     logo_rel = data.get("logo")
@@ -147,8 +151,11 @@ def test_manifest_pyproject_toml():
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     project = data.get("project", {})
     assert project.get("name") == "oh-my-antigravity", "Project name must match"
-    assert project.get("version") == "0.1.1", "Project version must be '0.1.1'"
+    assert project.get("version") == "0.2.0", "Project version must be '0.2.0'"
     assert ">=3.13" in project.get("requires-python", ""), "Python 3.13+ required"
+
+
+test_pyproject_version_sync = test_manifest_pyproject_toml
 
 
 # ==============================================================================
@@ -320,16 +327,16 @@ def test_all_11_agent_profiles():
         assert agent_file.stat().st_size > 1000, f"Agent profile {agent_file.name} must be substantial"
 
 
-def test_all_42_skills_catalog_and_filesystem():
-    """Verify all 42 skills are cataloged in READMEs and all skills on disk are well-formed."""
-    assert len(EXPECTED_42_SKILLS) == 42, "Must declare exactly 42 skills"
+def test_all_43_skills_catalog_and_filesystem():
+    """Verify all 43 skills are cataloged in READMEs and all skills on disk are well-formed."""
+    assert len(EXPECTED_SKILLS) == 43, "Must declare exactly 43 skills"
 
     en_readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     zh_readme = (REPO_ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
 
-    # 1. Verify 42 skills cataloged in both bilingual READMEs
+    # 1. Verify 43 skills cataloged in both bilingual READMEs
     for readme_content, name in [(en_readme, "README.md"), (zh_readme, "README.zh-TW.md")]:
-        for skill in EXPECTED_42_SKILLS:
+        for skill in EXPECTED_SKILLS:
             assert f"/{skill}" in readme_content, f"Missing trigger /{skill} in {name}"
             assert f"`{skill}`" in readme_content, f"Missing skill `{skill}` in {name}"
 
@@ -338,7 +345,7 @@ def test_all_42_skills_catalog_and_filesystem():
     assert skills_dir.is_dir(), "skills/ directory must exist"
 
     skill_folders = [d for d in skills_dir.iterdir() if d.is_dir()]
-    assert len(skill_folders) >= 40, f"Expected at least 40 skill folders in skills/, found {len(skill_folders)}"
+    assert len(skill_folders) == 43, f"Expected exactly 43 skill folders in skills/, found {len(skill_folders)}"
 
     for folder in skill_folders:
         skill_md = folder / "SKILL.md"
@@ -349,3 +356,6 @@ def test_all_42_skills_catalog_and_filesystem():
         assert f"name: {folder.name}" in full_head, (
             f"SKILL.md in {folder.name} frontmatter 'name' must match folder name"
         )
+
+
+test_all_42_skills_catalog_and_filesystem = test_all_43_skills_catalog_and_filesystem

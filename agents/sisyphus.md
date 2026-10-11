@@ -5,7 +5,7 @@ description: |
 mainAgent: true
 subagent: true
 commandExecutionPolicy: eager
-model: pro
+model: inherit
 enable_mcp_tools: true
 inheritCustomizations: true
 tools:

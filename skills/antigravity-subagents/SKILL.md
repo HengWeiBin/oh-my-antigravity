@@ -82,16 +82,16 @@ Static agent definitions begin with a YAML frontmatter block enclosed between tr
 | `skills` / `plugins` | `string[]` | `[]` | Skill paths (e.g. `skills/my-helper-skill`, `skills/ast-grep`) or plugin dependencies pre-loaded into context. |
 
 > [!NOTE]
-> **Runtime Options**:
-> - `workspace`: Workspace isolation mode (`inherit`, `branch`, or `share`) is primarily an option passed to the `invoke_subagent` tool call (see [Workspace Isolation Modes](#workspace-isolation-modes-workspace)).
+> **Runtime Options & Frontmatter Boundary**:
+> - `workspace`: Workspace isolation mode (`inherit`, `branch`, or `share`) is a runtime parameter passed to the `invoke_subagent` tool call (see [Workspace Isolation Modes](#workspace-isolation-modes-workspace)) and **MUST NOT** be placed inside the YAML frontmatter of a static `.md` agent definition.
 > - `inheritCustomizations`: (Plugin extension, default `true`) controls whether project-level rules, instructions, and workspace customizations are inherited.
 > - `enable_mcp_tools`: (Default `true`) master toggle controlling access to registered MCP tools.
 
 ### Model Selection Guidelines
 
-- **`inherit`** (Default): Adopts whichever model is driving the parent orchestrator. Recommended for consistency.
-- **`flash`**: Ultra-fast execution, high throughput, and cost-efficient. Best for read-only exploration, triage, lint checking, and rapid grep searches (e.g. `explore`, `librarian`).
-- **`pro`**: High reasoning capacity, advanced architectural decomposition, and complex code generation. Best for deep refactoring, architectural review, and root-cause debugging (e.g. `hephaestus`, `oracle`).
+- **`inherit`** (Default for Master Orchestrators): Adopts whichever model is driving the parent session or orchestrator (e.g., `sisyphus`, `atlas`). Standard for lead orchestrators to dynamically match the user's active tier.
+- **`flash`** (Standard for Subagent Workers & Specialists): Ultra-fast execution, high throughput, and cost-efficient. The standard default for high-performance subagent workers, executors, and specialists (e.g., `hephaestus`, `sisyphus-junior`, `explore`, `librarian`), replacing `pro` to deliver rapid multi-tool execution with minimal token overhead.
+- **`pro`**: High reasoning capacity and advanced architectural decomposition. Reserved for deep architectural review, heavy planning trade-offs, or strategic advisors when explicitly needed (e.g., `oracle`).
 - **Note on `flash_lite` compatibility**: While `flash_lite` is supported in some tiers for ultralow latency tasks, it has tighter context windows and less reliable complex tool-calling capabilities. Avoid using `flash_lite` for agents that execute multi-step tool sequences or handle large file edits.
 
 ### Command Execution Policies (`commandExecutionPolicy`)
@@ -177,7 +177,7 @@ name: hephaestus
 description: Autonomous deep worker for complex implementation, refactoring, and bug fixes.
 mainAgent: false
 subagent: true
-model: pro
+model: flash
 commandExecutionPolicy: sandbox
 enable_mcp_tools: true
 tools:
@@ -192,6 +192,7 @@ tools:
   - write_to_file
   - run_command
   - manage_task
+  - call_mcp_tool
 skills:
   - programming
   - debugging
@@ -224,6 +225,7 @@ tools:
   - manage_task
   - define_subagent
   - manage_subagents
+  - call_mcp_tool
 skills:
   - start-work
   - teammode
