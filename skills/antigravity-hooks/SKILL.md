@@ -94,7 +94,7 @@ Plugins bundle hook configurations using `hooks.template.json` with dynamic plac
       {
         "type": "command",
         "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/session_start.py",
-        "timeout": 8
+        "timeout": 5
       }
     ],
     "PreInvocation": [

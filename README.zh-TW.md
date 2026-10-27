@@ -99,31 +99,38 @@ Antigravity 透過在 [`hooks.json`](hooks.json) 中宣告的路由規則，在�
 
 ### 生命週期階段
 
-1. **對話調用前階段（PreInvocation, `scripts/pre_invocation.py`）**：
+1. **會話啟動階段（SessionStart, `scripts/session_start.py`）**：
+   - 於每個對話會話建立時執行一次。
+   - 評估工作區能力並推薦最佳工具（如在 `.codegraph` 與 CodeGraph MCP 存在時推薦 `codegraph_explore`）。
+2. **對話調用前階段（PreInvocation, `scripts/pre_invocation.py`）**：
    - 在每個使用者互動回合（Turn）開始時執行。
-   - 自動注入行為規範（[`rules/oh-my-openagent-rules.md`](rules/oh-my-openagent-rules.md)）、掃描工作區代理設定、維持待辦計畫進度，並偵測斜線指令語法動態載入相應技能。
-2. **工具執行前階段（PreToolUse, `scripts/pre_tool_use.py`）**：
+   - 維持待辦計畫進度、注入代理調用提醒、偵測關鍵字，並動態載入相應技能。（`AGENTS.md` 與行為規範由 Antigravity 原生載入）。
+3. **工具執行前階段（PreToolUse, `scripts/pre_tool_use.py`）**：
    - 攔截變更類型的工具操作（`write_to_file`、`replace_file_content`、`multi_replace_file_content`、`run_command`）。
    - 實施基於角色的權限守衛：調度指揮官無法直接改動原始碼；工匠代理無法篡改系統設定與任務清單。
-3. **工具執行後階段（PostToolUse, `scripts/post_tool_use.py`）**：
+4. **工具執行後階段（PostToolUse, `scripts/post_tool_use.py`）**：
    - 在子代理調用結束或檔案寫入完成時觸發。
    - 嚴格執行四階段驗證協議、檢查計畫格式完整度、分析註解品質，並防止空回應漂移。
-4. **結束階段（Stop, `scripts/stop.py`）**：
-   - 在對話結束或任務終止時清理暫存資料並輸出執行摘要指標。
+5. **結束階段（Stop, `scripts/stop.py`）**：
+   - 在對話結束或任務終止時清理暫存資料、記錄會話指標，並於任務未完成時強制維持計畫延續。
 
 ### Hook 攔截生命週期流程圖
 
 ```mermaid
 flowchart TD
-    User([使用者提示 / 互動回合]) --> PreInv[PreInvocation 攔截器]
+    SessInit([會話啟動]) --> SessStart[SessionStart 攔截器]
+    SessStart --> DetectEnv[探測 CodeGraph 與工作區環境]
+    DetectEnv --> User([使用者提示 / 互動回合])
     
-    subgraph PreInvPhase [第一階段：PreInvocation 調用前]
-        PreInv --> RuleInj[注入行為規範與系統指南]
-        RuleInj --> SkillMount[偵測斜線語法與動態載入技能]
+    User --> PreInv[PreInvocation 攔截器]
+    
+    subgraph PreInvPhase [第一階段：PreInvocation 動態上下文]
+        PreInv --> SkillMount[偵測斜線語法與動態載入技能]
         SkillMount --> PlanCont[鎖定待辦清單 / 計畫連續性]
+        PlanCont --> UsageRemind[代理使用提醒與提示指引]
     end
     
-    PlanCont --> AgentDecision{代理決定下一步行動}
+    UsageRemind --> AgentDecision{代理決定下一步行動}
     
     AgentDecision -->|請求調用工具| PreTool[PreToolUse 攔截器]
     
@@ -323,6 +330,13 @@ sequenceDiagram
 ```json
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python scripts/session_start.py",
+        "timeout": 5
+      }
+    ],
     "PreInvocation": [
       {
         "type": "command",

@@ -99,31 +99,38 @@ Antigravity invokes `oh-my-antigravity` through a multi-phase interceptor pipeli
 
 ### Lifecycle Phases
 
-1. **PreInvocation (`scripts/pre_invocation.py`)**:
+1. **SessionStart (`scripts/session_start.py`)**:
+   - Executes once per conversation session upon initialization.
+   - Evaluates workspace capabilities and recommends optimal tools (such as `codegraph_explore` when `.codegraph` and CodeGraph MCP are active).
+2. **PreInvocation (`scripts/pre_invocation.py`)**:
    - Executes at the beginning of each user turn.
-   - Injects behavioral rules ([`rules/oh-my-openagent-rules.md`](rules/oh-my-openagent-rules.md)), discovers local directory agent profiles, enforces todo/plan continuation, and dynamically mounts requested skills matching slash-command syntax.
-2. **PreToolUse (`scripts/pre_tool_use.py`)**:
+   - Enforces todo/plan continuation, agent reminders, keyword triggers, and dynamically mounts requested skills matching slash-command syntax. (`AGENTS.md` and behavioral rules are loaded natively by Antigravity).
+3. **PreToolUse (`scripts/pre_tool_use.py`)**:
    - Intercepts mutating tool operations (`write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`).
    - Enforces role-based permissions: orchestrators cannot edit source code directly; workers cannot modify plugin manifests or task states.
-3. **PostToolUse (`scripts/post_tool_use.py`)**:
+4. **PostToolUse (`scripts/post_tool_use.py`)**:
    - Fires upon completion of subagent invocations or file modifications.
    - Enforces the 4-Phase Verification Protocol, checks plan format compliance, validates source code comments via comment checker, and alerts on empty responses.
-4. **Stop (`scripts/stop.py`)**:
-   - Runs during session shutdown or task conclusion to clean scratch files and log session metrics.
+5. **Stop (`scripts/stop.py`)**:
+   - Runs during session shutdown or task conclusion to clean scratch files, log session metrics, and enforce plan continuation.
 
 ### Hook Interception Lifecycle
 
 ```mermaid
 flowchart TD
-    User([User Prompt / Turn]) --> PreInv[PreInvocation Hook]
+    SessInit([Session Start]) --> SessStart[SessionStart Hook]
+    SessStart --> DetectEnv[Probe CodeGraph & Session Context]
+    DetectEnv --> User([User Prompt / Turn])
     
-    subgraph PreInvPhase [Phase 1: PreInvocation]
-        PreInv --> RuleInj[Inject Rules & Guidelines]
-        RuleInj --> SkillMount[Detect Slash Triggers & Auto-load Skills]
+    User --> PreInv[PreInvocation Hook]
+    
+    subgraph PreInvPhase [Phase 1: PreInvocation Dynamic Context]
+        PreInv --> SkillMount[Detect Slash Triggers & Auto-load Skills]
         SkillMount --> PlanCont[Enforce Todo / Plan Continuation]
+        PlanCont --> UsageRemind[Agent Usage & Inactivity Reminders]
     end
     
-    PlanCont --> AgentDecision{Agent Selects Action}
+    UsageRemind --> AgentDecision{Agent Selects Action}
     
     AgentDecision -->|Calls Tool| PreTool[PreToolUse Hook]
     
@@ -323,6 +330,13 @@ Configures which lifecycle events and tool matchers trigger interceptor scripts:
 ```json
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python scripts/session_start.py",
+        "timeout": 5
+      }
+    ],
     "PreInvocation": [
       {
         "type": "command",
