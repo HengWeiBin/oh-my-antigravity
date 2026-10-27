@@ -1,4 +1,4 @@
-"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.2.0.
+"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.3.0.
 
 Validates:
 1. Manifest & Config integrity (plugin.json, hooks.json, pyproject.toml).
@@ -92,7 +92,7 @@ def test_manifest_plugin_json():
 
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert data.get("name") == "oh-my-antigravity", "Plugin name must be 'oh-my-antigravity'"
-    assert data.get("version") == "0.2.0", "Plugin version must be '0.2.0'"
+    assert data.get("version") == "0.3.0", "Plugin version must be '0.3.0'"
     assert data.get("description"), "Plugin must contain a non-empty description"
 
     logo_rel = data.get("logo")
@@ -165,7 +165,7 @@ def test_manifest_pyproject_toml():
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     project = data.get("project", {})
     assert project.get("name") == "oh-my-antigravity", "Project name must match"
-    assert project.get("version") == "0.2.0", "Project version must be '0.2.0'"
+    assert project.get("version") == "0.3.0", "Project version must be '0.3.0'"
     assert ">=3.13" in project.get("requires-python", ""), "Python 3.13+ required"
 
 

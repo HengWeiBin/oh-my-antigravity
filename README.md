@@ -8,9 +8,17 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.2.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.3.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
+
+## What's New (2026/10/27)
+
+- 🆕 **Native 5-Phase Lifecycle Hook Engine**: Officially introduces `SessionStart` lifecycle event runner (`scripts/session_start.py`) with zero-overhead pipeline execution.
+- ⚡ **Google Antigravity Native Rules Compatibility**: Fully aligned `rules/oh-my-openagent-rules.md` with Antigravity native `trigger: always_on` YAML frontmatter, eliminating duplicate rule and agent injectors.
+- ✨ **Dynamic Argument Overwriting & Decision Precedence**: Added support for `PreToolUse` argument shallow overwrites (`overwrite: object`) and 5-tier decision precedence (`deny` > `force_ask` > `ask` > `auto_approve` > `allow`).
+- 🚀 **One-Time Startup Optimization**: Migrated `CodegraphRecommendationHook` to `SessionStart`, removing repetitive per-turn environment checks.
+- 🧪 **Comprehensive Test Coverage**: Expanded test suite to 154 passing unit & integration tests across all lifecycle phases.
 
 ---
 
@@ -312,7 +320,7 @@ The plugin manifest declares metadata loaded by Antigravity:
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }

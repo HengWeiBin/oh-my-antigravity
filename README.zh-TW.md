@@ -8,9 +8,17 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.2.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.3.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
+
+## What's New (2026/10/27)
+
+- 🆕 **原生 5 階段生命週期 Hook 引擎**: 正式導入 `SessionStart` 生命週期事件獨立執行器（`scripts/session_start.py`），提供零額外負擔的啟動管線。
+- ⚡ **全面相容 Google Antigravity 原生 Rules 機制**: 為 `rules/oh-my-openagent-rules.md` 導入原生 `trigger: always_on` YAML frontmatter，徹底移除重複的注入器與規則檢查。
+- ✨ **動態參數覆寫與決策優先級支援**: 支援 `PreToolUse` 階段的參數淺層覆寫（`overwrite: object`）以及 5 級決策優先級（`deny` > `force_ask` > `ask` > `auto_approve` > `allow`）。
+- 🚀 **啟動階段環境建議最佳化**: 將 `CodegraphRecommendationHook` 遷移至 `SessionStart` 階段，消除每輪對話的重複環境探測開銷。
+- 🧪 **完整測試覆蓋**: 擴展測試套件至 154 個單元與整合測試，覆蓋所有 5 個生命週期階段並維持全數通過。
 
 ---
 
@@ -312,7 +320,7 @@ sequenceDiagram
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }

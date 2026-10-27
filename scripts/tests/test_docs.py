@@ -48,7 +48,7 @@ def test_badges_present(english_readme, chinese_readme):
         "badge/Python-3.13%2B-blue",
         "badge/License-MIT-green",
         "badge/Tests-Passing-brightgreen",
-        "badge/Release-v0.2.0-orange",
+        "badge/Release-v0.3.0-orange",
     ]
     for content in [english_readme, chinese_readme]:
         for snippet in required_badge_snippets:
