@@ -1,3 +1,8 @@
+---
+trigger: always_on
+description: "Core Oh-My-Antigravity orchestration rules: Conductor Mindset, Anti-Duplication, Strict Auto-Continue, and 4-Phase Verification Protocol."
+---
+
 # Oh My OpenAgent Orchestration Rules
 
 ## 1. Conductor Mindset (Orchestrate, Do Not Implement)
