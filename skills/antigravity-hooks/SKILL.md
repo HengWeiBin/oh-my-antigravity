@@ -20,8 +20,11 @@ Hooks are configured via `hooks.json` files and evaluated across three distinct 
 | Environment | Scope | Location | Notes / Controls |
 |---|---|---|---|
 | **Antigravity 2.0** | Workspace<br>Global | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` | View and toggle hooks from **Settings > Customizations > Hooks**.<br>`<app_data_dir>`: `~/.gemini/antigravity` |
-| **Antigravity CLI** | Workspace<br>Global<br>Plugin | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` (or `~/.gemini/antigravity-cli/settings.json`)<br>`<plugin_root>/hooks.json` | Inspect all active hooks interactively in TUI with `/hooks`.<br>`<app_data_dir>`: `~/.gemini/antigravity-cli` |
+| **Antigravity CLI** | Workspace<br>Global<br>Plugin | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json`<br>`<plugin_root>/hooks.json` | Inspect all active hooks interactively in TUI with `/hooks`.<br>`<app_data_dir>`: `~/.gemini/antigravity-cli`<br>*(Official warning: Hooks in `settings.json` are not loaded)* |
 | **Antigravity IDE** | Workspace<br>Global | `<workspace>/.agents/hooks.json`<br>`~/.gemini/config/hooks.json` | Manage active hooks from **… > Customizations > Hooks** in agent panel.<br>`<app_data_dir>`: `~/.gemini/antigravity-ide` |
+
+> [!WARNING]
+> **CLI Configuration Note**: Hooks in `settings.json` are not loaded. Hooks must be placed in `hooks.json` under `<workspace>/.agents/hooks.json`, `~/.gemini/config/hooks.json`, or `<plugin_root>/hooks.json`.
 
 ### Configuration Schemes
 
@@ -33,6 +36,15 @@ Named hook groups organize hook handlers into logical, self-contained units (e.g
 
 ```json
 {
+  "session-init": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./scripts/session-init.sh",
+        "timeout": 10
+      }
+    ]
+  },
   "my-linter-hook": {
     "PostToolUse": [
       {
@@ -78,6 +90,13 @@ Plugins bundle hook configurations using `hooks.template.json` with dynamic plac
 ```json
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/session_start.py",
+        "timeout": 8
+      }
+    ],
     "PreInvocation": [
       {
         "type": "command",
@@ -152,7 +171,7 @@ For `PreToolUse` and `PostToolUse`, the `matcher` property specifies which tool 
 - **Prefix Matching (`"browser_.*"`):** Matches all tools starting with a prefix (e.g. `browser_click`, `browser_navigate`).
 
 > [!NOTE]
-> For `PreInvocation`, `PostInvocation`, and `Stop`, the structure is simpler (a list of handlers directly under the event key) and the `matcher` is ignored.
+> For `SessionStart`, `PreInvocation`, `PostInvocation`, and `Stop`, the structure is simpler (a list of handlers directly under the event key) and the `matcher` is ignored.
 
 ---
 
@@ -177,7 +196,50 @@ All lifecycle events provide the following base context fields on `stdin`:
 
 ---
 
-### A. `PreInvocation`
+### A. `SessionStart`
+
+- **Trigger**: Executed once when a conversation session is initiated, before any user turns, prompts, or model invocations take place.
+- **Purpose**: Initial environment configuration, injecting repository-level guidelines or system prompts, bootstrapping session state, and workspace validation.
+
+#### `SessionStart` Stdin Payload
+```json
+{
+  "conversationId": "b67d4ce2-1b29-4e25-8598-e6636a3171aa",
+  "workspacePaths": ["C:/Users/user/project"],
+  "cwd": "C:/Users/user/project",
+  "transcriptPath": "C:/Users/user/.gemini/antigravity/brain/b67d4ce2-1b29-4e25-8598-e6636a3171aa/.system_generated/logs/transcript.jsonl",
+  "artifactDirectoryPath": "C:/Users/user/.gemini/antigravity/brain/b67d4ce2-1b29-4e25-8598-e6636a3171aa",
+  "modelName": "gemini-3.6-flash-medium"
+}
+```
+
+#### `SessionStart` Stdout Response Contract
+```json
+{
+  "injectSteps": [
+    {
+      "systemMessage": {
+        "systemMessage": "Repository Guidelines: Follow strict typing and modular architecture.",
+        "metadata": {
+          "source": "session_bootstrap",
+          "priority": "high"
+        }
+      }
+    },
+    {
+      "ephemeralMessage": "Session initialized. Workspace: C:/Users/user/project"
+    }
+  ]
+}
+```
+
+- **`injectSteps` (array)**: Array of steps injected into the initial conversation context.
+  - `systemMessage` (`object`): Injects or augments system instructions. Object structure: `{"systemMessage": {"systemMessage": "<instruction_text>", "metadata": <optional_metadata_dict>}}`.
+  - `ephemeralMessage` (`string`): Temporary context injected into the active prompt without persisting into saved transcripts.
+
+---
+
+### B. `PreInvocation`
 
 - **Trigger**: Executed immediately prior to dispatching user input or conversation steps to the model.
 - **Purpose**: System prompt augmentation, dynamic skill loading, rules injection, and context preservation.
@@ -204,6 +266,14 @@ All lifecycle events provide the following base context fields on `stdin`:
 {
   "injectSteps": [
     {
+      "systemMessage": {
+        "systemMessage": "Ephemeral system instruction: Enforce strict verification before tool use.",
+        "metadata": {
+          "source": "pre_invocation"
+        }
+      }
+    },
+    {
       "ephemeralMessage": "Ephemeral guideline: Adhere to strict linting rules and verify all code changes."
     },
     {
@@ -222,13 +292,14 @@ All lifecycle events provide the following base context fields on `stdin`:
 ```
 
 - **`injectSteps` (array)**:
+  - `systemMessage` (`object`): Injects system-level instructions or system prompt context. Object structure: `{"systemMessage": {"systemMessage": "<instruction_text>", "metadata": <optional_metadata_dict>}}`.
   - `ephemeralMessage` (`string`): Temporary context injected into the active prompt without persisting into the saved transcript.
   - `userMessage` (`string`): Synthesized user prompt appended to the session.
   - `toolCall` (`object`): Synthetic tool step pre-queued for execution.
 
 ---
 
-### B. `PostInvocation`
+### C. `PostInvocation`
 
 - **Trigger**: Executed immediately after the model returns its response, before any emitted tool calls are executed.
 - **Purpose**: Evaluates completion criteria, controls turn continuation, or halts runaway execution.
@@ -270,10 +341,10 @@ All lifecycle events provide the following base context fields on `stdin`:
 
 ---
 
-### C. `PreToolUse`
+### D. `PreToolUse`
 
 - **Trigger**: Executed immediately before running a tool call matching the configured `matcher`.
-- **Purpose**: Security evaluation, parameter validation, role-based access control, and dynamic permission overrides.
+- **Purpose**: Security evaluation, parameter validation, role-based access control, tool argument shallow overrides, and dynamic permission overrides.
 
 #### `PreToolUse` Stdin Payload
 ```json
@@ -304,22 +375,33 @@ All lifecycle events provide the following base context fields on `stdin`:
   "permissionOverrides": [
     "command(npm test)",
     "read_file(C:/Users/user/project/*)"
-  ]
+  ],
+  "overwrite": {
+    "CommandLine": "npm test -- --ci",
+    "WaitMsBeforeAsync": 10000
+  }
 }
 ```
 
 - **`decision` (`string`)**:
   - `"allow"`: Tool execution proceeds immediately without prompting the user.
+  - `"auto_approve"`: Automatically approves tool execution when default policy would otherwise prompt the user, while still respecting user-defined custom rules and restrictions (ranks between `"allow"` and `"ask"`).
   - `"deny"`: Tool execution is blocked; the `reason` is returned to the model as the tool error.
   - `"ask"`: Prompts the user for interactive approval before running.
   - `"force_ask"`: Forces a confirmation prompt even if prior automated rules allowed it.
   - `"deny_unless_prior_grant"`: Denies execution unless an explicit permission grant was previously given.
 - **`reason` (`string`, optional)**: Explanation displayed to the user or passed back to the model.
-- **`permissionOverrides` (`string[]`)**: Array of permission strings granted for subsequent actions (e.g. `["command(npm test)", "read_file(/path/*)"]`).
+- **`permissionOverrides` (`string[]`, optional)**: Array of permission strings granted for subsequent actions (e.g. `["command(npm test)", "read_file(/path/*)"]`).
+- **`overwrite` (`object`, optional)**: Object specifying tool input arguments to override before tool execution.
+  - **Sequential Shallow Merge**: When multiple hooks execute in a pipeline, their `overwrite` dictionaries are shallow-merged sequentially in pipeline order (`tool_input.update(hook_res.overwrite)`). Later hooks override overlapping keys from earlier hooks. If the final merged dictionary is non-empty, it is included in the output `{"overwrite": merged_overwrites}`.
+  - **Use Cases & Scenarios**:
+    1. **Parameter Hardening & Safe Defaults**: Enforcing required security or non-interactive flags (e.g. appending `--ci` or `--batch` to `CommandLine`, capping timeouts or `WaitMsBeforeAsync`).
+    2. **Path Sanitization & Sandbox Redirection**: Rewriting target file paths (e.g. redirecting writes from sensitive system directories to `.scratch/` or workspace-relative directories).
+    3. **Argument Mutation Without Turn Rejection**: Correcting known model tool argument mistakes (e.g. converting `Overwrite: false` to `true` when appending, or fixing malformed options) without failing the tool execution or generating a reject error.
 
 ---
 
-### D. `PostToolUse`
+### E. `PostToolUse`
 
 - **Trigger**: Executed immediately after a tool call completes execution.
 - **Purpose**: Output auditing, post-action linter verification, comment checking, and artifact validations.
@@ -359,7 +441,7 @@ All lifecycle events provide the following base context fields on `stdin`:
 
 ---
 
-### E. `Stop`
+### F. `Stop`
 
 - **Trigger**: Executed when the agent session or execution loop is preparing to terminate.
 - **Purpose**: Verifies task completion, enforces verification steps, cleans up background processes, and permits loop re-entry.
@@ -504,6 +586,7 @@ from enum import Enum
 from typing import Any
 
 class LifecycleEvent(Enum):
+    SESSION_START = "SessionStart"
     PRE_INVOCATION = "PreInvocation"
     POST_INVOCATION = "PostInvocation"
     PRE_TOOL_USE = "PreToolUse"
@@ -537,12 +620,13 @@ class HookContext:
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # "allow" | "deny" | "ask" | "force_ask" | "continue"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "continue"
     reason: str | None = None
     permission_overrides: list[str] = field(default_factory=list)
     termination_behavior: str | None = None  # "force_continue" | "terminate" | ""
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    overwrite: dict[str, Any] | None = None
 ```
 
 #### Base Hook & Pipeline (`engine.py`)
