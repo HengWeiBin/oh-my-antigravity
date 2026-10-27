@@ -47,28 +47,23 @@ class CodegraphRecommendationHook(BaseHook):
 
     def execute(self, context: HookContext) -> HookResult:
         payload = context.raw_payload
-        invocation_num = payload.get("invocationNum", 0)
-        if not isinstance(invocation_num, int):
-            invocation_num = 0
+        workspace_paths_raw = payload.get("workspacePaths", [])
+        workspace_paths = [wp for wp in workspace_paths_raw if isinstance(wp, str) and wp]
+        cwd = payload.get("cwd", "")
+        resolved_cwd = resolve_path(cwd) if cwd else ""
+        resolved_workspaces = [
+            resolve_path(wp, resolved_cwd if resolved_cwd else None) for wp in workspace_paths
+        ]
+        codegraph_exists = check_codegraph_dir_exists(resolved_workspaces, resolved_cwd)
+        mcp_active = check_mcp_active(resolved_workspaces)
 
-        if invocation_num == 0:
-            workspace_paths_raw = payload.get("workspacePaths", [])
-            workspace_paths = [wp for wp in workspace_paths_raw if isinstance(wp, str) and wp]
-            cwd = payload.get("cwd", "")
-            resolved_cwd = resolve_path(cwd) if cwd else ""
-            resolved_workspaces = [
-                resolve_path(wp, resolved_cwd if resolved_cwd else None) for wp in workspace_paths
-            ]
-            codegraph_exists = check_codegraph_dir_exists(resolved_workspaces, resolved_cwd)
-            mcp_active = check_mcp_active(resolved_workspaces)
-
-            if codegraph_exists and mcp_active:
-                msg = (
-                    "A `.codegraph` directory and the `codegraph` MCP server are active in this workspace. "
-                    "You should prioritize using `codegraph_explore` to explore symbols, find call paths, "
-                    "and understand the codebase architecture in a single round-trip instead of standard grep + read loops."
-                )
-                return HookResult(injected_steps=[{"ephemeralMessage": msg}])
+        if codegraph_exists and mcp_active:
+            msg = (
+                "A `.codegraph` directory and the `codegraph` MCP server are active in this workspace. "
+                "You should prioritize using `codegraph_explore` to explore symbols, find call paths, "
+                "and understand the codebase architecture in a single round-trip instead of standard grep + read loops."
+            )
+            return HookResult(injected_steps=[{"ephemeralMessage": msg}])
         return HookResult()
 
 
@@ -149,33 +144,26 @@ class HookEngine:
     def create_default_pipeline(cls, lifecycle: LifecycleEvent) -> HookPipeline:
         pipeline = HookPipeline()
         if lifecycle == LifecycleEvent.SESSION_START:
-            pass
+            pipeline.register(CodegraphRecommendationHook())
 
         elif lifecycle == LifecycleEvent.PRE_INVOCATION:
             from scripts.hooks.agent_usage_reminder import AgentUsageReminderHook
             from scripts.hooks.compaction_todo_preserver import (
                 CompactionTodoPreserverHook,
             )
-            from scripts.hooks.directory_agents_injector import (
-                DirectoryAgentsInjectorHook,
-            )
             from scripts.hooks.init_project_dir_replacer import (
                 InitProjectDirReplacerHook,
             )
             from scripts.hooks.keyword_detector import KeywordDetectorHook
-            from scripts.hooks.rules_injector import RulesInjectorHook
             from scripts.hooks.todo_continuation_enforcer import (
                 TodoContinuationEnforcerHook,
             )
 
-            pipeline.register(DirectoryAgentsInjectorHook())
-            pipeline.register(RulesInjectorHook())
             pipeline.register(CompactionTodoPreserverHook())
             pipeline.register(TodoContinuationEnforcerHook())
             pipeline.register(AgentUsageReminderHook())
             pipeline.register(KeywordDetectorHook())
             pipeline.register(InitProjectDirReplacerHook())
-            pipeline.register(CodegraphRecommendationHook())
             pipeline.register(SubagentSkillAutoloaderHook())
 
         elif lifecycle == LifecycleEvent.POST_INVOCATION:

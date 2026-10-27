@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SESSION_START = os.path.join(SCRIPT_DIR, "session_start.py")
 PRE_INVOCATION = os.path.join(SCRIPT_DIR, "pre_invocation.py")
 PRE_TOOL_USE = os.path.join(SCRIPT_DIR, "pre_tool_use.py")
 POST_TOOL_USE = os.path.join(SCRIPT_DIR, "post_tool_use.py")
@@ -21,6 +22,15 @@ def run_script(script_path, payload):
         return json.loads(result.stdout.decode("utf-8"))
     except Exception:  # noqa: BLE001
         return {}
+
+def test_session_start_integration():
+    payload = {
+        "cwd": "/some/path",
+        "workspacePaths": ["/some/path"]
+    }
+    result = run_script(SESSION_START, payload)
+    assert "injectSteps" in result
+    assert isinstance(result["injectSteps"], list)
 
 def test_pre_invocation_integration():
     payload = {

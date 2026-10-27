@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from scripts import pre_invocation
 from scripts.hooks.agent_usage_reminder import AgentUsageReminderHook
 from scripts.hooks.compaction_todo_preserver import CompactionTodoPreserverHook
-from scripts.hooks.directory_agents_injector import DirectoryAgentsInjectorHook
 from scripts.hooks.engine import (
     CodegraphRecommendationHook,
     HookEngine,
@@ -22,7 +21,6 @@ from scripts.hooks.engine import (
 from scripts.hooks.init_project_dir_replacer import InitProjectDirReplacerHook
 from scripts.hooks.keyword_detector import KeywordDetectorHook
 from scripts.hooks.models import HookContext, LifecycleEvent
-from scripts.hooks.rules_injector import RulesInjectorHook
 from scripts.hooks.skill_resolver import SkillResolver
 from scripts.hooks.todo_continuation_enforcer import TodoContinuationEnforcerHook
 
@@ -44,13 +42,12 @@ def test_codegraph_recommendation_hook(tmp_path: Path) -> None:
 
     hook = CodegraphRecommendationHook()
 
-    # invocation 0 -> recommends codegraph
+    # SessionStart recommends codegraph when .codegraph and mcp exist
     ctx0 = HookContext(
-        lifecycle=LifecycleEvent.PRE_INVOCATION,
+        lifecycle=LifecycleEvent.SESSION_START,
         conversation_id="c1",
         cwd=str(ws_dir),
         raw_payload={
-            "invocationNum": 0,
             "workspacePaths": [str(ws_dir)],
             "cwd": str(ws_dir),
         },
@@ -59,15 +56,16 @@ def test_codegraph_recommendation_hook(tmp_path: Path) -> None:
     assert len(res0.injected_steps) == 1
     assert res0.injected_steps[0]["ephemeralMessage"] == EXPECTED_EPHEMERAL_MESSAGE
 
-    # invocation 1 -> no recommendation
+    # When codegraph dir does not exist, no recommendation
+    empty_ws = tmp_path / "empty_ws"
+    empty_ws.mkdir()
     ctx1 = HookContext(
-        lifecycle=LifecycleEvent.PRE_INVOCATION,
-        conversation_id="c1",
-        cwd=str(ws_dir),
+        lifecycle=LifecycleEvent.SESSION_START,
+        conversation_id="c2",
+        cwd=str(empty_ws),
         raw_payload={
-            "invocationNum": 1,
-            "workspacePaths": [str(ws_dir)],
-            "cwd": str(ws_dir),
+            "workspacePaths": [str(empty_ws)],
+            "cwd": str(empty_ws),
         },
     )
     res1 = hook.execute(ctx1)
@@ -117,48 +115,6 @@ def test_subagent_skill_autoloader_hook(tmp_path: Path) -> None:
     res_main = hook.execute(ctx_main)
     assert len(res_main.injected_steps) == 0
 
-
-def test_directory_agents_injector_hook(tmp_path: Path) -> None:
-    ws_dir = tmp_path / "workspace"
-    ws_dir.mkdir()
-    (ws_dir / "AGENTS.md").write_text("Instruction for workspace agent.", encoding="utf-8")
-
-    hook = DirectoryAgentsInjectorHook()
-    ctx = HookContext(
-        lifecycle=LifecycleEvent.PRE_INVOCATION,
-        conversation_id="c1",
-        cwd=str(ws_dir),
-        raw_payload={
-            "cwd": str(ws_dir),
-            "workspacePaths": [str(ws_dir)],
-        },
-    )
-    res = hook.execute(ctx)
-    assert len(res.injected_steps) == 1
-    assert "Instruction for workspace agent." in res.injected_steps[0]["ephemeralMessage"]
-
-
-def test_rules_injector_hook(tmp_path: Path) -> None:
-    ws_dir = tmp_path / "workspace"
-    rules_dir = ws_dir / "rules"
-    rules_dir.mkdir(parents=True)
-    (rules_dir / "coding.md").write_text("Rule 1: No global state.", encoding="utf-8")
-
-    hook = RulesInjectorHook()
-    ctx = HookContext(
-        lifecycle=LifecycleEvent.PRE_INVOCATION,
-        conversation_id="c1",
-        cwd=str(ws_dir),
-        raw_payload={
-            "context": {
-                "workspaceUri": f"file:///{ws_dir.as_posix()}",
-                "cwd": str(ws_dir),
-            }
-        },
-    )
-    res = hook.execute(ctx)
-    assert len(res.injected_steps) == 1
-    assert "Rule 1: No global state." in res.injected_steps[0]["ephemeralMessage"]
 
 
 def test_compaction_todo_preserver_hook(tmp_path: Path) -> None:

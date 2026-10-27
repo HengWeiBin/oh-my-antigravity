@@ -1,5 +1,12 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "{{PYTHON}} {{PLUGIN_DIR}}/scripts/session_start.py",
+        "timeout": 5
+      }
+    ],
     "PreInvocation": [
       {
         "type": "command",

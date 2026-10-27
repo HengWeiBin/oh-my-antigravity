@@ -43,7 +43,7 @@ class TestHooksConfig(unittest.TestCase):
         self.assertIn("hooks", data, "hooks.template.json must have 'hooks' key")
         hooks = data["hooks"]
 
-        for phase in ["PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
+        for phase in ["SessionStart", "PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
             self.assertIn(phase, hooks, f"Missing lifecycle phase {phase} in hooks.template.json")
 
         commands = extract_commands(data)

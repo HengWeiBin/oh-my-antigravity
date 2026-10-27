@@ -111,7 +111,7 @@ def test_manifest_hooks_json():
     assert "hooks" in template_data, "hooks.template.json must contain top-level 'hooks' key"
     template_hooks = template_data["hooks"]
 
-    for phase in ["PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
+    for phase in ["SessionStart", "PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
         assert phase in template_hooks, f"Missing required hook phase in template: {phase}"
 
     hooks_path = REPO_ROOT / "hooks.json"
@@ -125,7 +125,7 @@ def test_manifest_hooks_json():
     hooks = data["hooks"]
 
     # Must contain standard hook phases
-    for phase in ["PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
+    for phase in ["SessionStart", "PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
         assert phase in hooks, f"Missing required hook phase: {phase}"
 
     # Verify script targets exist

@@ -621,7 +621,8 @@ def test_hook_engine_run_session_start_empty(capsys: pytest.CaptureFixture[str])
     HookEngine.clear_pipelines()
     default_pipeline = HookEngine.create_default_pipeline(LifecycleEvent.SESSION_START)
     assert isinstance(default_pipeline, HookPipeline)
-    assert len(default_pipeline.hooks) == 0
+    assert len(default_pipeline.hooks) == 1
+    assert default_pipeline.hooks[0].name == "codegraph_recommendation"
 
     HookEngine.set_pipeline(LifecycleEvent.SESSION_START, default_pipeline)
 
@@ -767,6 +768,7 @@ def test_hook_engine_pre_tool_use_combined_arbitration_and_overwrite(capsys: pyt
     assert output["reason"] == "Admin confirmation needed"
     assert output["permissionOverrides"] == ["ALLOW_NET", "ALLOW_FILE"]
     assert output["overwrite"] == {"Timeout": 10, "SafeMode": True}
+
 
 
 
