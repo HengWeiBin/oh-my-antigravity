@@ -6,6 +6,7 @@ from typing import Any
 
 
 class LifecycleEvent(Enum):
+    SESSION_START = "SessionStart"
     PRE_INVOCATION = "PreInvocation"
     POST_INVOCATION = "PostInvocation"
     PRE_TOOL_USE = "PreToolUse"
@@ -37,8 +38,9 @@ class HookContext:
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # "allow" | "deny" | "ask" | "force_continue" | "terminate"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "force_continue" | "terminate"
     reason: str | None = None
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     permission_overrides: list[str] = field(default_factory=list)
+    overwrite: dict[str, Any] | None = None

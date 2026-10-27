@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from abc import ABC, abstractmethod
-from typing import ClassVar, TextIO
+from typing import Any, ClassVar, TextIO
 
 from scripts.hooks.models import HookContext, HookResult, LifecycleEvent
 from scripts.hooks.skill_resolver import SkillResolver
@@ -16,6 +16,15 @@ from scripts.hooks.utils import (
     resolve_path,
     setup_utf8_streams,
 )
+
+DECISION_PRIORITY: dict[str, int] = {
+    "deny": 5,
+    "deny_unless_prior_grant": 5,
+    "force_ask": 4,
+    "ask": 3,
+    "auto_approve": 2,
+    "allow": 1,
+}
 
 
 class BaseHook(ABC):
@@ -139,7 +148,10 @@ class HookEngine:
     @classmethod
     def create_default_pipeline(cls, lifecycle: LifecycleEvent) -> HookPipeline:
         pipeline = HookPipeline()
-        if lifecycle == LifecycleEvent.PRE_INVOCATION:
+        if lifecycle == LifecycleEvent.SESSION_START:
+            pass
+
+        elif lifecycle == LifecycleEvent.PRE_INVOCATION:
             from scripts.hooks.agent_usage_reminder import AgentUsageReminderHook
             from scripts.hooks.compaction_todo_preserver import (
                 CompactionTodoPreserverHook,
@@ -276,7 +288,7 @@ class HookEngine:
 
     @classmethod
     def serialize_output(cls, lifecycle: LifecycleEvent, results: list[HookResult]) -> dict:
-        if lifecycle == LifecycleEvent.PRE_INVOCATION:
+        if lifecycle in (LifecycleEvent.SESSION_START, LifecycleEvent.PRE_INVOCATION):
             steps: list[dict] = []
             for res in results:
                 if res.injected_steps:
@@ -303,18 +315,31 @@ class HookEngine:
                         if ov not in overrides:
                             overrides.append(ov)
 
+            merged_overwrite: dict[str, Any] = {}
             for res in results:
-                if res.decision and res.decision.lower() in ("deny", "ask"):
-                    out = {"decision": res.decision.lower()}
-                    if res.reason:
-                        out["reason"] = res.reason
-                    if overrides:
-                        out["permissionOverrides"] = overrides
-                    return out
+                if res.overwrite:
+                    merged_overwrite.update(res.overwrite)
 
-            out = {"decision": "allow"}
+            best_priority = 0
+            winning_decision = "allow"
+            winning_result: HookResult | None = None
+
+            for res in results:
+                if res.decision:
+                    norm_decision = res.decision.lower()
+                    prio = DECISION_PRIORITY.get(norm_decision, 0)
+                    if prio > best_priority:
+                        best_priority = prio
+                        winning_decision = norm_decision
+                        winning_result = res
+
+            out: dict[str, Any] = {"decision": winning_decision}
+            if winning_result and winning_result.reason:
+                out["reason"] = winning_result.reason
             if overrides:
                 out["permissionOverrides"] = overrides
+            if merged_overwrite:
+                out["overwrite"] = merged_overwrite
             return out
 
         elif lifecycle == LifecycleEvent.POST_TOOL_USE:

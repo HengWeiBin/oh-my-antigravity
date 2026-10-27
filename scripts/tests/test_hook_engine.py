@@ -58,7 +58,8 @@ def test_hook_models() -> None:
     with pytest.raises(AttributeError):
         ctx.conversation_id = "new-id"  # type: ignore[misc]
 
-    # PostInvocation and Stop enums
+    # SessionStart, PostInvocation, and Stop enums
+    assert LifecycleEvent.SESSION_START.value == "SessionStart"
     assert LifecycleEvent.POST_INVOCATION.value == "PostInvocation"
     assert LifecycleEvent.STOP.value == "Stop"
 
@@ -86,10 +87,12 @@ def test_hook_models() -> None:
         decision="force_continue",
         injected_steps=[{"ephemeralMessage": "hello"}],
         permission_overrides=["ALLOW_RUN_COMMAND"],
+        overwrite={"arg_name": "val"},
     )
     assert res.decision == "force_continue"
     assert res.injected_steps == [{"ephemeralMessage": "hello"}]
     assert res.permission_overrides == ["ALLOW_RUN_COMMAND"]
+    assert res.overwrite == {"arg_name": "val"}
 
 
 def test_hook_pipeline_error_containment() -> None:
@@ -584,5 +587,186 @@ def test_stop_plan_continuation_hook_no_plans(tmp_path: pytest.TempPathFactory) 
 
     result = hook.execute(ctx)
     assert result.decision is None
+
+
+def test_hook_engine_run_session_start(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res1 = HookResult(injected_steps=[{"systemMessage": {"systemMessage": "Repo guideline", "metadata": {"v": 1}}}])
+    res2 = HookResult(injected_steps=[{"ephemeralMessage": "Welcome to session"}])
+
+    pipeline = HookPipeline([DummyHook("h1", res1), DummyHook("h2", res2)])
+    HookEngine.set_pipeline(LifecycleEvent.SESSION_START, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-session-start-1",
+        "cwd": "/workspace",
+        "workspacePaths": ["/workspace"],
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.SESSION_START, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {
+        "injectSteps": [
+            {"systemMessage": {"systemMessage": "Repo guideline", "metadata": {"v": 1}}},
+            {"ephemeralMessage": "Welcome to session"},
+        ]
+    }
+
+
+def test_hook_engine_run_session_start_empty(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+    default_pipeline = HookEngine.create_default_pipeline(LifecycleEvent.SESSION_START)
+    assert isinstance(default_pipeline, HookPipeline)
+    assert len(default_pipeline.hooks) == 0
+
+    HookEngine.set_pipeline(LifecycleEvent.SESSION_START, default_pipeline)
+
+    exit_code = HookEngine.run(LifecycleEvent.SESSION_START, io.StringIO(""))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {"injectSteps": []}
+
+
+def test_hook_engine_pre_tool_use_sequential_overwrite_merge(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res1 = HookResult(
+        decision="allow",
+        overwrite={"CommandLine": "echo first", "Timeout": 10, "Flag": False},
+    )
+    res2 = HookResult(
+        decision="allow",
+        overwrite={"CommandLine": "echo second", "Flag": True, "Extra": "added"},
+    )
+
+    pipeline = HookPipeline([DummyHook("h1", res1), DummyHook("h2", res2)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_TOOL_USE, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-overwrite-1",
+        "tool_name": "run_command",
+        "tool_input": {"CommandLine": "echo original"},
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.PRE_TOOL_USE, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output["decision"] == "allow"
+    assert output["overwrite"] == {
+        "CommandLine": "echo second",
+        "Timeout": 10,
+        "Flag": True,
+        "Extra": "added",
+    }
+
+
+def test_hook_engine_pre_tool_use_decision_arbitration_hierarchy() -> None:
+    # Priority: deny / deny_unless_prior_grant > force_ask > ask > auto_approve > allow
+
+    # 1. deny beats ask
+    HookEngine.clear_pipelines()
+    p_deny_ask = HookPipeline([
+        DummyHook("h_ask", HookResult(decision="ask", reason="Please confirm")),
+        DummyHook("h_deny", HookResult(decision="deny", reason="Blocked by policy")),
+    ])
+    out = HookEngine.serialize_output(
+        LifecycleEvent.PRE_TOOL_USE,
+        p_deny_ask.run(HookContext(LifecycleEvent.PRE_TOOL_USE, "c1", "/tmp")),
+    )
+    assert out["decision"] == "deny"
+    assert out["reason"] == "Blocked by policy"
+
+    # 2. deny_unless_prior_grant beats force_ask
+    p_grant_force = HookPipeline([
+        DummyHook("h_force", HookResult(decision="force_ask", reason="Force user confirmation")),
+        DummyHook("h_grant", HookResult(decision="deny_unless_prior_grant", reason="Permission not granted")),
+    ])
+    out = HookEngine.serialize_output(
+        LifecycleEvent.PRE_TOOL_USE,
+        p_grant_force.run(HookContext(LifecycleEvent.PRE_TOOL_USE, "c1", "/tmp")),
+    )
+    assert out["decision"] == "deny_unless_prior_grant"
+    assert out["reason"] == "Permission not granted"
+
+    # 3. force_ask beats ask
+    p_force_ask = HookPipeline([
+        DummyHook("h_ask", HookResult(decision="ask", reason="Prompt user")),
+        DummyHook("h_force", HookResult(decision="force_ask", reason="Force confirmation required")),
+    ])
+    out = HookEngine.serialize_output(
+        LifecycleEvent.PRE_TOOL_USE,
+        p_force_ask.run(HookContext(LifecycleEvent.PRE_TOOL_USE, "c1", "/tmp")),
+    )
+    assert out["decision"] == "force_ask"
+    assert out["reason"] == "Force confirmation required"
+
+    # 4. ask beats auto_approve
+    p_ask_auto = HookPipeline([
+        DummyHook("h_auto", HookResult(decision="auto_approve", reason="Safe by policy")),
+        DummyHook("h_ask", HookResult(decision="ask", reason="Risky operation")),
+    ])
+    out = HookEngine.serialize_output(
+        LifecycleEvent.PRE_TOOL_USE,
+        p_ask_auto.run(HookContext(LifecycleEvent.PRE_TOOL_USE, "c1", "/tmp")),
+    )
+    assert out["decision"] == "ask"
+    assert out["reason"] == "Risky operation"
+
+    # 5. auto_approve beats allow
+    p_auto_allow = HookPipeline([
+        DummyHook("h_allow", HookResult(decision="allow")),
+        DummyHook("h_auto", HookResult(decision="auto_approve", reason="Auto-approved rule")),
+    ])
+    out = HookEngine.serialize_output(
+        LifecycleEvent.PRE_TOOL_USE,
+        p_auto_allow.run(HookContext(LifecycleEvent.PRE_TOOL_USE, "c1", "/tmp")),
+    )
+    assert out["decision"] == "auto_approve"
+    assert out["reason"] == "Auto-approved rule"
+
+
+def test_hook_engine_pre_tool_use_combined_arbitration_and_overwrite(capsys: pytest.CaptureFixture[str]) -> None:
+    HookEngine.clear_pipelines()
+
+    res1 = HookResult(
+        decision="auto_approve",
+        reason="Rule 1 approved",
+        permission_overrides=["ALLOW_NET"],
+        overwrite={"Timeout": 5},
+    )
+    res2 = HookResult(
+        decision="ask",
+        reason="Admin confirmation needed",
+        permission_overrides=["ALLOW_FILE"],
+        overwrite={"Timeout": 10, "SafeMode": True},
+    )
+
+    pipeline = HookPipeline([DummyHook("h1", res1), DummyHook("h2", res2)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_TOOL_USE, pipeline)
+
+    input_json = json.dumps({
+        "conversationId": "conv-comb-1",
+        "tool_name": "run_command",
+        "tool_input": {"CommandLine": "curl example.com"},
+    })
+
+    exit_code = HookEngine.run(LifecycleEvent.PRE_TOOL_USE, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output["decision"] == "ask"
+    assert output["reason"] == "Admin confirmation needed"
+    assert output["permissionOverrides"] == ["ALLOW_NET", "ALLOW_FILE"]
+    assert output["overwrite"] == {"Timeout": 10, "SafeMode": True}
+
 
 
