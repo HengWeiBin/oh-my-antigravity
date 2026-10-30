@@ -120,6 +120,7 @@ Static agent definitions begin with a YAML frontmatter block enclosed between tr
 >    - ❌ `find_files` / `glob` → ✅ `find_by_name`
 >    - ❌ `bash` / `terminal` → ✅ `run_command`
 >    - ❌ `read_url` → ✅ `read_url_content`
+>    - ❌ call_mcp_tool in tools: (MCP tools are enabled via enable_mcp_tools: true or mcpServers, never list call_mcp_tool in tools:)
 > 3. If a newly created sub-agent hangs immediately after calling `invoke_subagent`, terminate it (`k` in the `/agents` panel or click GUI **Stop Subagent**) and audit its `tools:` list first.
 
 ---
@@ -192,7 +193,6 @@ tools:
   - write_to_file
   - run_command
   - manage_task
-  - call_mcp_tool
 skills:
   - programming
   - debugging
@@ -225,7 +225,6 @@ tools:
   - manage_task
   - define_subagent
   - manage_subagents
-  - call_mcp_tool
 skills:
   - start-work
   - teammode
