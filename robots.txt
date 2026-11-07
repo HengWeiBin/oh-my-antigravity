@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hengweibin.github.io/oh-my-antigravity/sitemap.xml

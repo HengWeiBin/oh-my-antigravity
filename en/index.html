@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oh-My-Antigravity — Multi-Agent Orchestration Harness for Google Antigravity 2.0</title>
+  <meta name="description" content="Transform Google Antigravity 2.0 into an autonomous software engineering team. Features zero-overhead Python lifecycle hooks, strict role permissions, 11 specialized agent personas, and 44 turnkey skills.">
+  <meta name="keywords" content="Google Antigravity, Multi-Agent System, AI Agents, Software Engineering Harness, Lifecycle Hooks, AI Orchestration, Python 3.13, Sisyphus, Hephaestus">
+  <meta name="author" content="HengWeiBin">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Self-referencing Canonical URL -->
+  <link rel="canonical" href="https://hengweibin.github.io/oh-my-antigravity/en/">
+
+  <!-- Symmetric Bidirectional Hreflang Tags -->
+  <link rel="alternate" hreflang="x-default" href="https://hengweibin.github.io/oh-my-antigravity/">
+  <link rel="alternate" hreflang="en" href="https://hengweibin.github.io/oh-my-antigravity/en/">
+  <link rel="alternate" hreflang="zh" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+  <link rel="alternate" hreflang="zh-Hant" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+  <link rel="alternate" hreflang="zh-TW" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+
+  <!-- OpenGraph Metadata -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Oh-My-Antigravity">
+  <meta property="og:title" content="Oh-My-Antigravity — Multi-Agent Orchestration Harness for Google Antigravity 2.0">
+  <meta property="og:description" content="Transform Google Antigravity 2.0 into an autonomous software engineering team. Features zero-overhead Python lifecycle hooks, strict role permissions, 11 specialized agent personas, and 44 turnkey skills.">
+  <meta property="og:url" content="https://hengweibin.github.io/oh-my-antigravity/en/">
+  <meta property="og:image" content="https://hengweibin.github.io/oh-my-antigravity/assets/og-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="zh_TW">
+
+  <!-- Twitter Card Metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oh-My-Antigravity — Multi-Agent Orchestration Harness for Google Antigravity 2.0">
+  <meta name="twitter:description" content="Transform Google Antigravity 2.0 into an autonomous software engineering team. Features zero-overhead Python lifecycle hooks, strict role permissions, 11 specialized agent personas, and 44 turnkey skills.">
+  <meta name="twitter:image" content="https://hengweibin.github.io/oh-my-antigravity/assets/og-preview.svg">
+
+  <!-- Favicon & Styles -->
+  <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/#software",
+      "name": "Oh-My-Antigravity",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "softwareVersion": "0.4.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "description": "Multi-agent orchestration harness engineered for Google Antigravity 2.0. Features zero-overhead Python lifecycle hooks, strict role permissions, 11 specialized agent personas, and 44 turnkey skills.",
+      "url": "https://hengweibin.github.io/oh-my-antigravity/",
+      "author": {
+        "@type": "Person",
+        "name": "HengWeiBin",
+        "url": "https://github.com/HengWeiBin"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/#website",
+      "name": "Oh-My-Antigravity",
+      "url": "https://hengweibin.github.io/oh-my-antigravity/",
+      "inLanguage": [
+        "en",
+        "zh-TW"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/en/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Oh-My-Antigravity and how does it work with Google Antigravity 2.0?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oh-My-Antigravity is a multi-agent orchestration harness engineered as an official plugin for Google Antigravity 2.0. It hooks into the conversation lifecycle through five phases (SessionStart, PreInvocation, PreToolUse, PostToolUse, and Stop), establishing strict role boundaries, automated skill loading, and rigorous verification gates."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the runtime requirements and dependencies?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oh-My-Antigravity requires Python 3.13+ and Git. The lifecycle hook interceptors are written strictly using the Python standard library, requiring ZERO external runtime pip packages for sub-millisecond execution overhead."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why are Orchestrator agents blocked from editing source code directly?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In complex software development, orchestrators (like Sisyphus, Atlas, and Prometheus) must maintain a holistic architectural view, manage task checklists, and coordinate specialists. Forcing them to delegate implementation to Worker agents (Hephaestus, Sisyphus-Junior) prevents context corruption and ensures rigorous independent verification."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the 4-Phase Verification Protocol?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is an unskippable quality standard: Phase 1 (Inspect the code changes directly), Phase 2 (Execute automated test suites and linters), Phase 3 (Conduct hands-on QA / visual verification), and Phase 4 (Gate Decision). Agents are barred from claiming completion based solely on optimistic self-assessment."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I trigger specific skills during an Antigravity conversation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply mention any slash command in your prompt, such as /debugging for hypothesis-driven debugging or /programming for strict typing rules. The PreInvocation lifecycle hook detects the trigger and dynamically mounts the skill into the agent context."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <div class="bg-ambient-nebula"></div>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="../" class="nav-brand" aria-label="Oh-My-Antigravity Home">
+        <img src="../assets/logo.svg" alt="Oh-My-Antigravity Logo" width="38" height="38">
+        <span class="brand-title">Oh-My-Antigravity</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#quickstart" class="nav-link">Quickstart</a></li>
+          <li><a href="#architecture" class="nav-link">Architecture</a></li>
+          <li><a href="#agents" class="nav-link">Agents</a></li>
+          <li><a href="#skills" class="nav-link">Skills</a></li>
+          <li><a href="#configuration" class="nav-link">Config</a></li>
+          <li><a href="#faq" class="nav-link">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher" role="group" aria-label="Language selection">
+          <button class="lang-btn active" data-lang="en" aria-label="Switch to English">EN</button>
+          <button class="lang-btn " data-lang="zh" aria-label="切換至繁體中文">繁中</button>
+        </div>
+
+        <!-- GitHub Link -->
+        <a href="https://github.com/HengWeiBin/oh-my-antigravity" target="_blank" rel="noopener noreferrer" class="github-badge" aria-label="GitHub Repository">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span>v0.4.0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+      <div class="container">
+        <div class="hero-pill">
+          <span class="hero-pill-dot"></span>
+          <span>⚡ Official Google Antigravity 2.0 Plugin</span>
+        </div>
+        <h1 class="hero-title">Orchestrate Multi-Agent Teams<br>in Google Antigravity</h1>
+        <p class="hero-subtitle">The premier multi-agent orchestration harness engineered for Google Antigravity 2.0. Featuring zero-overhead Python lifecycle hooks, strict role permissions, and 11 specialized agent personas with 44 turnkey skills.</p>
+
+        <div class="hero-ctas">
+          <a href="#quickstart" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Get Started</span>
+          </a>
+          <a href="#skills" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            <span>Explore Skills</span>
+          </a>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">11</div>
+            <div class="stat-label">Agent Personas</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">44</div>
+            <div class="stat-label">Turnkey Skills</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Hook Phases</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Pip Overhead</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quickstart Section -->
+    <section id="quickstart" class="quickstart-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">INSTALLATION</span>
+          <h2 class="section-title">Quickstart & Installation</h2>
+          <p class="section-desc">Choose the optimal installation method for your environment. Fully verified on macOS, Linux, and Windows.</p>
+        </div>
+
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <div class="terminal-tabs" role="tablist">
+              <button class="tab-btn active" data-snippet="agy" role="tab" aria-selected="true">Antigravity CLI</button>
+              <button class="tab-btn" data-snippet="curl" role="tab" aria-selected="false">macOS / Linux (curl)</button>
+              <button class="tab-btn" data-snippet="powershell" role="tab" aria-selected="false">Windows (PowerShell)</button>
+              <button class="tab-btn" data-snippet="git" role="tab" aria-selected="false">Git Clone</button>
+            </div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-code">
+              <span class="terminal-prompt">$</span><span id="terminal-code-snippet">agy plugin install https://github.com/HengWeiBin/oh-my-antigravity.git</span>
+            </div>
+            <button id="terminal-copy-btn" class="copy-btn" type="button" aria-label="Copy installation command">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span class="copy-btn-text">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Hook Engine Section -->
+    <section id="architecture" class="pipeline-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">ARCHITECTURE</span>
+          <h2 class="section-title">5-Phase Lifecycle Hook Engine</h2>
+          <p class="section-desc">Intercept events synchronously with sub-millisecond Python hooks, mounting skills dynamically and securing role barriers.</p>
+        </div>
+
+        <!-- 5 Phase Cards -->
+        <div class="pipeline-cards">
+          <div class="pipeline-card active" data-phase="session_start">
+            <div class="phase-num">Phase 1</div>
+            <div class="phase-title">SessionStart</div>
+            <div class="phase-summary">Session init & capability probing</div>
+          </div>
+          <div class="pipeline-card" data-phase="pre_invocation">
+            <div class="phase-num">Phase 2</div>
+            <div class="phase-title">PreInvocation</div>
+            <div class="phase-summary">Dynamic skill mounting & plan locking</div>
+          </div>
+          <div class="pipeline-card" data-phase="pre_tool_use">
+            <div class="phase-num">Phase 3</div>
+            <div class="phase-title">PreToolUse</div>
+            <div class="phase-summary">Role permission boundary gate</div>
+          </div>
+          <div class="pipeline-card" data-phase="post_tool_use">
+            <div class="phase-num">Phase 4</div>
+            <div class="phase-title">PostToolUse</div>
+            <div class="phase-summary">4-Phase verification protocol</div>
+          </div>
+          <div class="pipeline-card" data-phase="stop">
+            <div class="phase-num">Phase 5</div>
+            <div class="phase-title">Stop</div>
+            <div class="phase-summary">Plan completion gate & metrics</div>
+          </div>
+        </div>
+
+        <!-- Detail Box -->
+        <div id="pipeline-detail" class="pipeline-detail-box">
+          <div class="detail-header">
+            <div class="detail-title">
+              <span>Session Initialization (SessionStart)</span>
+            </div>
+            <span class="detail-script">scripts/session_start.py</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <h4>Trigger Point</h4>
+              <p>Fires once upon conversational session creation</p>
+            </div>
+            <div class="detail-item">
+              <h4>Key Mechanism</h4>
+              <p>Environment & Capability Probing</p>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <h4>Description</h4>
+              <p>Evaluates workspace capabilities and recommends optimal tools (such as codegraph_explore when .codegraph and CodeGraph MCP are active).</p>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <h4>Security Gate</h4>
+              <p style="color: var(--accent-cyan-light); font-weight: 600;">Read-only capability detection, zero blocking gates.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orchestrator-Worker Flow -->
+        <div class="flow-container">
+          <h3 class="flow-title">Orchestrator-Worker Delegation Sequence</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-num">A</div>
+              <div class="flow-step-title">Discovery & Research</div>
+              <p class="flow-step-desc">Orchestrator invokes Explore/Librarian for symbols & docs</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">B</div>
+              <div class="flow-step-title">Plan Formulation</div>
+              <p class="flow-step-desc">Sisyphus/Prometheus forms decision-complete task breakdown</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">C</div>
+              <div class="flow-step-title">Implementation</div>
+              <p class="flow-step-desc">Hephaestus implements diffs & tests under PreToolUse</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">D</div>
+              <div class="flow-step-title">4-Phase QA Gate</div>
+              <p class="flow-step-desc">Read diffs, run test suites, hands-on QA, gate approval</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Roster Section -->
+    <section id="agents" class="agents-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">PERSONAS</span>
+          <h2 class="section-title">11 Specialized Agent Personas</h2>
+          <p class="section-desc">Organized into Orchestrators, Workers, and Research Specialists with strict permission barriers.</p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+          <button class="filter-pill active" data-agent-filter="all">All Personas (11)</button>
+          <button class="filter-pill" data-agent-filter="orchestrator">Orchestrators (5)</button>
+          <button class="filter-pill" data-agent-filter="worker">Workers (2)</button>
+          <button class="filter-pill" data-agent-filter="specialist">Research Specialists (4)</button>
+        </div>
+
+        <!-- Agents Grid -->
+        <div class="agents-grid">
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@sisyphus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">Orchestrator</span>
+              <span class="badge badge-model">inherit</span>
+            </div>
+          </div>
+          <div class="agent-role">Lead Orchestrator</div>
+          <div class="agent-desc">Primary workflow coordinator. Plans, breaks down epics, delegates tasks to workers, and tracks completion. Strictly blocked from editing source code directly.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / .omo/ writes</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@atlas</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">Orchestrator</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Master Orchestrator</div>
+          <div class="agent-desc">Relentless execution driver. Tracks multi-item todo lists and work plans, continuously delegating until all checklist tasks are 100% finished.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">Read tools</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / plan state</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@prometheus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">Orchestrator</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Strategic Planner</div>
+          <div class="agent-desc">Strategic planning consultant. Investigates codebase conventions, gathers architecture facts, and synthesizes complete, decision-complete work plans.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">Read tools</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / plan docs</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@metis</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">Orchestrator</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Pre-Planning Consultant</div>
+          <div class="agent-desc">Pre-planning analyst. Scrutinizes requirements before planning starts to prevent over-engineering, scope creep, and ambiguous specifications.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@momus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">Orchestrator</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Plan Reviewer</div>
+          <div class="agent-desc">Hostile plan auditor. Ruthlessly challenges assumptions, spots missing files, identifies unexecutable steps, and exposes blind spots.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="worker">
+          <div class="agent-card-header">
+            <span class="agent-name">@hephaestus</span>
+            <div class="agent-badges">
+              <span class="badge badge-worker">Worker</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Deep Worker</div>
+          <div class="agent-desc">Senior staff autonomous engineer. Handles complex, multi-step implementations, architectural refactors, and test suites end-to-end.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">All read tools</span><span class="tool-tag">write_to_file</span><span class="tool-tag">replace_file_content</span><span class="tool-tag">run_command</span><span class="tool-tag">invoke_subagent</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="worker">
+          <div class="agent-card-header">
+            <span class="agent-name">@sisyphus-junior</span>
+            <div class="agent-badges">
+              <span class="badge badge-worker">Worker</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Task Executor</div>
+          <div class="agent-desc">Fast, disciplined executor focused on bite-sized implementations, bug fixes, and surgical edits with strict adherence to instructions.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">All read tools</span><span class="tool-tag">write_to_file</span><span class="tool-tag">replace_file_content</span><span class="tool-tag">run_command</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@explore</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">Specialist</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Contextual Search</div>
+          <div class="agent-desc">Lightning-fast codebase researcher. Locates symbol definitions, implementation files, and usages without modifying files.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@librarian</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">Specialist</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Docs &amp; OSS Specialist</div>
+          <div class="agent-desc">External research specialist. Fetches official documentation, external package references, and open-source implementation patterns.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@oracle</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">Specialist</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Architecture Advisor</div>
+          <div class="agent-desc">Strategic technical advisor. Provides deep reasoning for architectural trade-offs, deadlock resolution, security postures, and system debugging.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@multimodal-looker</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">Specialist</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">Media Analyst</div>
+          <div class="agent-desc">Visual inspector for UI screenshots, architecture diagrams, PDF documentation, and visual regression artifacts.</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">Permitted Tools Scope</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Catalog Section -->
+    <section id="skills" class="skills-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">CAPABILITIES</span>
+          <h2 class="section-title">44 Bundled Production Skills</h2>
+          <p class="section-desc">Dynamic skill mounting via slash-command syntax in agent prompts. Click any card to copy command.</p>
+        </div>
+
+        <div class="skills-controls">
+          <div class="search-box">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="skill-search" class="search-input" placeholder="Search skills by name, slash-command, or description (e.g. /debugging, frontend)..." aria-label="Search bundled skills">
+          </div>
+
+          <div class="filter-pills">
+            <button class="filter-pill active" data-skill-cat="all">All (44)</button>
+            <button class="filter-pill" data-skill-cat="planning">Planning (7)</button>
+            <button class="filter-pill" data-skill-cat="engineering">Engineering (8)</button>
+            <button class="filter-pill" data-skill-cat="verification">Verification (8)</button>
+            <button class="filter-pill" data-skill-cat="browser">Browser (3)</button>
+            <button class="filter-pill" data-skill-cat="git">Git & Release (5)</button>
+            <button class="filter-pill" data-skill-cat="system">System Tools (13)</button>
+          </div>
+
+          <div class="skills-count-bar">
+            <span id="skills-count">Showing 44 of 44 skills</span>
+            <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;">Click card to copy command</span>
+          </div>
+        </div>
+
+        <!-- Skills Grid -->
+        <div class="skills-grid">
+        <div class="skill-card" data-category="planning" data-cmd="/hyperplan" data-name="hyperplan">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/hyperplan</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Hostile multi-agent planning orchestrating 5 competing perspectives for battle-tested blueprints.</div>
+          <div class="skill-card-bottom">
+            <span>hyperplan</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ulw-plan" data-name="ulw-plan">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-plan</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Explore-first planning engine (Prometheus) producing decision-complete execution plans before coding.</div>
+          <div class="skill-card-bottom">
+            <span>ulw-plan</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/start-work" data-name="start-work">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/start-work</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Executes Prometheus work plans with boulder state tracking and Stop-hook resumption.</div>
+          <div class="skill-card-bottom">
+            <span>start-work</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/teammode" data-name="teammode">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/teammode</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Orchestrates parallel cooperating subagent workers for concurrent workflow execution.</div>
+          <div class="skill-card-bottom">
+            <span>teammode</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ultrawork" data-name="ultrawork">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultrawork</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Binding ultrawork mode enforcing parallel execution, proactive debugging, and 100% completion.</div>
+          <div class="skill-card-bottom">
+            <span>ultrawork</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ulw-loop" data-name="ulw-loop">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-loop</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Systematic evidence-bound task iteration loop breaking goals into atomic verification steps.</div>
+          <div class="skill-card-bottom">
+            <span>ulw-loop</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/pi-goal" data-name="pi-goal">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/pi-goal</span>
+            <span class="skill-cat-badge">Planning &amp; Strategy</span>
+          </div>
+          <div class="skill-desc">Persistent long-running goal tracking, state auditing, and session progress resumption.</div>
+          <div class="skill-card-bottom">
+            <span>pi-goal</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/programming" data-name="programming">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/programming</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Modern strict typing (.py, .rs, .ts, .go), parse-don&#x27;t-validate, zero unwrap/panic, 250 LOC ceiling.</div>
+          <div class="skill-card-bottom">
+            <span>programming</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/frontend" data-name="frontend">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/frontend</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Production UI/UX design, modern CSS/React architecture, animations, and typography excellence.</div>
+          <div class="skill-card-bottom">
+            <span>frontend</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/refactor" data-name="refactor">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/refactor</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Intelligent code modernization, structural refactoring, and simplification.</div>
+          <div class="skill-card-bottom">
+            <span>refactor</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/remove-ai-slops" data-name="remove-ai-slops">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/remove-ai-slops</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Purges repetitive AI code smells, verbose boilerplate, and oversized modules locked by tests.</div>
+          <div class="skill-card-bottom">
+            <span>remove-ai-slops</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/remove-deadcode" data-name="remove-deadcode">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/remove-deadcode</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Safely detects and purges unused code backed by LSP validation and atomic commits.</div>
+          <div class="skill-card-bottom">
+            <span>remove-deadcode</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/ast-grep" data-name="ast-grep">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ast-grep</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">AST-aware structural search and deterministic codemods across 25 programming languages.</div>
+          <div class="skill-card-bottom">
+            <span>ast-grep</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/data-scientist" data-name="data-scientist">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/data-scientist</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">High-throughput exploratory data analysis, tabular profiling, and DuckDB/Polars analytics.</div>
+          <div class="skill-card-bottom">
+            <span>data-scientist</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/visualize" data-name="visualize">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/visualize</span>
+            <span class="skill-cat-badge">Engineering &amp; Modernization</span>
+          </div>
+          <div class="skill-desc">Autonomous interactive HTML data visualization, charts, and standalone dashboards.</div>
+          <div class="skill-card-bottom">
+            <span>visualize</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/eval-integrity" data-name="eval-integrity">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/eval-integrity</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">High-rigor benchmark and LLM-as-a-judge evaluation integrity auditing against contamination.</div>
+          <div class="skill-card-bottom">
+            <span>eval-integrity</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/visual-qa" data-name="visual-qa">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/visual-qa</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Visual verification across responsive screen widths, pixel diffs, and terminal UI layouts.</div>
+          <div class="skill-card-bottom">
+            <span>visual-qa</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/review-work" data-name="review-work">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/review-work</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Nuclear 5-agent post-implementation review gate covering correctness, security, and quality.</div>
+          <div class="skill-card-bottom">
+            <span>review-work</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/pre-publish-review" data-name="pre-publish-review">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/pre-publish-review</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">16-agent release barrier analyzing all unpublished changes prior to distribution.</div>
+          <div class="skill-card-bottom">
+            <span>pre-publish-review</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/debugging" data-name="debugging">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/debugging</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Hypothesis-driven debugging loop forming ≥3 orthogonal hypotheses with failing regression tests.</div>
+          <div class="skill-card-bottom">
+            <span>debugging</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/comment-checker" data-name="comment-checker">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/comment-checker</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Intercepts code modifications to flag misleading, stale, or superfluous code comments.</div>
+          <div class="skill-card-bottom">
+            <span>comment-checker</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/ulw-research" data-name="ulw-research">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-research</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Maximum-saturation research swarm orchestrating parallel explore and librarian agents.</div>
+          <div class="skill-card-bottom">
+            <span>ulw-research</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/ultraresearch" data-name="ultraresearch">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultraresearch</span>
+            <span class="skill-cat-badge">Verification, QA &amp; Research</span>
+          </div>
+          <div class="skill-desc">Fast alias for ulw-research deep investigation and exhaustive codebase exploration.</div>
+          <div class="skill-card-bottom">
+            <span>ultraresearch</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/agent-browser" data-name="agent-browser">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/agent-browser</span>
+            <span class="skill-cat-badge">Browser Automation</span>
+          </div>
+          <div class="skill-desc">Headless browser driver for web testing, form completion, and DOM extraction.</div>
+          <div class="skill-card-bottom">
+            <span>agent-browser</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/dev-browser" data-name="dev-browser">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/dev-browser</span>
+            <span class="skill-cat-badge">Browser Automation</span>
+          </div>
+          <div class="skill-desc">Persistent-session browser automation for interactive testing and stateful workflows.</div>
+          <div class="skill-card-bottom">
+            <span>dev-browser</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/ultimate-browsing" data-name="ultimate-browsing">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultimate-browsing</span>
+            <span class="skill-cat-badge">Browser Automation</span>
+          </div>
+          <div class="skill-desc">Stealth browser automation with WAF/bot bypass, TLS impersonation, and anti-scraping evasion.</div>
+          <div class="skill-card-bottom">
+            <span>ultimate-browsing</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/git-master" data-name="git-master">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/git-master</span>
+            <span class="skill-cat-badge">Git, Releases &amp; Triage</span>
+          </div>
+          <div class="skill-desc">Atomic git commits, clean interactive rebasing, branch squashing, and bisect search.</div>
+          <div class="skill-card-bottom">
+            <span>git-master</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/github-triage" data-name="github-triage">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/github-triage</span>
+            <span class="skill-cat-badge">Git, Releases &amp; Triage</span>
+          </div>
+          <div class="skill-desc">Read-only triage for GitHub issues and PRs with evidence-backed Markdown reports.</div>
+          <div class="skill-card-bottom">
+            <span>github-triage</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/work-with-pr" data-name="work-with-pr">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/work-with-pr</span>
+            <span class="skill-cat-badge">Git, Releases &amp; Triage</span>
+          </div>
+          <div class="skill-desc">End-to-end PR workflow inside isolated task worktrees with CI gates and automatic merging.</div>
+          <div class="skill-card-bottom">
+            <span>work-with-pr</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/publish" data-name="publish">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/publish</span>
+            <span class="skill-cat-badge">Git, Releases &amp; Triage</span>
+          </div>
+          <div class="skill-desc">Automated release pipeline triggering GitHub Actions and verifying deployment artifacts.</div>
+          <div class="skill-card-bottom">
+            <span>publish</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/get-unpublished-changes" data-name="get-unpublished-changes">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/get-unpublished-changes</span>
+            <span class="skill-cat-badge">Git, Releases &amp; Triage</span>
+          </div>
+          <div class="skill-desc">Computes diffs between HEAD and published package registry versions.</div>
+          <div class="skill-card-bottom">
+            <span>get-unpublished-changes</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/antigravity-hooks" data-name="antigravity-hooks">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/antigravity-hooks</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Guide and best practices for creating, configuring, and testing Antigravity hooks.</div>
+          <div class="skill-card-bottom">
+            <span>antigravity-hooks</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/antigravity-subagents" data-name="antigravity-subagents">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/antigravity-subagents</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Blueprint for subagent definitions, YAML frontmatter, tool whitelists, and lifecycle states.</div>
+          <div class="skill-card-bottom">
+            <span>antigravity-subagents</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/lsp" data-name="lsp">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/lsp</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Language Server Protocol diagnostics, symbol navigation, and rename verification.</div>
+          <div class="skill-card-bottom">
+            <span>lsp</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/lsp-setup" data-name="lsp-setup">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/lsp-setup</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Language server configuration and installation across 20+ language environments.</div>
+          <div class="skill-card-bottom">
+            <span>lsp-setup</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/rules" data-name="rules">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/rules</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Behavioral rule injection engine and workspace configuration inspector.</div>
+          <div class="skill-card-bottom">
+            <span>rules</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/init" data-name="init">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/init</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Bootstraps project root AGENTS.md instruction indexes for AI engineering teams.</div>
+          <div class="skill-card-bottom">
+            <span>init</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/init-deep" data-name="init-deep">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/init-deep</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Generates hierarchical multi-level AGENTS.md architecture guides.</div>
+          <div class="skill-card-bottom">
+            <span>init-deep</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/call-atlas" data-name="call-atlas">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/call-atlas</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Direct invocation trigger routing execution tasks directly to Atlas orchestrator.</div>
+          <div class="skill-card-bottom">
+            <span>call-atlas</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/call-prometheus" data-name="call-prometheus">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/call-prometheus</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Direct invocation trigger routing architectural planning to Prometheus.</div>
+          <div class="skill-card-bottom">
+            <span>call-prometheus</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/coding-agent-sessions" data-name="coding-agent-sessions">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/coding-agent-sessions</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Searches and reconstructs past agent transcripts, session IDs, and context logs.</div>
+          <div class="skill-card-bottom">
+            <span>coding-agent-sessions</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/security-research" data-name="security-research">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/security-research</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Multi-agent vulnerability hunting, threat modeling, and exploitability verification.</div>
+          <div class="skill-card-bottom">
+            <span>security-research</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/tech-debt-audit" data-name="tech-debt-audit">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/tech-debt-audit</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">9-dimensional technical debt assessment producing prioritized remediation ledgers.</div>
+          <div class="skill-card-bottom">
+            <span>tech-debt-audit</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/omomomo" data-name="omomomo">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/omomomo</span>
+            <span class="skill-cat-badge">System Tools &amp; Specialists</span>
+          </div>
+          <div class="skill-desc">Easter egg module celebrating oh-my-opencode roots and architecture history.</div>
+          <div class="skill-card-bottom">
+            <span>omomomo</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Click to copy
+            </span>
+          </div>
+        </div>
+          <div id="skills-no-results" class="no-results" style="display: none;">
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No matching skills found</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Try searching with different keywords or clearing filters</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration Section -->
+    <section id="configuration" class="config-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">CONFIGURATION</span>
+          <h2 class="section-title">Plugin Configuration & Hooks</h2>
+          <p class="section-desc">Declarative configuration in plugin.json and hooks.json with granular regex tool matching.</p>
+        </div>
+
+        <div class="config-grid">
+          <div class="config-card">
+            <div class="config-header">
+              <span class="config-filename">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                plugin.json
+              </span>
+              <span class="badge badge-model">Manifest</span>
+            </div>
+            <pre class="config-pre"><code>{
+  "name": "oh-my-antigravity",
+  "version": "0.4.0",
+  "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
+  "logo": "assets/logo.svg"
+}</code></pre>
+          </div>
+
+          <div class="config-card">
+            <div class="config-header">
+              <span class="config-filename">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                hooks.json
+              </span>
+              <span class="badge badge-orchestrator">Lifecycle</span>
+            </div>
+            <pre class="config-pre"><code>{
+  "hooks": {
+    "SessionStart": [
+      { "type": "command", "command": "python scripts/session_start.py", "timeout": 5 }
+    ],
+    "PreInvocation": [
+      { "type": "command", "command": "python scripts/pre_invocation.py", "timeout": 8 }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(write_to_file|replace_file_content|run_command)$",
+        "hooks": [{ "type": "command", "command": "python scripts/pre_tool_use.py", "timeout": 5 }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(invoke_subagent|write_to_file|replace_file_content)$",
+        "hooks": [{ "type": "command", "command": "python scripts/post_tool_use.py", "timeout": 5 }]
+      }
+    ],
+    "Stop": [
+      { "type": "command", "command": "python scripts/stop.py", "timeout": 5 }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">QUESTIONS</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p class="section-desc">Deep dive into architecture decisions, role permissions, and engineering standards.</p>
+        </div>
+
+        <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-0">
+            <span>What is Oh-My-Antigravity and how does it work with Google Antigravity 2.0?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-0" class="faq-answer">
+            <p>Oh-My-Antigravity is a multi-agent orchestration harness engineered as an official plugin for Google Antigravity 2.0. It hooks into the conversation lifecycle through five phases (SessionStart, PreInvocation, PreToolUse, PostToolUse, and Stop), establishing strict role boundaries, automated skill loading, and rigorous verification gates.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-1">
+            <span>What are the runtime requirements and dependencies?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-1" class="faq-answer">
+            <p>Oh-My-Antigravity requires Python 3.13+ and Git. The lifecycle hook interceptors are written strictly using the Python standard library, requiring ZERO external runtime pip packages for sub-millisecond execution overhead.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-2">
+            <span>Why are Orchestrator agents blocked from editing source code directly?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-2" class="faq-answer">
+            <p>In complex software development, orchestrators (like Sisyphus, Atlas, and Prometheus) must maintain a holistic architectural view, manage task checklists, and coordinate specialists. Forcing them to delegate implementation to Worker agents (Hephaestus, Sisyphus-Junior) prevents context corruption and ensures rigorous independent verification.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-3">
+            <span>What is the 4-Phase Verification Protocol?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-3" class="faq-answer">
+            <p>It is an unskippable quality standard: Phase 1 (Inspect the code changes directly), Phase 2 (Execute automated test suites and linters), Phase 3 (Conduct hands-on QA / visual verification), and Phase 4 (Gate Decision). Agents are barred from claiming completion based solely on optimistic self-assessment.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-4">
+            <span>How can I trigger specific skills during an Antigravity conversation?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-4" class="faq-answer">
+            <p>Simply mention any slash command in your prompt, such as /debugging for hypothesis-driven debugging or /programming for strict typing rules. The PreInvocation lifecycle hook detects the trigger and dynamically mounts the skill into the agent context.</p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-brand">
+            <img src="../assets/logo.svg" alt="Oh-My-Antigravity" width="32" height="32">
+            <span class="brand-title">Oh-My-Antigravity</span>
+          </div>
+          <p>The premier multi-agent orchestration harness engineered for Google Antigravity 2.0.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="#quickstart" class="footer-link">Quickstart</a></li>
+            <li><a href="#architecture" class="footer-link">Architecture</a></li>
+            <li><a href="#agents" class="footer-link">Agents</a></li>
+            <li><a href="#skills" class="footer-link">Skills</a></li>
+            <li><a href="#faq" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Languages</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">English (US)</a></li>
+            <li><a href="../zh/" class="footer-link">繁體中文 (Traditional Chinese)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          <span>© 2024–2026 HengWeiBin. Ported and derived from <a href="https://github.com/code-yeongyu/oh-my-openagent" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: underline;">oh-my-openagent</a> by @code-yeongyu.</span>
+        </div>
+        <div>
+          <span>Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: underline;">MIT License</a>.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

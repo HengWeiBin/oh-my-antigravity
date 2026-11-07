@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oh-My-Antigravity — 專為 Google Antigravity 2.0 打造的多代理協同調度框架</title>
+  <meta name="description" content="將 Google Antigravity 2.0 升級為分工明確的軟體工程團隊。具備零額外開銷的 Python 生命週期攔截器引擎、嚴格角色權限邊界、11 位專職代理角色與 44 項隨附工程技能。">
+  <meta name="keywords" content="Google Antigravity, Multi-Agent System, AI Agents, Software Engineering Harness, Lifecycle Hooks, AI Orchestration, Python 3.13, Sisyphus, Hephaestus">
+  <meta name="author" content="HengWeiBin">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Self-referencing Canonical URL -->
+  <link rel="canonical" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+
+  <!-- Symmetric Bidirectional Hreflang Tags -->
+  <link rel="alternate" hreflang="x-default" href="https://hengweibin.github.io/oh-my-antigravity/">
+  <link rel="alternate" hreflang="en" href="https://hengweibin.github.io/oh-my-antigravity/en/">
+  <link rel="alternate" hreflang="zh" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+  <link rel="alternate" hreflang="zh-Hant" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+  <link rel="alternate" hreflang="zh-TW" href="https://hengweibin.github.io/oh-my-antigravity/zh/">
+
+  <!-- OpenGraph Metadata -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Oh-My-Antigravity">
+  <meta property="og:title" content="Oh-My-Antigravity — 專為 Google Antigravity 2.0 打造的多代理協同調度框架">
+  <meta property="og:description" content="將 Google Antigravity 2.0 升級為分工明確的軟體工程團隊。具備零額外開銷的 Python 生命週期攔截器引擎、嚴格角色權限邊界、11 位專職代理角色與 44 項隨附工程技能。">
+  <meta property="og:url" content="https://hengweibin.github.io/oh-my-antigravity/zh/">
+  <meta property="og:image" content="https://hengweibin.github.io/oh-my-antigravity/assets/og-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <!-- Twitter Card Metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oh-My-Antigravity — 專為 Google Antigravity 2.0 打造的多代理協同調度框架">
+  <meta name="twitter:description" content="將 Google Antigravity 2.0 升級為分工明確的軟體工程團隊。具備零額外開銷的 Python 生命週期攔截器引擎、嚴格角色權限邊界、11 位專職代理角色與 44 項隨附工程技能。">
+  <meta name="twitter:image" content="https://hengweibin.github.io/oh-my-antigravity/assets/og-preview.svg">
+
+  <!-- Favicon & Styles -->
+  <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/#software",
+      "name": "Oh-My-Antigravity",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "softwareVersion": "0.4.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "description": "將 Google Antigravity 2.0 升級為高紀律軟體工程團隊的多代理協同調度框架。內建零開銷生命週期攔截器引擎、嚴格角色權限邊界、11 位專門代理與 44 項隨附技能。",
+      "url": "https://hengweibin.github.io/oh-my-antigravity/",
+      "author": {
+        "@type": "Person",
+        "name": "HengWeiBin",
+        "url": "https://github.com/HengWeiBin"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/#website",
+      "name": "Oh-My-Antigravity",
+      "url": "https://hengweibin.github.io/oh-my-antigravity/",
+      "inLanguage": [
+        "en",
+        "zh-TW"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://hengweibin.github.io/oh-my-antigravity/zh/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "什麼是 Oh-My-Antigravity？它如何與 Google Antigravity 2.0 協同運作？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oh-My-Antigravity 是專為 Google Antigravity 2.0 量身打造的多代理協同調度外掛框架。透過五個核心生命週期階段（SessionStart、PreInvocation、PreToolUse、PostToolUse、Stop），系統建立了嚴格的角色權限邊界、自動化技能載入機制與四階段嚴格驗證協議。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "執行環境有何先決條件？需要安裝哪些額外相依套件？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oh-My-Antigravity 僅需系統就緒 Python 3.13+ 與 Git。所有生命週期攔截器腳本均嚴格基於 Python 標準庫開發，完全零第三方執行階段 pip 依賴，保證毫秒級的超高速攔截反應。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "為什麼主調度指揮官代理被嚴格禁止直接編輯原始碼？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "在大型軟體工程中，指揮官代理（如 Sisyphus、Atlas、Prometheus）必須維持全域架構視角並管理計畫進度。禁止其直接修改程式碼並強制委派至工匠代理（Hephaestus、Sisyphus-Junior），能有效避免上下文污染，並落實客觀獨立的驗證機制。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "什麼是四階段嚴格驗證協議（4-Phase Verification Protocol）？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "這是一項不可略過的品質保證機制：第一階段（親自讀取審查檔案變更）、第二階段（執行自動化測試與代碼檢查）、第三階段（實地 QA 與視覺驗證）、第四階段（嚴格關卡決策）。嚴禁代理僅憑內部猜測宣告任務完成。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "如何在 Antigravity 對話中觸發特定隨附技能？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "只需在提示詞中輸入任何斜線指令（例如 /debugging 啟動假設驅動除錯迴圈，或 /programming 載入現代嚴格型別規範）。PreInvocation 攔截器會自動偵測關鍵字並將技能指示動態注入對話上下文中。"
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <div class="bg-ambient-nebula"></div>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="../" class="nav-brand" aria-label="Oh-My-Antigravity Home">
+        <img src="../assets/logo.svg" alt="Oh-My-Antigravity Logo" width="38" height="38">
+        <span class="brand-title">Oh-My-Antigravity</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#quickstart" class="nav-link">快速上手</a></li>
+          <li><a href="#architecture" class="nav-link">架構與 Hook</a></li>
+          <li><a href="#agents" class="nav-link">代理角色</a></li>
+          <li><a href="#skills" class="nav-link">隨附技能</a></li>
+          <li><a href="#configuration" class="nav-link">設定清單</a></li>
+          <li><a href="#faq" class="nav-link">常見問題</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher" role="group" aria-label="Language selection">
+          <button class="lang-btn " data-lang="en" aria-label="Switch to English">EN</button>
+          <button class="lang-btn active" data-lang="zh" aria-label="切換至繁體中文">繁中</button>
+        </div>
+
+        <!-- GitHub Link -->
+        <a href="https://github.com/HengWeiBin/oh-my-antigravity" target="_blank" rel="noopener noreferrer" class="github-badge" aria-label="GitHub Repository">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span>v0.4.0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+      <div class="container">
+        <div class="hero-pill">
+          <span class="hero-pill-dot"></span>
+          <span>⚡ Google Antigravity 2.0 專用外掛框架</span>
+        </div>
+        <h1 class="hero-title">將 Antigravity 升級為<br>高紀律軟體工程團隊</h1>
+        <p class="hero-subtitle">Oh-My-Antigravity 具備統一且零開銷的 Python 生命週期攔截管線、嚴格角色權限邊界，以及 11 位專職代理角色與 44 項即用隨附技能。</p>
+
+        <div class="hero-ctas">
+          <a href="#quickstart" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>快速安裝</span>
+          </a>
+          <a href="#skills" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            <span>瀏覽技能目錄</span>
+          </a>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">11</div>
+            <div class="stat-label">位專職代理角色</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">44</div>
+            <div class="stat-label">項隨附生產級技能</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">5</div>
+            <div class="stat-label">階段生命週期攔截</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">0</div>
+            <div class="stat-label">執行階段 pip 依賴</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quickstart Section -->
+    <section id="quickstart" class="quickstart-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">INSTALLATION</span>
+          <h2 class="section-title">快速上手與安裝指南</h2>
+          <p class="section-desc">三種便捷安裝方式，全面支援 Antigravity CLI、自動化安裝腳本與手動 Git Clone。</p>
+        </div>
+
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <div class="terminal-tabs" role="tablist">
+              <button class="tab-btn active" data-snippet="agy" role="tab" aria-selected="true">Antigravity CLI</button>
+              <button class="tab-btn" data-snippet="curl" role="tab" aria-selected="false">macOS / Linux (curl)</button>
+              <button class="tab-btn" data-snippet="powershell" role="tab" aria-selected="false">Windows (PowerShell)</button>
+              <button class="tab-btn" data-snippet="git" role="tab" aria-selected="false">Git Clone</button>
+            </div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-code">
+              <span class="terminal-prompt">$</span><span id="terminal-code-snippet">agy plugin install https://github.com/HengWeiBin/oh-my-antigravity.git</span>
+            </div>
+            <button id="terminal-copy-btn" class="copy-btn" type="button" aria-label="Copy installation command">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span class="copy-btn-text">複製</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Hook Engine Section -->
+    <section id="architecture" class="pipeline-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">ARCHITECTURE</span>
+          <h2 class="section-title">五階段生命週期攔截引擎</h2>
+          <p class="section-desc">在各對話階段同步攔截、動態載入技能、守衛角色權限邊界並實施四階段嚴格驗證。</p>
+        </div>
+
+        <!-- 5 Phase Cards -->
+        <div class="pipeline-cards">
+          <div class="pipeline-card active" data-phase="session_start">
+            <div class="phase-num">Phase 1</div>
+            <div class="phase-title">SessionStart</div>
+            <div class="phase-summary">會話初始化與工作區能力探測</div>
+          </div>
+          <div class="pipeline-card" data-phase="pre_invocation">
+            <div class="phase-num">Phase 2</div>
+            <div class="phase-title">PreInvocation</div>
+            <div class="phase-summary">動態技能掛載與計畫連續性鎖定</div>
+          </div>
+          <div class="pipeline-card" data-phase="pre_tool_use">
+            <div class="phase-num">Phase 3</div>
+            <div class="phase-title">PreToolUse</div>
+            <div class="phase-summary">變更操作角色權限安全守衛</div>
+          </div>
+          <div class="pipeline-card" data-phase="post_tool_use">
+            <div class="phase-num">Phase 4</div>
+            <div class="phase-title">PostToolUse</div>
+            <div class="phase-summary">四階段嚴格成果驗證協議</div>
+          </div>
+          <div class="pipeline-card" data-phase="stop">
+            <div class="phase-num">Phase 5</div>
+            <div class="phase-title">Stop</div>
+            <div class="phase-summary">計畫完成守衛與暫存資料清理</div>
+          </div>
+        </div>
+
+        <!-- Detail Box -->
+        <div id="pipeline-detail" class="pipeline-detail-box">
+          <div class="detail-header">
+            <div class="detail-title">
+              <span>會話啟動階段 (SessionStart)</span>
+            </div>
+            <span class="detail-script">scripts/session_start.py</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <h4>觸發時機</h4>
+              <p>在每個對話會話建立時自動執行一次</p>
+            </div>
+            <div class="detail-item">
+              <h4>核心機制</h4>
+              <p>環境探測與工具推薦</p>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <h4>詳細說明</h4>
+              <p>評估工作區能力並推薦最佳工具（如在偵測到 .codegraph 與 CodeGraph MCP 啟動時推薦 codegraph_explore 進行全庫符號解析）。</p>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <h4>安全防護守衛</h4>
+              <p style="color: var(--accent-cyan-light); font-weight: 600;">唯讀環境探測，無阻擋行為。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orchestrator-Worker Flow -->
+        <div class="flow-container">
+          <h3 class="flow-title">指揮官與工匠協同流程（Orchestrator-Worker Model）</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-num">A</div>
+              <div class="flow-step-title">探索與調研</div>
+              <p class="flow-step-desc">指揮官調度 Explore 與 Librarian 萃取符號與官方規格</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">B</div>
+              <div class="flow-step-title">構建執行計畫</div>
+              <p class="flow-step-desc">Sisyphus/Prometheus 拆解決策完備之結構化待辦事項</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">C</div>
+              <div class="flow-step-title">委派實作工匠</div>
+              <p class="flow-step-desc">Hephaestus 執行程式碼變更與測試，受 PreToolUse 守衛</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-num">D</div>
+              <div class="flow-step-title">四階段嚴格驗證</div>
+              <p class="flow-step-desc">親自檢閱檔案、通過測試、實地 QA，杜絕樂觀猜測</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Roster Section -->
+    <section id="agents" class="agents-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">PERSONAS</span>
+          <h2 class="section-title">11 位專門代理角色矩陣</h2>
+          <p class="section-desc">劃分為調度指揮官、實作工匠與研究專員三大核心層級，權責明確且受嚴格權限防護。</p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+          <button class="filter-pill active" data-agent-filter="all">全部角色 (11)</button>
+          <button class="filter-pill" data-agent-filter="orchestrator">調度指揮官 (5)</button>
+          <button class="filter-pill" data-agent-filter="worker">實作工匠 (2)</button>
+          <button class="filter-pill" data-agent-filter="specialist">研究專員 (4)</button>
+        </div>
+
+        <!-- Agents Grid -->
+        <div class="agents-grid">
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@sisyphus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">指揮官</span>
+              <span class="badge badge-model">inherit</span>
+            </div>
+          </div>
+          <div class="agent-role">總架構與主調度官</div>
+          <div class="agent-desc">主要工作流程指揮官。負責架構拆解、計畫擬定、工作委派與進度追蹤。嚴格禁止直接編輯原始碼。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / .omo/ writes</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@atlas</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">指揮官</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">總調度執行官</div>
+          <div class="agent-desc">不屈不撓的進度推動者。針對待辦清單與複雜計畫進行持續推進與分發，直到所有項目 100% 驗證完成。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">Read tools</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / plan state</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@prometheus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">指揮官</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">策略規劃顧問</div>
+          <div class="agent-desc">前期規劃專家。專門負責分析專案慣例、探索程式碼結構，並產出決策完備、可直接執行的結構化實作計畫。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">Read tools</span><span class="tool-tag">search_web</span><span class="tool-tag">invoke_subagent</span><span class="tool-tag">manage_task</span><span class="tool-tag">.md / plan docs</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@metis</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">指揮官</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">前期需求顧問</div>
+          <div class="agent-desc">前置規劃分析師。在計畫正式建立前深入檢驗使用者需求，消除過度工程、範圍蔓延與模糊假設。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="orchestrator">
+          <div class="agent-card-header">
+            <span class="agent-name">@momus</span>
+            <div class="agent-badges">
+              <span class="badge badge-orchestrator">指揮官</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">計畫嚴格審查員</div>
+          <div class="agent-desc">批判性計畫審查專家。專門挑剔計畫中的邏輯盲點、遺漏路徑、不可執行的步驟與潛在架構隱患。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="worker">
+          <div class="agent-card-header">
+            <span class="agent-name">@hephaestus</span>
+            <div class="agent-badges">
+              <span class="badge badge-worker">工匠代理</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">深度工程工匠</div>
+          <div class="agent-desc">資深自主工程工程師。專責端到端處理複雜的多步驟程式實作、大規模重構與測試套件建置。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">All read tools</span><span class="tool-tag">write_to_file</span><span class="tool-tag">replace_file_content</span><span class="tool-tag">run_command</span><span class="tool-tag">invoke_subagent</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="worker">
+          <div class="agent-card-header">
+            <span class="agent-name">@sisyphus-junior</span>
+            <div class="agent-badges">
+              <span class="badge badge-worker">工匠代理</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">聚焦任務執行員</div>
+          <div class="agent-desc">敏捷且紀律嚴明的微型任務執行者。專精於局部 Bug 修復、單一函數實作與外科手術式精確變更。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">All read tools</span><span class="tool-tag">write_to_file</span><span class="tool-tag">replace_file_content</span><span class="tool-tag">run_command</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@explore</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">研究專員</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">程式碼情境檢索專員</div>
+          <div class="agent-desc">毫秒級程式庫探索專家。專精於快速定位符號定義、實作檔案與調用關聯，不修改任何檔案。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@librarian</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">研究專員</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">文檔與開源生態研究專員</div>
+          <div class="agent-desc">外部知識調研專家。專責查詢官方 API 文檔、外部依賴規格與開源生態優良實作範例。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@oracle</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">研究專員</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">技術決策架構顧問</div>
+          <div class="agent-desc">具備高度推理能力的技術智庫。負責架構取捨評估、排查卡彈程序、安全性權衡與深層系統審查。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        <div class="agent-card" data-category="specialist">
+          <div class="agent-card-header">
+            <span class="agent-name">@multimodal-looker</span>
+            <div class="agent-badges">
+              <span class="badge badge-specialist">研究專員</span>
+              <span class="badge badge-model">flash</span>
+            </div>
+          </div>
+          <div class="agent-role">視覺與多媒體分析專員</div>
+          <div class="agent-desc">視覺檢驗專才。專門解析 UI 截圖、系統架構圖、PDF 技術手冊與視覺回歸測試比對結果。</div>
+          <div class="agent-tools">
+            <span class="agent-tools-label">工具權限範圍</span>
+            <div class="tools-tags"><span class="tool-tag">view_file</span><span class="tool-tag">grep_search</span><span class="tool-tag">list_dir</span><span class="tool-tag">find_by_name</span><span class="tool-tag">read_url_content</span><span class="tool-tag">search_web</span></div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Catalog Section -->
+    <section id="skills" class="skills-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">CAPABILITIES</span>
+          <h2 class="section-title">44 項隨附生產級領域技能</h2>
+          <p class="section-desc">在對話提示詞中輸入斜線指令（如 /debugging 或 /programming）即可動態掛載領域專家指示。</p>
+        </div>
+
+        <div class="skills-controls">
+          <div class="search-box">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="skill-search" class="search-input" placeholder="搜尋技能名稱、斜線指令或功能說明（例如 /debugging 或 frontend）..." aria-label="Search bundled skills">
+          </div>
+
+          <div class="filter-pills">
+            <button class="filter-pill active" data-skill-cat="all">全部 (44)</button>
+            <button class="filter-pill" data-skill-cat="planning">規劃與策略 (7)</button>
+            <button class="filter-pill" data-skill-cat="engineering">工程實作 (8)</button>
+            <button class="filter-pill" data-skill-cat="verification">驗證與品保 (8)</button>
+            <button class="filter-pill" data-skill-cat="browser">瀏覽器自動化 (3)</button>
+            <button class="filter-pill" data-skill-cat="git">Git 與發布 (5)</button>
+            <button class="filter-pill" data-skill-cat="system">系統工具 (13)</button>
+          </div>
+
+          <div class="skills-count-bar">
+            <span id="skills-count">顯示 44 / 44 項技能</span>
+            <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;">點擊卡片直接複製指令</span>
+          </div>
+        </div>
+
+        <!-- Skills Grid -->
+        <div class="skills-grid">
+        <div class="skill-card" data-category="planning" data-cmd="/hyperplan" data-name="hyperplan">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/hyperplan</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">敵對式多代理交叉辯論規劃，協同 5 種極端視角淬鍊出無懈可擊的架構藍圖。</div>
+          <div class="skill-card-bottom">
+            <span>hyperplan</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ulw-plan" data-name="ulw-plan">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-plan</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">探索優先規劃顧問（Prometheus），在撰寫程式碼前產出決策完備的單一執行計畫。</div>
+          <div class="skill-card-bottom">
+            <span>ulw-plan</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/start-work" data-name="start-work">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/start-work</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">執行 Prometheus 制定之計畫，整合 Boulder 狀態追蹤與 Stop 攔截中斷接續機制。</div>
+          <div class="skill-card-bottom">
+            <span>start-work</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/teammode" data-name="teammode">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/teammode</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">Antigravity 多工匠平行調度機制，主對話擔任指揮中心協同多位代理並行處理。</div>
+          <div class="skill-card-bottom">
+            <span>teammode</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ultrawork" data-name="ultrawork">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultrawork</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">終極工作模式指令，強制落實平行執行、主動除錯與 100% 徹底完工。</div>
+          <div class="skill-card-bottom">
+            <span>ultrawork</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/ulw-loop" data-name="ulw-loop">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-loop</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">基於客觀證據之系統化任務反覆疊代迴圈，將長期目標拆解為原子化驗證步驟。</div>
+          <div class="skill-card-bottom">
+            <span>ulw-loop</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="planning" data-cmd="/pi-goal" data-name="pi-goal">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/pi-goal</span>
+            <span class="skill-cat-badge">規劃與策略</span>
+          </div>
+          <div class="skill-desc">長期目標持久化追蹤器，支援跨對話狀態稽核與任務進度中斷接續。</div>
+          <div class="skill-card-bottom">
+            <span>pi-goal</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/programming" data-name="programming">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/programming</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">現代嚴格型別開發規範（.py、.rs、.ts、.go），落實解析取代驗證、零 panic 與 250 行上限。</div>
+          <div class="skill-card-bottom">
+            <span>programming</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/frontend" data-name="frontend">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/frontend</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">前端與 UI/UX 專業規範，涵蓋現代 CSS、React 架構、精緻動效與設計品味。</div>
+          <div class="skill-card-bottom">
+            <span>frontend</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/refactor" data-name="refactor">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/refactor</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">智慧型程式碼重構、現代化升級、消除冗餘與結構簡化。</div>
+          <div class="skill-card-bottom">
+            <span>refactor</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/remove-ai-slops" data-name="remove-ai-slops">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/remove-ai-slops</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">清除 AI 產生的冗長樣板程式碼、過度物件標記與巨大模組，並以回歸測試全面防護。</div>
+          <div class="skill-card-bottom">
+            <span>remove-ai-slops</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/remove-deadcode" data-name="remove-deadcode">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/remove-deadcode</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">透過 LSP 語言伺服器安全偵測並清理未使用的死碼，支援原子化提交。</div>
+          <div class="skill-card-bottom">
+            <span>remove-deadcode</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/ast-grep" data-name="ast-grep">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ast-grep</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">基於 AST 語法樹的跨語言（25+ 種）結構化搜尋與確定性程式碼重寫。</div>
+          <div class="skill-card-bottom">
+            <span>ast-grep</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/data-scientist" data-name="data-scientist">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/data-scientist</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">高吞吐量探索性數據分析（EDA）、表格數據處理與 DuckDB/Polars 統計剖析。</div>
+          <div class="skill-card-bottom">
+            <span>data-scientist</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="engineering" data-cmd="/visualize" data-name="visualize">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/visualize</span>
+            <span class="skill-cat-badge">工程實作與現代化</span>
+          </div>
+          <div class="skill-desc">自主生成獨立無依賴之互動式 HTML 數據視覺化圖表與現代儀表板。</div>
+          <div class="skill-card-bottom">
+            <span>visualize</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/eval-integrity" data-name="eval-integrity">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/eval-integrity</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">高嚴謹性基準測試與評估完整性審計，防範資料污染與評分標準套利。</div>
+          <div class="skill-card-bottom">
+            <span>eval-integrity</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/visual-qa" data-name="visual-qa">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/visual-qa</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">跨響應式尺寸、像素級差異對比與終端機 UI 排版之全方位視覺驗證。</div>
+          <div class="skill-card-bottom">
+            <span>visual-qa</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/review-work" data-name="review-work">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/review-work</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">實作完成審查守衛，並行調用 5 位獨立子代理全方位稽核正確性、安全性與品質。</div>
+          <div class="skill-card-bottom">
+            <span>review-work</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/pre-publish-review" data-name="pre-publish-review">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/pre-publish-review</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">16 位代理組成的核級發布閘門，深入分析所有未發布變更以確保零風險。</div>
+          <div class="skill-card-bottom">
+            <span>pre-publish-review</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/debugging" data-name="debugging">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/debugging</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">假設驅動除錯迴圈，同時提出 ≥3 種正交假設並以可重現的失敗測試鎖定根因。</div>
+          <div class="skill-card-bottom">
+            <span>debugging</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/comment-checker" data-name="comment-checker">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/comment-checker</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">攔截程式修改，自動揪出過時、誤導或畫蛇添足的無效註解。</div>
+          <div class="skill-card-bottom">
+            <span>comment-checker</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/ulw-research" data-name="ulw-research">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ulw-research</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">極限飽和度研究協同管線，平行調度 explore 與 librarian 代理群深挖原始碼與文檔。</div>
+          <div class="skill-card-bottom">
+            <span>ulw-research</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="verification" data-cmd="/ultraresearch" data-name="ultraresearch">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultraresearch</span>
+            <span class="skill-cat-badge">驗證、品質保證與研究</span>
+          </div>
+          <div class="skill-desc">ulw-research 深度研究別名，執行窮盡式程式庫探索與跨來源文檔查閱。</div>
+          <div class="skill-card-bottom">
+            <span>ultraresearch</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/agent-browser" data-name="agent-browser">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/agent-browser</span>
+            <span class="skill-cat-badge">瀏覽器自動化</span>
+          </div>
+          <div class="skill-desc">現代化無頭瀏覽器自動化驅動，支援網頁測試、表單填寫與畫面資訊萃取。</div>
+          <div class="skill-card-bottom">
+            <span>agent-browser</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/dev-browser" data-name="dev-browser">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/dev-browser</span>
+            <span class="skill-cat-badge">瀏覽器自動化</span>
+          </div>
+          <div class="skill-desc">具備持久化頁面狀態的瀏覽器互動工具，適合互動式驗證與狀態流流程。</div>
+          <div class="skill-card-bottom">
+            <span>dev-browser</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="browser" data-cmd="/ultimate-browsing" data-name="ultimate-browsing">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/ultimate-browsing</span>
+            <span class="skill-cat-badge">瀏覽器自動化</span>
+          </div>
+          <div class="skill-desc">高級反爬蟲繞過技術，整合 TLS 偽裝、隱身 Chromium 與防阻擋萃取管線。</div>
+          <div class="skill-card-bottom">
+            <span>ultimate-browsing</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/git-master" data-name="git-master">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/git-master</span>
+            <span class="skill-cat-badge">Git、版本發布與分類</span>
+          </div>
+          <div class="skill-desc">原子化 Git 提交、互動式 Rebase、分支 Squash 合併與二分搜尋（Bisect）。</div>
+          <div class="skill-card-bottom">
+            <span>git-master</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/github-triage" data-name="github-triage">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/github-triage</span>
+            <span class="skill-cat-badge">Git、版本發布與分類</span>
+          </div>
+          <div class="skill-desc">唯讀模式檢閱 GitHub Issue 與 PR，輸出具備具體證據與永久連結之分析報告。</div>
+          <div class="skill-card-bottom">
+            <span>github-triage</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/work-with-pr" data-name="work-with-pr">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/work-with-pr</span>
+            <span class="skill-cat-badge">Git、版本發布與分類</span>
+          </div>
+          <div class="skill-desc">在獨立 Worktree 中完成實作、CI 檢驗、同行審查並最終合併之完整 PR 生命週期。</div>
+          <div class="skill-card-bottom">
+            <span>work-with-pr</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/publish" data-name="publish">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/publish</span>
+            <span class="skill-cat-badge">Git、版本發布與分類</span>
+          </div>
+          <div class="skill-desc">自動化發布管線，觸發 GitHub Actions 並驗證發布成果。</div>
+          <div class="skill-card-bottom">
+            <span>publish</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="git" data-cmd="/get-unpublished-changes" data-name="get-unpublished-changes">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/get-unpublished-changes</span>
+            <span class="skill-cat-badge">Git、版本發布與分類</span>
+          </div>
+          <div class="skill-desc">對比 HEAD 與最新發布版本，列出各發布層之未發布改動清單。</div>
+          <div class="skill-card-bottom">
+            <span>get-unpublished-changes</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/antigravity-hooks" data-name="antigravity-hooks">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/antigravity-hooks</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">Antigravity 生命週期攔截器配置、撰寫與除錯完整指南與最佳實踐。</div>
+          <div class="skill-card-bottom">
+            <span>antigravity-hooks</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/antigravity-subagents" data-name="antigravity-subagents">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/antigravity-subagents</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">子代理設定藍圖，涵蓋 YAML 前言標頭、工具白名單與生命週期規範。</div>
+          <div class="skill-card-bottom">
+            <span>antigravity-subagents</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/lsp" data-name="lsp">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/lsp</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">語言伺服器協議（LSP）診斷檢查、符號定義跳轉、引用搜尋與重新命名防護。</div>
+          <div class="skill-card-bottom">
+            <span>lsp</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/lsp-setup" data-name="lsp-setup">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/lsp-setup</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">跨 20+ 種主流語言之 LSP 語言伺服器自動偵測、安裝指引與組態設定。</div>
+          <div class="skill-card-bottom">
+            <span>lsp-setup</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/rules" data-name="rules">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/rules</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">行為規範注入引擎、專案規則解析與工作區環境設定檢查器。</div>
+          <div class="skill-card-bottom">
+            <span>rules</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/init" data-name="init">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/init</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">快速建立或更新儲存庫根目錄之 AGENTS.md 核心指引文件。</div>
+          <div class="skill-card-bottom">
+            <span>init</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/init-deep" data-name="init-deep">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/init-deep</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">初始化多層級階層式 AGENTS.md 知識庫，打造清晰架構導覽。</div>
+          <div class="skill-card-bottom">
+            <span>init-deep</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/call-atlas" data-name="call-atlas">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/call-atlas</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">快速調度通道，直接將多步驟執行任務分派予 Atlas 總調度官。</div>
+          <div class="skill-card-bottom">
+            <span>call-atlas</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/call-prometheus" data-name="call-prometheus">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/call-prometheus</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">快速規劃通道，直接將需求引導至 Prometheus 進行前置架構規劃。</div>
+          <div class="skill-card-bottom">
+            <span>call-prometheus</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/coding-agent-sessions" data-name="coding-agent-sessions">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/coding-agent-sessions</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">跨平台編碼代理歷史會話檢索，查詢歷史逐字稿、會話 ID 與上下文軌跡。</div>
+          <div class="skill-card-bottom">
+            <span>coding-agent-sessions</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/security-research" data-name="security-research">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/security-research</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">多代理並行安全漏洞獵捕、威脅建模、概念驗證與可利用性實質審計。</div>
+          <div class="skill-card-bottom">
+            <span>security-research</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/tech-debt-audit" data-name="tech-debt-audit">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/tech-debt-audit</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">9 維度全方位技術債健康檢查，產出具備嚴重性評級之修復清單。</div>
+          <div class="skill-card-bottom">
+            <span>tech-debt-audit</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+        <div class="skill-card" data-category="system" data-cmd="/omomomo" data-name="omomomo">
+          <div class="skill-card-top">
+            <span class="skill-cmd">/omomomo</span>
+            <span class="skill-cat-badge">系統工具與擴充專才</span>
+          </div>
+          <div class="skill-desc">致敬 oh-my-opencode 起源與架構傳承的彩蛋指令。</div>
+          <div class="skill-card-bottom">
+            <span>omomomo</span>
+            <span class="copy-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              點擊複製指令
+            </span>
+          </div>
+        </div>
+          <div id="skills-no-results" class="no-results" style="display: none;">
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">找不到符合搜尋條件的技能</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">請嘗試其他關鍵字或清除篩選條件</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration Section -->
+    <section id="configuration" class="config-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">CONFIGURATION</span>
+          <h2 class="section-title">外掛配置清單與路由結構</h2>
+          <p class="section-desc">遵循標準 Antigravity 外掛結構，所有生命週期與工具匹配規則清晰宣告。</p>
+        </div>
+
+        <div class="config-grid">
+          <div class="config-card">
+            <div class="config-header">
+              <span class="config-filename">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                plugin.json
+              </span>
+              <span class="badge badge-model">Manifest</span>
+            </div>
+            <pre class="config-pre"><code>{
+  "name": "oh-my-antigravity",
+  "version": "0.4.0",
+  "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
+  "logo": "assets/logo.svg"
+}</code></pre>
+          </div>
+
+          <div class="config-card">
+            <div class="config-header">
+              <span class="config-filename">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                hooks.json
+              </span>
+              <span class="badge badge-orchestrator">Lifecycle</span>
+            </div>
+            <pre class="config-pre"><code>{
+  "hooks": {
+    "SessionStart": [
+      { "type": "command", "command": "python scripts/session_start.py", "timeout": 5 }
+    ],
+    "PreInvocation": [
+      { "type": "command", "command": "python scripts/pre_invocation.py", "timeout": 8 }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(write_to_file|replace_file_content|run_command)$",
+        "hooks": [{ "type": "command", "command": "python scripts/pre_tool_use.py", "timeout": 5 }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(invoke_subagent|write_to_file|replace_file_content)$",
+        "hooks": [{ "type": "command", "command": "python scripts/post_tool_use.py", "timeout": 5 }]
+      }
+    ],
+    "Stop": [
+      { "type": "command", "command": "python scripts/stop.py", "timeout": 5 }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">QUESTIONS</span>
+          <h2 class="section-title">常見問答集</h2>
+          <p class="section-desc">深入了解 Oh-My-Antigravity 的核心架構理念、權限防護與最佳實踐。</p>
+        </div>
+
+        <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-0">
+            <span>什麼是 Oh-My-Antigravity？它如何與 Google Antigravity 2.0 協同運作？</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-0" class="faq-answer">
+            <p>Oh-My-Antigravity 是專為 Google Antigravity 2.0 量身打造的多代理協同調度外掛框架。透過五個核心生命週期階段（SessionStart、PreInvocation、PreToolUse、PostToolUse、Stop），系統建立了嚴格的角色權限邊界、自動化技能載入機制與四階段嚴格驗證協議。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-1">
+            <span>執行環境有何先決條件？需要安裝哪些額外相依套件？</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-1" class="faq-answer">
+            <p>Oh-My-Antigravity 僅需系統就緒 Python 3.13+ 與 Git。所有生命週期攔截器腳本均嚴格基於 Python 標準庫開發，完全零第三方執行階段 pip 依賴，保證毫秒級的超高速攔截反應。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-2">
+            <span>為什麼主調度指揮官代理被嚴格禁止直接編輯原始碼？</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-2" class="faq-answer">
+            <p>在大型軟體工程中，指揮官代理（如 Sisyphus、Atlas、Prometheus）必須維持全域架構視角並管理計畫進度。禁止其直接修改程式碼並強制委派至工匠代理（Hephaestus、Sisyphus-Junior），能有效避免上下文污染，並落實客觀獨立的驗證機制。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-3">
+            <span>什麼是四階段嚴格驗證協議（4-Phase Verification Protocol）？</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-3" class="faq-answer">
+            <p>這是一項不可略過的品質保證機制：第一階段（親自讀取審查檔案變更）、第二階段（執行自動化測試與代碼檢查）、第三階段（實地 QA 與視覺驗證）、第四階段（嚴格關卡決策）。嚴禁代理僅憑內部猜測宣告任務完成。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button" aria-expanded="false" aria-controls="faq-ans-4">
+            <span>如何在 Antigravity 對話中觸發特定隨附技能？</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="faq-ans-4" class="faq-answer">
+            <p>只需在提示詞中輸入任何斜線指令（例如 /debugging 啟動假設驅動除錯迴圈，或 /programming 載入現代嚴格型別規範）。PreInvocation 攔截器會自動偵測關鍵字並將技能指示動態注入對話上下文中。</p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-brand">
+            <img src="../assets/logo.svg" alt="Oh-My-Antigravity" width="32" height="32">
+            <span class="brand-title">Oh-My-Antigravity</span>
+          </div>
+          <p>專為 Google Antigravity 2.0 量身打造的高紀律多代理協同調度框架。</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>快速連結</h4>
+          <ul class="footer-links">
+            <li><a href="#quickstart" class="footer-link">快速上手</a></li>
+            <li><a href="#architecture" class="footer-link">架構與 Hook</a></li>
+            <li><a href="#agents" class="footer-link">代理角色</a></li>
+            <li><a href="#skills" class="footer-link">隨附技能</a></li>
+            <li><a href="#faq" class="footer-link">常見問題</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>多國語系</h4>
+          <ul class="footer-links">
+            <li><a href="../en/" class="footer-link">English (US)</a></li>
+            <li><a href="#" class="footer-link">繁體中文 (Traditional Chinese)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          <span>© 2024–2026 HengWeiBin. Ported and derived from <a href="https://github.com/code-yeongyu/oh-my-openagent" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: underline;">oh-my-openagent</a> by @code-yeongyu.</span>
+        </div>
+        <div>
+          <span>Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: underline;">MIT License</a>.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>
