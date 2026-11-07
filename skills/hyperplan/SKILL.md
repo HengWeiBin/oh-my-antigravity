@@ -17,8 +17,7 @@ This is not consensus building. This is intellectual combat. Weakness gets expos
 
 Before starting, verify:
 
-1. **`team_*` tools must be available.** If they are not, STOP and tell the user:
-   > "Hyperplan requires team-mode. Set `team_mode.enabled: true` in `~/.config/opencode/oh-my-opencode.jsonc` and restart opencode, then retry."
+1. **Antigravity subagent tools must be available (`invoke_subagent`, `send_message`, `manage_subagents`).**
 2. **You are running as `sisyphus` (or another lead-eligible agent).** If you are running as a planner (`prometheus`, `plan`), this skill is the wrong tool — direct the user to use `/start-work` instead.
 3. **You are in the main session** (not a background subagent). Hyperplan only works as a top-level orchestration.
 
@@ -200,31 +199,27 @@ You execute this in **7 phases**. End your turn at every phase boundary marked *
 
 ### Phase 1: Spawn the adversarial team
 
-Call `team_create` ONCE with this exact inline_spec shape (substitute the prompt strings with the full system prompts above):
+Call `invoke_subagent` ONCE with this exact subagent shape (substitute the prompt strings with the full system prompts above):
 
 ```typescript
-team_create({
-  inline_spec: {
-    name: "hyperplan",
-    description: "Adversarial planning team for cross-critique debate.",
-    members: [
-      { name: "skeptic",    kind: "category", category: "unspecified-low",  prompt: "<full Skeptic system prompt>" },
-      { name: "validator",  kind: "category", category: "unspecified-high", prompt: "<full Validator system prompt>" },
-      { name: "researcher", kind: "category", category: "deep",             prompt: "<full Researcher system prompt>" },
-      { name: "architect",  kind: "category", category: "ultrabrain",       prompt: "<full Architect system prompt>" },
-      { name: "creative",   kind: "category", category: "artistry",         prompt: "<full Creative system prompt>" }
-    ]
-  }
+invoke_subagent({
+  Subagents: [
+    { TypeName: "sisyphus-junior", Role: "skeptic", Prompt: "<full Skeptic system prompt>" },
+    { TypeName: "sisyphus-junior", Role: "validator", Prompt: "<full Validator system prompt>" },
+    { TypeName: "sisyphus-junior", Role: "researcher", Prompt: "<full Researcher system prompt>" },
+    { TypeName: "sisyphus-junior", Role: "architect", Prompt: "<full Architect system prompt>" },
+    { TypeName: "sisyphus-junior", Role: "creative", Prompt: "<full Creative system prompt>" }
+  ]
 })
 ```
 
-Capture the returned `teamRunId`. You will use it for every subsequent call.
+Capture the returned subagent IDs. You will use them for subsequent coordination.
 
-If `team_create` errors because `deep` is disabled or unavailable, retry once without the `researcher` member. Do not drop `unspecified-low`, `unspecified-high`, `ultrabrain`, or `artistry`.
+If `researcher` is disabled or unavailable, retry once without the `researcher` member. Do not drop `skeptic`, `validator`, `architect`, or `creative`.
 
 ### Phase 2: Round 1 — Independent analysis
 
-Send the same prompt to all 5 members via 5 parallel `team_send_message` calls. Each member receives:
+Send the prompt to all members via `send_message` calls. Each member receives:
 
 ```
 <hyperplan-round-1-task>
@@ -239,7 +234,7 @@ Each finding must be ≤3 sentences and SPECIFIC (cite files, line numbers, alte
 
 DO NOT critique anything yet. DO NOT propose a synthesized plan. JUST findings from your role's perspective.
 
-When done, send your findings back via team_send_message to "lead" with kind="message".
+When done, send your findings back via send_message to "lead".
 </hyperplan-round-1-task>
 ```
 
@@ -269,7 +264,7 @@ When all 5 Round 1 replies have arrived, aggregate them into one bundle:
 === End ===
 ```
 
-Send this bundle to all 5 members via 5 parallel `team_send_message` calls. Each receives the SAME bundle, but the prompt is:
+Send this bundle to all members via `send_message` calls. Each receives the SAME bundle, but the prompt is:
 
 ```
 <hyperplan-round-2-task>
@@ -414,17 +409,13 @@ DO NOT save the plan to disk unless the user asks. Hyperplan is a planning consu
 
 After the plan agent's output has been presented to the user:
 
-1. Call `team_shutdown_request` for each of the 5 members.
-2. The Lead can `team_approve_shutdown` for each member (Lead has approval authority).
-3. Once all 5 are shut down, call `team_delete({ teamRunId })` to clean up runtime state.
-4. Confirm cleanup to the user with one line: "Hyperplan team disbanded."
-
-If any step fails, surface the error and suggest manual cleanup via `team_list` and `team_delete`.
+1. Call `manage_subagents` / `manage_task` (action: "kill") for each member subagent to terminate completed workers.
+2. Confirm cleanup to the user with one line: "Hyperplan team disbanded."
 
 ## ANTI-PATTERNS — DO NOT DO THESE
 
 | Anti-pattern | Why it fails |
-|--------------|--------------|
+|---|---|
 | Skipping rounds to "save time" | The adversarial filter is the entire value. Skipping rounds = vanilla planning. |
 | Soft-pedaling member prompts ("be respectful") | Adversarial pressure is the mechanism. Politeness defeats the skill. |
 | Synthesizing findings before Round 3 completes | Premature synthesis preserves weak findings. |
@@ -432,19 +423,19 @@ If any step fails, surface the error and suggest manual cleanup via `team_list` 
 | **Lead writing the plan in Phase 5 instead of handing off in Phase 6** | **The handoff is the contract. Hyperplan = adversarial distillation + dedicated planner formalization. Lead-written plans skip the planner's value-add (sequencing, dependencies, success criteria) and turn this back into vanilla orchestration.** |
 | **Skipping the `plan` agent dispatch ("the bundle is already a plan")** | **The bundle is INPUT, not output. The plan agent owns sequencing, parallelization, and verification gates. Without the dispatch, hyperplan loses half its value.** |
 | **Pre-writing tasks before dispatching to plan agent** | **Anchors the plan agent to your draft and undermines its independent judgment. Dispatch raw insights, let the planner structure.** |
-| Forgetting to clean up the team | Leaks runtime state. Always Phase 7. |
-| Calling `delegate_task` instead of `team_send_message` | These are different systems. `team_*` only for inter-member traffic. |
-| Calling `team_send_message` to ship the bundle to the plan agent | Wrong channel. Plan agent is NOT a team member. Use `task(subagent_type="plan", ...)` for the handoff. |
+| Forgetting to clean up the subagents | Leaks runtime state. Always Phase 7. |
+| Calling `delegate_task` instead of `send_message` | Use canonical `send_message` for inter-agent communication. |
+| Calling `send_message` to ship the bundle to the plan agent | Wrong channel. Plan agent is invoked via `invoke_subagent`. |
 | Running this from a planner agent (prometheus) | Planners cannot orchestrate teams. Must run from sisyphus. |
-| Running this in a non-main session | Team-mode is main-session-only. |
+| Running this in a non-main session | Subagent team coordination is main-session-only. |
 
 ## NOTES FOR THE LEAD (YOU)
 
-- Each `team_send_message` is **fire-and-forget** from your perspective. Members reply async.
+- Each `send_message` is **fire-and-forget** from your perspective. Members reply async.
 - After sending Round-N messages, **end your turn**. The system injects member replies on the next turn.
-- Use `team_status({ teamRunId })` if you need to see who has replied and who is still working.
-- The members do not see each other's text responses directly — only what you forward via `team_send_message`. You are the information broker. The bundles you forward in Phases 3 and 4 are the entire context they have.
+- Use `manage_subagents` / `manage_task` (action: "status" or "list") if you need to see who has replied and who is still working.
+- The members do not see each other's text responses directly — only what you forward via `send_message`. You are the information broker. The bundles you forward in Phases 3 and 4 are the entire context they have.
 - Keep bundles concise — ≤32KB per message. If aggregated findings exceed this, summarize before forwarding (preserve the spirit of each finding).
 - The skill explicitly forbids you from softening adversarial prompts. The hostility IS the mechanism.
-- The Phase 6 plan-agent handoff runs **synchronously** (`run_in_background: false`) — you wait for the planner before Phase 7 cleanup. Do NOT shut down the team until the plan agent has returned, in case the planner needs you to forward a clarifying question to a specific member (rare, but possible).
-- The plan agent does NOT have access to the team mailbox. Everything it needs must be in the bundle you dispatch. If the planner asks for additional context, you fetch it (via explore/librarian/oracle) and re-dispatch with `task_id` resume — do NOT spin up a new plan agent.
+- The Phase 6 plan-agent handoff runs **synchronously** — you wait for the planner before Phase 7 cleanup. Do NOT shut down subagents until the plan agent has returned, in case the planner needs you to forward a clarifying question to a specific member (rare, but possible).
+- The plan agent does NOT have access to the subagent mailbox. Everything it needs must be in the bundle you dispatch. If the planner asks for additional context, you fetch it (via explore/librarian/oracle) and re-dispatch.

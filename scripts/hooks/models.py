@@ -29,6 +29,7 @@ class HookContext:
     tool_name: str | None = None
     tool_input: dict[str, Any] = field(default_factory=dict)
     tool_output: str | None = None
+    tool_error: str | None = None
     user_prompt: str | None = None
     raw_payload: dict[str, Any] = field(default_factory=dict)
     step_idx: int | None = None
@@ -38,9 +39,10 @@ class HookContext:
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "force_continue" | "terminate"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "force_continue" | "terminate" | "block"
     reason: str | None = None
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     permission_overrides: list[str] = field(default_factory=list)
     overwrite: dict[str, Any] | None = None
+    error_message: str | None = None

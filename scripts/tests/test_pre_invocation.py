@@ -23,6 +23,7 @@ from scripts.hooks.keyword_detector import KeywordDetectorHook
 from scripts.hooks.models import HookContext, LifecycleEvent
 from scripts.hooks.skill_resolver import SkillResolver
 from scripts.hooks.todo_continuation_enforcer import TodoContinuationEnforcerHook
+from scripts.hooks.utils import extract_user_prompt
 
 EXPECTED_EPHEMERAL_MESSAGE = (
     "A `.codegraph` directory and the `codegraph` MCP server are active in this workspace. "
@@ -229,3 +230,28 @@ def test_pre_invocation_runner_delegation(capsys) -> None:
     output = json.loads(captured.out)
     assert "injectSteps" in output
     assert len(output["injectSteps"]) >= 1
+
+
+def test_extract_user_prompt_last_user_input() -> None:
+    # Given payload with lastUserInput
+    payload_direct = {"lastUserInput": "Build the feature now"}
+    # When extracted
+    res = extract_user_prompt(payload_direct)
+    # Then direct value is returned
+    assert res == "Build the feature now"
+
+    # Given payload with lastUserInput prioritized over prompt
+    payload_priority = {
+        "lastUserInput": "Official user turn",
+        "prompt": "Old synthetic prompt",
+        "transcriptPath": "/invalid/nonexistent.jsonl",
+    }
+    assert extract_user_prompt(payload_priority) == "Official user turn"
+
+    # Given empty lastUserInput, it falls back to prompt
+    payload_fallback = {
+        "lastUserInput": "",
+        "prompt": "Fallback prompt",
+    }
+    assert extract_user_prompt(payload_fallback) == "Fallback prompt"
+

@@ -29,13 +29,6 @@ is the thing you actually need.
 In Google Antigravity, we coordinate subagents using the native `invoke_subagent` tool.
 Tell the user in one line which route you are taking:
 - `Teammode transport: Antigravity invoke_subagent.`
-  no compatible plain-subagent mechanism is available - continuing serially.`
-
-Pass the choice to `init` as `--transport multi_agent_v2` or `--transport codex_app`. The
-transport is recorded in `team.json` and is IMMUTABLE for the team's lifetime: a V2 spawn
-failure is a V2 blocker to report, never permission to mix Codex App threads into the same
-team. Never probe by trial-calling tools; read your tool list, and search it with
-`tool_search` only when a needed set is not visible.
 
 ## You are the leader - orchestrate, do not implement
 
@@ -106,66 +99,29 @@ teams, and a refused command never changes `team.json`.
 
 ## Create the team and its members
 
-`init` the team, then `add-member` once per member. What happens next depends on the transport.
+In Antigravity, spawn members using `invoke_subagent`:
 
-**MultiAgentV2 teams:**
-1. If a member needs an isolated worktree, run `worktree-add` BEFORE spawning it - flat
-   `spawn_agent` has no cwd argument, so the path must ride in the bootstrap message.
-2. Spawn each member with flat `spawn_agent` using only the V2 schema fields:
-   `task_name` is that member's `--task-name`, `message` is the bootstrap printed by
-   `add-member` / `member-prompt`, and `fork_turns` is `"none"` (members read
-   `guide.md` for context; full parent history is not their context model). Put any
-   role, priority, or task-specific routing instruction in `message`; V2 does not accept
-   `agent_type`, `model`, `reasoning_effort`, or `service_tier`, so members inherit the
-   session model.
-3. `bind-agent --agent-path` with the canonical task name the spawn returned (normally
-   `/root/<task_name>`); binding confirms the runtime identity matches the roster and records
-   the member's cwd. Members are durable: they persist as subagent threads, survive idling,
-   and are re-tasked with `followup_task` - never respawned under a second name.
-4. Members appear in `list_agents` with their task paths; inspect status there instead of
-   deep links (V2 exposes no thread title or `codex://` link surface to you).
+```typescript
+invoke_subagent({
+  Subagents: [
+    { TypeName: "sisyphus-junior", Role: "<member_A_role>", Prompt: "<member_A_instructions>" },
+    { TypeName: "sisyphus-junior", Role: "<member_B_role>", Prompt: "<member_B_instructions>" }
+  ]
+})
+```
 
-**Codex App teams:**
-1. Create a durable thread per member with `codex_app.create_thread` - ALWAYS this tool for
-   every member - titled `[team name] <member name>`, using THAT member's own name, so no two
-   threads share a title. `add-member` prints the exact title to use. If the tool accepts a
-   working directory / cwd argument, set it to that member's worktree; otherwise the member's
-   manual tells it to `cd` there first. Use `codex_app.set_thread_title` if the title did not
-   land at creation. If Codex returns only `pendingWorktreeId`, the worktree-backed thread is
-   not ready yet: do not `bind-thread` and do not send the member bootstrap. Wait until Codex
-   surfaces a real `threadId`, then set the title, bind that real id with the cwd, and only
-   then send the bootstrap.
-2. `bind-thread` to record each thread id (and `--cwd`), then send that member's bootstrap
-   trigger as the thread's first message. The trigger is short on purpose: it tells the new
-   thread to READ its `guide.md` and `team.json` rather than carrying the whole protocol inline.
-3. Whenever you report, audit, reopen, or hand off a member thread, include the app deep link
-   `codex://threads/<thread_id>` next to the raw id - worktree-backed threads are easy to lose
-   in the sidebar without it. On a codex_app team, a spawned in-process agent is never a
-   member substitute: it cannot carry the team title or be inspected, titled, archived, or
-   re-opened with the `codex_app.*` tools this team runs on.
-
-On either transport, a member only counts once it is bound (`bind-agent` / `bind-thread`). If
-the selected transport's tools stop working mid-run, STOP and say so (see Stop rules); do not
-quietly switch transports.
+1. If a member needs an isolated worktree, run `worktree-add` BEFORE spawning it or pass the worktree path in the bootstrap prompt.
+2. Spawn members concurrently via `invoke_subagent`. Capture the returned subagent IDs.
+3. Manage active subagents via `manage_subagents` / `manage_task` (action: "list", "status", "kill").
 
 ## Communication
 
-Members push to you and to one another; you never poll them as a routine. The address book is
-`team.json`, and the generated manual binds members to the hard rules, so you mainly keep the
-channel open: expect frequent small inbound updates from each member - findings,
-`WORKING:`/`BLOCKED:` markers, peer digests - rather than one final dump, and act on them as
-they arrive.
+Members push to you and to one another; you never poll them as a routine:
 
-- **MultiAgentV2:** members reach you with `send_message` to `/root` and reach peers by their
-  `members[].agentPath`. You reach members the same way; use `followup_task` when you hand an
-  idle member NEW work (it wakes the member), `send_message` for context that should not
-  interrupt, and `wait_agent` only when you are genuinely blocked on their next update - a
-  `wait_agent` timeout only means no new mailbox update arrived, never that a member failed.
-  Your own session IS `/root` - members can always reach you; leave `--session` unset.
-- **Codex App:** members push with `codex_app.send_message_to_thread`; you inspect state with
-  `codex_app.read_thread`. So members can actually reach you, run `init` with
-  `--session <your own thread id>` - that makes `leader.sessionId` in team.json a real,
-  messageable thread; without it members cannot report to you and you are stuck polling.
+- Subagents to orchestrator: `send_message` with the leader's conversation ID as recipient.
+- Orchestrator to subagents: `send_message` with the target subagent's conversation ID as recipient.
+- Peer to peer: include peer subagent IDs in the bootstrap prompt so members can exchange digests and updates directly via `send_message`.
+- Lifecycle management: use `manage_subagents` / `manage_task` to inspect task status or kill completed workers.
 
 All member-to-member and member-to-leader traffic is in English; when the END user addresses a
 member, that member replies in the user's own language. Members hand off files and memos

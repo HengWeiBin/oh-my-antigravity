@@ -20,7 +20,7 @@ Run each criterion's real-surface proof yourself through the channel that faithf
 
 1. **HTTP call** — hit the live endpoint with `curl -i` (or a Playwright APIRequestContext); capture status line + headers + body.
 2. **Terminal / TUI** - prove it through the xterm.js web terminal; tmux `send-keys` is fine for a boot smoke, but NEVER `tmux capture-pane` for color/layout/CJK evidence (it degrades truecolor).
-3. **Browser use** — in Codex, use `browser:control-in-app-browser` first when available and the scenario does not need an authenticated or persistent user browser profile. Otherwise use Chrome to drive the REAL page; if unavailable, use agent-browser. Capture action log + screenshot path. Never downgrade a browser-facing criterion.
+3. **Browser use** — drive the REAL page with Antigravity `/browser` subagent, Chrome, or agent-browser. Capture action log + screenshot path. Never downgrade a browser-facing criterion.
 4. **Computer use** — for desktop/GUI apps, drive the running app via OS automation (computer-use, AppleScript, xdotool, etc.); capture action log + screenshot.
 
 For TUI visual QA (mandatory when a PR or review must inspect the terminal screen),

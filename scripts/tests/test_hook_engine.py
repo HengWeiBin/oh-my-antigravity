@@ -54,6 +54,7 @@ def test_hook_models() -> None:
     assert ctx.tool_input == {}
     assert ctx.step_idx == 2
     assert ctx.model_name == "claude-3-5-sonnet"
+    assert ctx.tool_error is None
 
     with pytest.raises(AttributeError):
         ctx.conversation_id = "new-id"  # type: ignore[misc]
@@ -67,9 +68,11 @@ def test_hook_models() -> None:
         lifecycle=LifecycleEvent.POST_INVOCATION,
         conversation_id="conv-post",
         cwd="/tmp",
+        tool_error="Tool execution timed out",
         raw_payload={"response": {"text": "summary"}},
     )
     assert ctx_post.lifecycle == LifecycleEvent.POST_INVOCATION
+    assert ctx_post.tool_error == "Tool execution timed out"
     assert ctx_post.raw_payload == {"response": {"text": "summary"}}
     assert ctx_post.step_idx is None
     assert ctx_post.model_name is None
@@ -84,12 +87,16 @@ def test_hook_models() -> None:
     assert ctx_stop.raw_payload == {"stopReason": "completed"}
 
     res = HookResult(
-        decision="force_continue",
+        decision="block",
+        reason="Tasks still running",
+        error_message="Fatal error encountered",
         injected_steps=[{"ephemeralMessage": "hello"}],
         permission_overrides=["ALLOW_RUN_COMMAND"],
         overwrite={"arg_name": "val"},
     )
-    assert res.decision == "force_continue"
+    assert res.decision == "block"
+    assert res.reason == "Tasks still running"
+    assert res.error_message == "Fatal error encountered"
     assert res.injected_steps == [{"ephemeralMessage": "hello"}]
     assert res.permission_overrides == ["ALLOW_RUN_COMMAND"]
     assert res.overwrite == {"arg_name": "val"}
@@ -768,6 +775,143 @@ def test_hook_engine_pre_tool_use_combined_arbitration_and_overwrite(capsys: pyt
     assert output["reason"] == "Admin confirmation needed"
     assert output["permissionOverrides"] == ["ALLOW_NET", "ALLOW_FILE"]
     assert output["overwrite"] == {"Timeout": 10, "SafeMode": True}
+
+
+def test_hook_engine_build_context_tool_error() -> None:
+    # Given payload with error
+    payload_err = {
+        "conversationId": "conv-err-1",
+        "cwd": "/workspace",
+        "tool_name": "run_command",
+        "error": "Command failed with exit code 127: command not found",
+    }
+    # When building context
+    ctx = HookEngine.build_context(LifecycleEvent.POST_TOOL_USE, payload_err)
+    # Then tool_error is populated
+    assert ctx.tool_error == "Command failed with exit code 127: command not found"
+
+    # Given payload without error
+    payload_no_err = {
+        "conversationId": "conv-noerr-1",
+        "cwd": "/workspace",
+        "tool_name": "run_command",
+    }
+    # When building context
+    ctx_no_err = HookEngine.build_context(LifecycleEvent.POST_TOOL_USE, payload_no_err)
+    # Then tool_error is None
+    assert ctx_no_err.tool_error is None
+
+
+def test_hook_engine_serialize_pre_invocation_terminate(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given a hook returning terminate decision
+    HookEngine.clear_pipelines()
+    res = HookResult(decision="terminate")
+    pipeline = HookPipeline([DummyHook("term_hook", res)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_INVOCATION, pipeline)
+
+    input_json = json.dumps({"conversationId": "c1", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.PRE_INVOCATION, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output.get("terminationBehavior") == "terminate"
+    assert "injectSteps" in output
+
+
+def test_hook_engine_serialize_pre_invocation_error_message(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given a hook returning error_message
+    HookEngine.clear_pipelines()
+    res = HookResult(
+        error_message="Unauthorized prompt detected: safety boundary violation",
+        injected_steps=[{"ephemeralMessage": "Safety alert"}],
+    )
+    pipeline = HookPipeline([DummyHook("safety_hook", res)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_INVOCATION, pipeline)
+
+    input_json = json.dumps({"conversationId": "c2", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.PRE_INVOCATION, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output.get("terminationBehavior") == "terminate"
+    assert output.get("errorMessage") == "Unauthorized prompt detected: safety boundary violation"
+    assert output.get("injectSteps") == [{"ephemeralMessage": "Safety alert"}]
+
+
+def test_hook_engine_serialize_pre_invocation_terminate_with_reason(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given a hook returning decision="terminate" and reason
+    HookEngine.clear_pipelines()
+    res = HookResult(decision="terminate", reason="Pre-condition check failed")
+    pipeline = HookPipeline([DummyHook("pre_check", res)])
+    HookEngine.set_pipeline(LifecycleEvent.PRE_INVOCATION, pipeline)
+
+    input_json = json.dumps({"conversationId": "c3", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.PRE_INVOCATION, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output.get("terminationBehavior") == "terminate"
+    assert output.get("errorMessage") == "Pre-condition check failed"
+
+
+def test_hook_engine_serialize_stop_block(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given a hook returning decision="block" with custom reason
+    HookEngine.clear_pipelines()
+    res = HookResult(decision="block", reason="Verification incomplete: pytest must run before stop")
+    pipeline = HookPipeline([DummyHook("stop_gate", res)])
+    HookEngine.set_pipeline(LifecycleEvent.STOP, pipeline)
+
+    input_json = json.dumps({"conversationId": "c-stop", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.STOP, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {
+        "decision": "block",
+        "reason": "Verification incomplete: pytest must run before stop",
+    }
+
+
+def test_hook_engine_serialize_stop_block_default_reason(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given a hook returning decision="block" with None reason
+    HookEngine.clear_pipelines()
+    res = HookResult(decision="block")
+    pipeline = HookPipeline([DummyHook("stop_gate_def", res)])
+    HookEngine.set_pipeline(LifecycleEvent.STOP, pipeline)
+
+    input_json = json.dumps({"conversationId": "c-stop-def", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.STOP, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output["decision"] == "block"
+    assert bool(output.get("reason"))
+
+
+def test_hook_engine_serialize_stop_block_priority_over_continue(capsys: pytest.CaptureFixture[str]) -> None:
+    # Given one hook continuing and one hook blocking
+    HookEngine.clear_pipelines()
+    res_cont = HookResult(decision="continue", reason="Keep working")
+    res_block = HookResult(decision="block", reason="Hard stop block")
+    pipeline = HookPipeline([DummyHook("h_cont", res_cont), DummyHook("h_block", res_block)])
+    HookEngine.set_pipeline(LifecycleEvent.STOP, pipeline)
+
+    input_json = json.dumps({"conversationId": "c-stop-prio", "cwd": "/workspace"})
+    exit_code = HookEngine.run(LifecycleEvent.STOP, io.StringIO(input_json))
+    assert exit_code == 0
+
+    captured = capsys.readouterr()
+    output = json.loads(captured.out)
+    assert output == {
+        "decision": "block",
+        "reason": "Hard stop block",
+    }
+
 
 
 

@@ -170,16 +170,23 @@ class HookEngine:
             pass
 
         elif lifecycle == LifecycleEvent.PRE_TOOL_USE:
+            from scripts.hooks.edit_error_recovery import EditErrorRecoveryHook
             from scripts.hooks.fsync_skip_warning import FsyncSkipWarningHook
             from scripts.hooks.notepad_write_guard import NotepadWriteGuardHook
             from scripts.hooks.permission_hook import PermissionHook
+            from scripts.hooks.write_existing_file_guard import (
+                WriteExistingFileGuardHook,
+            )
 
             pipeline.register(PermissionHook())
             pipeline.register(NotepadWriteGuardHook())
+            pipeline.register(WriteExistingFileGuardHook())
+            pipeline.register(EditErrorRecoveryHook())
             pipeline.register(FsyncSkipWarningHook())
 
         elif lifecycle == LifecycleEvent.POST_TOOL_USE:
             from scripts.hooks.comment_checker import CommentCheckerHook
+            from scripts.hooks.edit_error_recovery import EditErrorRecoveryHook
             from scripts.hooks.empty_task_response_detector import (
                 EmptyTaskResponseDetectorHook,
             )
@@ -192,6 +199,7 @@ class HookEngine:
             pipeline.register(EmptyTaskResponseDetectorHook())
             pipeline.register(CommentCheckerHook())
             pipeline.register(PlanFormatValidatorHook())
+            pipeline.register(EditErrorRecoveryHook())
 
         elif lifecycle == LifecycleEvent.STOP:
             from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
@@ -241,6 +249,10 @@ class HookEngine:
         if tool_output is not None and not isinstance(tool_output, str):
             tool_output = str(tool_output)
 
+        tool_error = payload.get("error")
+        if tool_error is not None and not isinstance(tool_error, str):
+            tool_error = str(tool_error)
+
         user_prompt = extract_user_prompt(payload)
 
         step_idx = payload.get("stepIdx")
@@ -268,6 +280,7 @@ class HookEngine:
             tool_name=tool_name,
             tool_input=tool_input,
             tool_output=tool_output,
+            tool_error=tool_error,
             user_prompt=user_prompt if user_prompt else None,
             raw_payload=payload,
             step_idx=step_idx,
@@ -276,12 +289,34 @@ class HookEngine:
 
     @classmethod
     def serialize_output(cls, lifecycle: LifecycleEvent, results: list[HookResult]) -> dict:
-        if lifecycle in (LifecycleEvent.SESSION_START, LifecycleEvent.PRE_INVOCATION):
+        if lifecycle == LifecycleEvent.SESSION_START:
             steps: list[dict] = []
             for res in results:
                 if res.injected_steps:
                     steps.extend(res.injected_steps)
             return {"injectSteps": steps}
+
+        elif lifecycle == LifecycleEvent.PRE_INVOCATION:
+            steps = []
+            termination_behavior: str | None = None
+            error_message: str | None = None
+
+            for res in results:
+                if res.injected_steps:
+                    steps.extend(res.injected_steps)
+                if (res.decision == "terminate" or res.error_message) and termination_behavior is None:
+                    termination_behavior = "terminate"
+                if res.error_message and error_message is None:
+                    error_message = res.error_message
+                elif res.decision == "terminate" and res.reason and error_message is None:
+                    error_message = res.reason
+
+            out: dict[str, Any] = {"injectSteps": steps}
+            if termination_behavior is not None:
+                out["terminationBehavior"] = termination_behavior
+            if error_message is not None:
+                out["errorMessage"] = error_message
+            return out
 
         elif lifecycle == LifecycleEvent.POST_INVOCATION:
             out: dict = {}
@@ -342,6 +377,9 @@ class HookEngine:
             return {}
 
         elif lifecycle == LifecycleEvent.STOP:
+            for res in results:
+                if res.decision == "block":
+                    return {"decision": "block", "reason": res.reason or "Stop blocked"}
             for res in results:
                 if res.decision == "continue":
                     return {"decision": "continue", "reason": res.reason or "Tasks incomplete"}

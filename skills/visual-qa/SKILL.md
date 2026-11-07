@@ -1,11 +1,11 @@
 ---
 name: visual-qa
-description: "MUST USE after building/changing any UI or when asked whether a page, component, or TUI looks right. Rigorous visual QA across web/page and terminal UIs. Prefer browser:control-in-app-browser for unauthenticated browser/page QA in Codex, then Playwright/agent-browser/dev-browser. Captures screenshot/TUI evidence with bundled diff scripts, runs design-system/functional and visual-fidelity/CJK reviewer passes, then synthesizes a good/bad verdict. Triggers: visual QA, screenshot/pixel diff, UI looks wrong, reference fidelity, design system check, responsive check, CJK text clipping, TUI alignment, box-drawing drift."
+description: "MUST USE after building/changing any UI or when asked whether a page, component, or TUI looks right. Rigorous visual QA across web/page and terminal UIs with 3-state verdicts (Good, Needs Work, Needs Human Review), Before/After capture verification, and machine pre-checks (layout stability, contrast, overflow). Uses Antigravity native /browser subagent, agent-browser, or Playwright/installed browser drivers. Captures screenshot/TUI evidence with bundled diff scripts, runs design-system and visual-fidelity oracle passes. Triggers: visual QA, screenshot/pixel diff, UI looks wrong, reference fidelity, design system check, responsive check, CJK text clipping, TUI alignment, box-drawing drift."
 ---
 
 # Visual QA - Dual-Oracle Web and TUI Verification
 
-Verify a rendered UI against intent using objective script evidence plus two parallel read-only oracle passes, then synthesize one good/bad verdict. The script numbers focus the reviewers. They are not the verdict.
+Verify a rendered UI against intent using objective script evidence plus two parallel read-only oracle passes, then synthesize one 3-state verdict (Good, Needs Work, Needs Human Review). The script numbers focus the reviewers. They are not the verdict.
 
 ## Purpose and when to use
 
@@ -15,13 +15,52 @@ Verify a rendered UI against intent using objective script evidence plus two par
 
 In the commands below, `$SKILL_DIR` is this skill's own directory (the folder containing this SKILL.md). The bundled Node evidence CLI lives at `scripts/visual-qa.mjs` inside it; the TypeScript source in `scripts/cli.ts` is for development.
 
-## Step 1 - Detect the surface
+## Step 0 - Machine Pre-Checks (Automated Inspection Gate)
+
+Before human or oracle visual review, run objective machine checks against the live DOM or rendered surface. Failing any machine pre-check immediately flags the surface as `NEEDS WORK` without wasting oracle reasoning turns:
+
+1. **Layout Stability (CLS & Shift Detection)**:
+   - Verify that elements do not jump or reflow unexpectedly after initial render or asset loading.
+   - Cumulative Layout Shift (CLS) must remain below 0.1 for web pages.
+   - Check that images and embeds have explicit `width` and `height` or `aspect-ratio` CSS rules.
+2. **Contrast Ratio (WCAG Accessibility)**:
+   - Run automated contrast checks across text and background pairs:
+     - Normal body text: minimum contrast ratio of **4.5:1** (WCAG AA).
+     - Large text (≥18pt or ≥14pt bold) and active UI components: minimum contrast ratio of **3:1**.
+   - Ensure subtle tonal backgrounds or muted gray text do not drop below readable thresholds.
+3. **Overflow and Clipping Guard**:
+   - Verify zero unintended horizontal scrollbars at standard viewports (375px mobile, 768px tablet, 1280px desktop).
+   - Check container bounds: text and inline elements must not clip or overflow container padding.
+   - For TUI applications, verify line length does not exceed expected terminal columns (e.g. 80 cols).
+
+## Step 1 - Detect the surface & Before / After Workflow
 
 - Web/page UI: renders in a browser (HTML/CSS/JS, components, canvas, SVG). Evidence is screenshots.
 - TUI/terminal UI: renders as text in a terminal (box-drawing, panes, status lines, REPL/TUI apps). Evidence is terminal captures.
 - Reference-fidelity UI: any web/page UI built from a concrete reference packet, including screenshots, generated Imagen/Stitch mockups, Figma exports, overview text, annotations, or source-site captures. Evidence is the full reference packet plus same-size actual captures.
 
 If the change touches both, run both capture tracks and feed both into the passes.
+
+### Before / After Visual Verification Workflow
+
+When modifying existing UI components, redesigning pages, or fixing UI bugs, follow the strict Before / After protocol:
+
+1. **Baseline Capture (Before)**:
+   - Before making any code modifications, capture the exact current rendered state of the target pages, components, and viewports.
+   - Store baseline captures in `.omo/evidence/<slug>/before/` as PNG.
+2. **Implementation & Render**:
+   - Implement the planned visual or component changes.
+3. **Target Capture (After)**:
+   - Capture the newly rendered UI under identical viewport dimensions, scroll positions, theme settings, and state conditions.
+   - Store target captures in `.omo/evidence/<slug>/after/` as PNG.
+4. **Differential Regression Analysis**:
+   - Run image diff between Before and After:
+     ```bash
+     node "$SKILL_DIR/scripts/visual-qa.mjs" image-diff before.png after.png
+     ```
+   - Verify that:
+     - The intended modifications changed ONLY the expected hotspots.
+     - Unrelated sibling components, navigation bars, footers, and global typography show ZERO unintended diff.
 
 ## Step 2 - Capture objective reference evidence
 
@@ -48,7 +87,7 @@ Before any reviewer sees an image, verify each capture yourself: the file signat
 ### Web
 
 1. Capture a REFERENCE image: the user's mock/target, generated page snapshot, Figma export, source-site capture, or known-good baseline. Save as PNG. If the user provided overview text or annotations, save them next to the image and treat them as part of the reference packet.
-2. Capture the ACTUAL rendered screenshot at the same viewport size. In Codex, when `browser:control-in-app-browser` is available and the page does not need an authenticated user browser session, use that Browser plugin first for navigation, page state inspection, and screenshots. If it is unavailable or lacks the needed capture action, use the project's configured browser tooling (the playwright, agent-browser, or dev-browser skill). Save as PNG. If none is configured or available, install [agent-browser](https://github.com/vercel-labs/agent-browser) (`npm install -g agent-browser && agent-browser install`) and capture with it — see `$SKILL_DIR/references/agent-browser-setup.md` for the full setup, including how to shoot a fixed-viewport screenshot.
+2. Capture the ACTUAL rendered screenshot at the same viewport size. Drive the browser using Antigravity's native `/browser` subagent (`invoke_subagent({ Subagents: [{ TypeName: "browser", Role: "Browser QA", Prompt: "..." }] })`), `agent-browser`, or Playwright/installed browser drivers. Save as PNG. If none is configured or available, install [agent-browser](https://github.com/vercel-labs/agent-browser) (`npm install -g agent-browser && agent-browser install`) and capture with it — see `$SKILL_DIR/references/agent-browser-setup.md` for the full setup, including how to shoot a fixed-viewport screenshot.
 3. Run the diff and keep the JSON:
 
 ```
@@ -217,6 +256,11 @@ BLOCKING: items that must be fixed; empty if PASS
 
 When both passes return, merge them into a single report. Per dimension, mark good or bad with evidence. For each bad item, state what is wrong, where (file/line, hotspot grid, or capture line), and the concrete fix. Call out what is genuinely good so it is not regressed later.
 
+### 3-State Verdict Semantics:
+- **GOOD**: All automated machine pre-checks pass, no blocking findings, design-system integrity and visual fidelity are confirmed. The UI is ready to ship.
+- **NEEDS WORK**: Automated machine pre-checks fail (contrast, overflow, layout shift), visual regressions or defects exist, CJK text wrapping is broken, or features fail to work. Code must be modified before proceeding.
+- **NEEDS HUMAN REVIEW**: Code and layout are technically sound, but subjective visual decisions or ambiguities exist that require human sign-off (e.g. brand taste trade-offs, conflicting mock specifications, platform-specific font rasterization differences).
+
 ### Completion gate - loop until an independent pass on fresh evidence
 
 This is a hard stop rule, not a guideline. The UI is NOT done until ALL of these hold at once on the SAME current build:
@@ -228,10 +272,11 @@ This is a hard stop rule, not a guideline. The UI is NOT done until ALL of these
 If any page fails, you are not done - but treat the two blocker kinds differently. `[product]` findings: fix the source, re-capture the pages the fix touched, and dispatch a FRESH reviewer (never a followup to the previous one - stale reviewer context re-litigates settled findings). `[evidence]` findings: the product is not implicated - repair the capture pipeline, re-shoot only the defective artifacts, verify them against the live build, and re-dispatch without touching product code. Loop until the independent reviewer passes on the current build, and make the final approving round judge a complete fresh capture set. Do not stop because the automated script reports zero issues - the script aims the reviewer, it does not replace it. Do not stop because an earlier pass approved an older build. The only non-loop exit is to list the exact remaining gaps and get explicit user acceptance; never self-certify a silent PASS.
 
 ```markdown
-# Visual QA - Verdict: GOOD | NEEDS WORK
+# Visual QA - Verdict: GOOD | NEEDS WORK | NEEDS HUMAN REVIEW
 
 | Dimension | Pass | Verdict | Evidence |
 |---|---|---|---|
+| Machine pre-checks (stability, contrast, overflow) | Pre | good/bad | CLS, contrast ratio, overflow status |
 | Design system real vs faked | A | good/bad | ... |
 | Features work | A | good/bad | ... |
 | Responsive / resize | A | good/bad | ... |
@@ -240,7 +285,10 @@ If any page fails, you are not done - but treat the two blocker kinds differentl
 | CJK precision | B | good/bad | ... |
 
 ## Must fix
-[Blocking items, each with location and fix, in priority order]
+[Blocking items for NEEDS WORK, each with location and fix, in priority order]
+
+## Human review items
+[Subjective aesthetic or mock ambiguity items for NEEDS HUMAN REVIEW]
 
 ## Good, keep it
 [Correct aspects that must not regress]
@@ -261,39 +309,36 @@ node "$SKILL_DIR/scripts/visual-qa.mjs" image-diff <reference.png> <actual.png>
 
    It judges whether layout geometry, spacing, design tokens (color, type, radius, shadow), and the design itself are identical to the target, region by region. Anything off by more than rounding is a finding.
 
-2. Code-level design-system fidelity (code oracle). Dispatch through your harness's own subagent tool.
+2. Code-level design-system fidelity (code oracle). Dispatch through Antigravity native subagent orchestration:
 
-   **OpenCode:**
+```typescript
+invoke_subagent({
+  Subagents: [
+    {
+      TypeName: "oracle",
+      Role: "Fidelity Reviewer",
+      Prompt: `TASK: Act as a clone / design-system fidelity reviewer. Read-only.
 
-   `````
-   task(subagent_type="oracle",
-     run_in_background=true,
-     load_skills=[],
-     description="Clone/design-system fidelity review",
-     prompt="""
-   TASK: Act as a clone / design-system fidelity reviewer. Read-only.
+Be skeptical but fair. The executor may have overstated success and may have faked the design — inspect the diff, source code, and reference artifacts before approving.
 
-   Be skeptical but fair. The executor may have overstated success and may have faked the design — inspect the diff, source code, and reference artifacts before approving.
+Input: goal, success criteria, changed files, full diff, reference/target design (screenshots, Figma exports, source-site captures), evidence paths.
 
-   Input: goal, success criteria, changed files, full diff, reference/target design (screenshots, Figma exports, source-site captures), evidence paths.
+Review for:
+1. Real component tree: live, reused primitives and extensible state variants render the UI, NOT a pasted screenshot, raster image, or background-image standing in for live DOM elements.
+2. Token-driven styling: design tokens drive colors, spacing, and typography, NOT hardcoded one-off pixel or hex values.
+3. Layer and layout structure: the DOM hierarchy and layout match the target structure.
+4. Visual fidelity: the rendered design itself matches the reference.
 
-   Review for:
-   1. Real component tree: live, reused primitives and extensible state variants render the UI, NOT a pasted screenshot, raster image, or `background-image` standing in for live DOM elements.
-   2. Token-driven styling: design tokens drive colors, spacing, and typography, NOT hardcoded one-off pixel or hex values.
-   3. Layer and layout structure: the DOM hierarchy and layout match the target structure.
-   4. Visual fidelity: the rendered design itself matches the reference.
+Return:
+- recommendation: APPROVE or REQUEST_CHANGES.
+- blockers: concrete issues with file/line references; empty if APPROVE.
+- reportPath: evidence artifacts you inspected.
 
-   Return:
-   - recommendation: APPROVE or REQUEST_CHANGES.
-   - blockers: concrete issues with file/line references; empty if APPROVE.
-   - reportPath: evidence artifacts you inspected.
-
-   Do NOT suggest or implement fixes.
-   """
-   )
-   `````
-
-    **Antigravity:** `invoke_subagent({ Subagents: [{ TypeName: "oracle", Role: "Fidelity Reviewer", Prompt: "TASK: Act as a clone / design-system fidelity reviewer. ..." }] })`
+Do NOT suggest or implement fixes.`
+    }
+  ]
+})
+```
 
 RULE (mandatory, non-negotiable): the reference-fidelity task is NOT done until BOTH the pixel-compare AND the code-level design-system fidelity reviewer confirm that the **layer structure, the design system, and the design itself** match the target. If EITHER fails, it is a MANDATORY retry: re-implement the gaps and re-run BOTH verifications from the top. Repeat the retry loop until both pass on the same revision. Never declare reference-fidelity complete on a single pass, on visual-only evidence, or on code-only evidence - both oracles must confirm on the same build.
 

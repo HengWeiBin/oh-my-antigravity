@@ -1,6 +1,6 @@
 ---
 trigger: always_on
-description: "Core Oh-My-Antigravity orchestration rules: Conductor Mindset, Anti-Duplication, Strict Auto-Continue, and 4-Phase Verification Protocol."
+description: "Core Oh-My-Antigravity orchestration rules: Conductor Mindset, Anti-Duplication, Strict Auto-Continue, 4-Phase Verification Protocol, and Refusal is Final."
 ---
 
 # Oh My OpenAgent Orchestration Rules
@@ -23,3 +23,10 @@ Subagents routinely claim work is complete when it is not. You must personally v
 - **Phase 2: Run automated checks** - Run build, test suites, and compiler checks.
 - **Phase 3: Hands-on QA** - If the change is user-facing, use the browser subagent (`/browser`) or curl commands to verify it visually and functionally.
 - **Phase 4: Gate Decision** - Only proceed if you can explain every changed line, saw it work with your own eyes, and are certain nothing is broken.
+
+## 5. Refusal is Final
+- When the user says NO, STOP, CANCEL, DENY, or rejects a tool call / operation, this refusal is ABSOLUTE and FINAL.
+- Tool blocks, permission denials, and user refusals represent terminal boundaries for that operation or task.
+- You MUST NOT attempt to bypass, retry with slight modifications, use alternative tools (e.g. bash/PowerShell or run_command instead of write_to_file), or ask again in a different way.
+- Never spawn subagents or seek alternative execution vectors to circumvent a refusal or permission block.
+- Acknowledge the refusal immediately, explain what cannot be done, and wait for new user instructions.

@@ -1,11 +1,11 @@
-"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.3.1.
+"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.4.0.
 
 Validates:
 1. Manifest & Config integrity (plugin.json, hooks.json, pyproject.toml).
 2. Vector Assets compliance (assets/logo.svg, assets/banner.svg).
 3. Installer scripts robustness (install.sh, install.ps1).
 4. Documentation & Community suite completeness (bilingual READMEs, CONTRIBUTING.md,
-   LICENSE attribution, GitHub templates, link validation, 11 agents, 43 skills).
+   LICENSE attribution, GitHub templates, link validation, 11 agents, 44 skills).
 """
 
 import json
@@ -42,6 +42,7 @@ EXPECTED_SKILLS = [
     "data-scientist",
     "debugging",
     "dev-browser",
+    "eval-integrity",
     "frontend",
     "get-unpublished-changes",
     "git-master",
@@ -76,8 +77,9 @@ EXPECTED_SKILLS = [
     "work-with-pr",
 ]
 
-EXPECTED_42_SKILLS = EXPECTED_SKILLS
+EXPECTED_44_SKILLS = EXPECTED_SKILLS
 EXPECTED_43_SKILLS = EXPECTED_SKILLS
+EXPECTED_42_SKILLS = EXPECTED_SKILLS
 
 
 # ==============================================================================
@@ -86,14 +88,21 @@ EXPECTED_43_SKILLS = EXPECTED_SKILLS
 
 
 def test_manifest_plugin_json():
-    """Verify plugin.json schema, identity, version, and logo resolution."""
+    """Verify plugin.json schema, identity, version, metadata, and logo resolution."""
     manifest_path = REPO_ROOT / "plugin.json"
     assert manifest_path.is_file(), "plugin.json must exist at repo root"
 
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert data.get("$schema") == "https://antigravity.google/schemas/v1/plugin.json"
     assert data.get("name") == "oh-my-antigravity", "Plugin name must be 'oh-my-antigravity'"
-    assert data.get("version") == "0.3.1", "Plugin version must be '0.3.1'"
+    assert data.get("displayName") == "Oh-My-Antigravity", "Plugin displayName must be 'Oh-My-Antigravity'"
+    assert data.get("version") == "0.4.0", "Plugin version must be '0.4.0'"
     assert data.get("description"), "Plugin must contain a non-empty description"
+    assert data.get("author") == "HengWeiBin", "Plugin author must be 'HengWeiBin'"
+    assert data.get("license") == "MIT", "Plugin license must be 'MIT'"
+    assert data.get("repository") == "https://github.com/HengWeiBin/oh-my-antigravity"
+    assert isinstance(data.get("keywords"), list) and len(data["keywords"]) > 0
+    assert isinstance(data.get("suggestedPrompts"), list) and len(data["suggestedPrompts"]) > 0
 
     logo_rel = data.get("logo")
     assert logo_rel == "assets/logo.svg", "Logo path must be 'assets/logo.svg'"
@@ -165,7 +174,7 @@ def test_manifest_pyproject_toml():
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     project = data.get("project", {})
     assert project.get("name") == "oh-my-antigravity", "Project name must match"
-    assert project.get("version") == "0.3.1", "Project version must be '0.3.1'"
+    assert project.get("version") == "0.4.0", "Project version must be '0.4.0'"
     assert ">=3.13" in project.get("requires-python", ""), "Python 3.13+ required"
 
 
@@ -213,8 +222,9 @@ def test_vector_asset_banner():
         "OH-MY-ANTIGRAVITY",
         "Google Antigravity 2.0",
         "11 Orchestrated Agents",
-        "42 Bundled Skills",
+        "44 Bundled Skills",
         "Python 3.13",
+        "ORCHESTRATION_HARNESS v0.4.0",
     ]:
         assert text_token in content, f"Missing banner label '{text_token}'"
 
@@ -347,14 +357,14 @@ def test_all_11_agent_profiles():
         assert agent_file.stat().st_size > 1000, f"Agent profile {agent_file.name} must be substantial"
 
 
-def test_all_43_skills_catalog_and_filesystem():
-    """Verify all 43 skills are cataloged in READMEs and all skills on disk are well-formed."""
-    assert len(EXPECTED_SKILLS) == 43, "Must declare exactly 43 skills"
+def test_all_44_skills_catalog_and_filesystem():
+    """Verify all 44 skills are cataloged in READMEs and all skills on disk are well-formed."""
+    assert len(EXPECTED_SKILLS) == 44, "Must declare exactly 44 skills"
 
     en_readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     zh_readme = (REPO_ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
 
-    # 1. Verify 43 skills cataloged in both bilingual READMEs
+    # 1. Verify 44 skills cataloged in both bilingual READMEs
     for readme_content, name in [(en_readme, "README.md"), (zh_readme, "README.zh-TW.md")]:
         for skill in EXPECTED_SKILLS:
             assert f"/{skill}" in readme_content, f"Missing trigger /{skill} in {name}"
@@ -365,7 +375,7 @@ def test_all_43_skills_catalog_and_filesystem():
     assert skills_dir.is_dir(), "skills/ directory must exist"
 
     skill_folders = [d for d in skills_dir.iterdir() if d.is_dir()]
-    assert len(skill_folders) == 43, f"Expected exactly 43 skill folders in skills/, found {len(skill_folders)}"
+    assert len(skill_folders) == 44, f"Expected 44 skill folders in skills/, found {len(skill_folders)}"
 
     for folder in skill_folders:
         skill_md = folder / "SKILL.md"
@@ -378,4 +388,5 @@ def test_all_43_skills_catalog_and_filesystem():
         )
 
 
-test_all_42_skills_catalog_and_filesystem = test_all_43_skills_catalog_and_filesystem
+test_all_43_skills_catalog_and_filesystem = test_all_44_skills_catalog_and_filesystem
+test_all_42_skills_catalog_and_filesystem = test_all_44_skills_catalog_and_filesystem

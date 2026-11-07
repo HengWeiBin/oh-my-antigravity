@@ -205,7 +205,20 @@ For each skipped issue, give reason.
 )
 ```
 
-**Batch failure handling**: When waiting for child subagents, yield execution (stop calling tools) and let the Antigravity system notify you. For long passes, require each child to send `WORKING: <file> - <current phase>` and `BLOCKED: <reason>` only when it cannot progress. Treat a running child as alive. Mark a file for retry only when the child is completed without the deliverable, ack-only after followup, explicitly `BLOCKED:`, or no longer running. Do NOT block the remaining 4 in that batch; collect successful results and retry the failed file once later. If retry also fails, escalate that file under "Issues Found & Fixed" in the final report.
+### Phase 4b: Modular refactoring verification & clean-up validation
+
+Before running the full project test suite and final quality gates, execute an intermediate validation pass focused on structural integrity and modular refactoring:
+
+1. **Module Size Ceiling Check (<= 250 pure LOC)**:
+   - For all touched or newly extracted files, compute non-empty, non-comment lines.
+   - Verify every file is strictly **≤ 250 pure LOC**. If any file exceeds this ceiling, it MUST be broken down further by distinct responsibility before proceeding to Phase 5.
+2. **Extracted Module Architecture Validation**:
+   - Verify that new files are named after the domain concept they own (no `utils.py`, `helpers.py`, `common.py`, `part_1.py`).
+   - Check module boundaries: `__init__.py` files must contain explicit re-exports ONLY and zero functional logic.
+   - Run dependency cycle checks: ensure no circular imports were introduced between split modules.
+3. **Dead Reference & Dangling Symbol Sweep**:
+   - Use `grep_search` or language server diagnostics to verify that old function names, removed private helpers, or moved imports are not referenced anywhere in the repository.
+   - Ensure clean syntax and valid import trees before dispatching full test suites.
 
 ### Phase 5: Verify with quality gates + critical review
 

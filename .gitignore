@@ -126,6 +126,8 @@ Thumbs.db
 
 # Agent Files
 .omo/
+.agents/teamwork/
+.scratch/
 
 # Generated hook configuration
 hooks.json

@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.3.1-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.4.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 **Oh-My-Antigravity** 是專為 **Google Antigravity 2.0** 量身打造的頂級多代理協同調度框架（Multi-Agent Orchestration Harness）。
 
-本專案移植並重構自 [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent)，將 Antigravity 升級為一支分工明確、紀律嚴明的全功能軟體工程團隊。系統具備統一且零額外開銷的 Python 生命週期攔截器引擎（Lifecycle Hook Engine）、基於角色的嚴格權限防護邊界，以及內建 43 項隨附領域技能的 11 位專門代理角色。
+本專案移植並重構自 [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent)，將 Antigravity 升級為一支分工明確、紀律嚴明的全功能軟體工程團隊。系統具備統一且零額外開銷的 Python 生命週期攔截器引擎（Lifecycle Hook Engine）、基於角色的嚴格權限防護邊界，以及內建 44 項隨附領域技能的 11 位專門代理角色。
 
 ### 核心特色
 
@@ -226,7 +226,7 @@ sequenceDiagram
 
 ## 隨附技能目錄
 
-`oh-my-antigravity` 隨附 **43 個生產級技能**。在對話中輸入斜線指令（例如 `/debugging` 或 `/programming`）即可將專業指示動態掛載至代理上下文中。
+`oh-my-antigravity` 隨附 **44 個生產級技能**。在對話中輸入斜線指令（例如 `/debugging` 或 `/programming`）即可將專業指示動態掛載至代理上下文中。
 
 ### 1. 規劃與策略（Planning & Strategy）
 
@@ -257,6 +257,7 @@ sequenceDiagram
 
 | 指令語法 | 技能名稱 | 功能說明 |
 |---|---|---|
+| `/eval-integrity` | `eval-integrity` | 高嚴謹性基準測試與評估完整性審計，防範資料污染與評分標準套利。 |
 | `/visual-qa` | `visual-qa` | 跨響應式尺寸、像素級差異對比與終端機 UI 排版之全方位視覺驗證。 |
 | `/review-work` | `review-work` | 實作完成審查守衛，並行調用 5 位獨立子代理全方位稽核正確性、安全性與品質。 |
 | `/pre-publish-review` | `pre-publish-review`| 16 位代理組成的核級發布閘門，深入分析所有未發布變更以確保零風險。 |
@@ -312,7 +313,7 @@ sequenceDiagram
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }

@@ -55,6 +55,9 @@ def is_subagent_session(payload: dict) -> bool:
     return False
 
 def extract_user_prompt(payload: dict) -> str:
+    last_user_input = payload.get("lastUserInput")
+    if last_user_input:
+        return str(last_user_input)
     if "prompt" in payload:
         return payload["prompt"]
     if "userPrompt" in payload:

@@ -67,10 +67,8 @@ exercises the surface; capture the artifact.
      xterm.js web terminal (see the TUI visual QA note below). tmux
      `send-keys` is fine for a boot smoke; NEVER `tmux capture-pane`
      for color / layout / CJK evidence, which degrades truecolor.
-  3. Browser use — in Codex, use `browser:control-in-app-browser`
-     first when available and no authenticated/persistent user browser
-     profile is required. Otherwise use Chrome to drive the REAL page;
-     if Chrome is not available, download and use agent-browser
+  3. Browser use — drive the REAL page with Antigravity `/browser`
+     subagent, Chrome, or agent-browser
      (https://github.com/vercel-labs/agent-browser). Capture action
      log + screenshot path. Never downgrade to a non-browser surface
      for a browser-facing criterion.

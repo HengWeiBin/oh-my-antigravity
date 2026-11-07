@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.3.1-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.4.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 **Oh-My-Antigravity** is the premier multi-agent orchestration harness engineered specifically for **Google Antigravity 2.0**.
 
-Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 43 turnkey domain skills.
+Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 44 turnkey domain skills.
 
 ### Key Pillars
 
@@ -226,7 +226,7 @@ sequenceDiagram
 
 ## Bundled Skills Catalog
 
-`oh-my-antigravity` includes **43 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
+`oh-my-antigravity` includes **44 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
 
 ### 1. Planning & Strategy
 
@@ -257,6 +257,7 @@ sequenceDiagram
 
 | Command | Skill | Description |
 |---|---|---|
+| `/eval-integrity` | `eval-integrity` | High-rigor benchmark and LLM-as-a-judge evaluation integrity auditing against contamination. |
 | `/visual-qa` | `visual-qa` | Visual verification across responsive screen widths, pixel diffs, and terminal UI layouts. |
 | `/review-work` | `review-work` | Nuclear 5-agent post-implementation review gate covering correctness, security, and quality. |
 | `/pre-publish-review` | `pre-publish-review`| 16-agent release barrier analyzing all unpublished changes prior to distribution. |
@@ -312,7 +313,7 @@ The plugin manifest declares metadata loaded by Antigravity:
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }

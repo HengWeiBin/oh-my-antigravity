@@ -1,6 +1,26 @@
 {
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "oh-my-antigravity",
-  "version": "0.3.1",
+  "displayName": "Oh-My-Antigravity",
+  "version": "0.4.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
-  "logo": "assets/logo.svg"
+  "author": "HengWeiBin",
+  "license": "MIT",
+  "repository": "https://github.com/HengWeiBin/oh-my-antigravity",
+  "logo": "assets/logo.svg",
+  "keywords": [
+    "antigravity",
+    "multi-agent",
+    "orchestration",
+    "hooks",
+    "skills",
+    "subagents",
+    "teamwork"
+  ],
+  "suggestedPrompts": [
+    "Plan a full architectural implementation using Prometheus",
+    "Review recently changed code using review-work",
+    "Audit codebase technical debt and security vulnerabilities",
+    "Debug a runtime failure with hypothesis-driven loop"
+  ]
 }

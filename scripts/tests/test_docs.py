@@ -48,7 +48,7 @@ def test_badges_present(english_readme, chinese_readme):
         "badge/Python-3.13%2B-blue",
         "badge/License-MIT-green",
         "badge/Tests-Passing-brightgreen",
-        "badge/Release-v0.3.1-orange",
+        "badge/Release-v0.4.0-orange",
     ]
     for content in [english_readme, chinese_readme]:
         for snippet in required_badge_snippets:
@@ -83,8 +83,8 @@ def test_all_11_agents_roster(english_readme, chinese_readme):
             assert f"`{agent}`" in content, f"Missing agent {agent} in documentation"
 
 
-def test_all_43_skills_catalog(english_readme, chinese_readme):
-    """Verify all 43 skills are cataloged in both READMEs with slash triggers."""
+def test_all_44_skills_catalog(english_readme, chinese_readme):
+    """Verify all 44 skills are cataloged in both READMEs with slash triggers."""
     skills = [
         "agent-browser",
         "antigravity-hooks",
@@ -97,6 +97,7 @@ def test_all_43_skills_catalog(english_readme, chinese_readme):
         "data-scientist",
         "debugging",
         "dev-browser",
+        "eval-integrity",
         "frontend",
         "get-unpublished-changes",
         "git-master",
@@ -130,14 +131,15 @@ def test_all_43_skills_catalog(english_readme, chinese_readme):
         "visualize",
         "work-with-pr",
     ]
-    assert len(skills) == 43
+    assert len(skills) == 44
     for content in [english_readme, chinese_readme]:
         for skill in skills:
             assert f"/{skill}" in content, f"Missing slash trigger /{skill}"
             assert f"`{skill}`" in content, f"Missing skill identifier `{skill}`"
 
 
-test_all_42_skills_catalog = test_all_43_skills_catalog
+test_all_43_skills_catalog = test_all_44_skills_catalog
+test_all_42_skills_catalog = test_all_44_skills_catalog
 
 
 def test_installation_methods(english_readme, chinese_readme):

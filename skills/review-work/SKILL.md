@@ -207,7 +207,7 @@ The QA agent follows a structured process: brainstorm scenarios exhaustively fir
 task(
   category="unspecified-high",
   run_in_background=true,
-  load_skills=["browser:control-in-app-browser", "playwright", "dev-browser"],
+  load_skills=["agent-browser", "playwright", "dev-browser"],
   description="QA by actually running and using the application",
   prompt="""
 <review_type>QA - HANDS-ON APP EXECUTION</review_type>
@@ -277,7 +277,7 @@ Work through the task list in priority order (P0 first). For each test:
 6. Mark the task complete
 
 **Execution guidance by app type:**
-- **Web app**: In Codex, use `browser:control-in-app-browser` first for browser work that does not need an authenticated user session. Fall back to playwright/dev-browser when the Browser plugin is unavailable, lacks the needed action, or the test specifically needs a persistent/authenticated browser profile. Navigate, click, fill forms, and verify visual output through the chosen browser surface.
+- **Web app**: Use Antigravity native `/browser` subagent, `agent-browser`, or Playwright/dev-browser. Navigate, click, fill forms, and verify visual output through the chosen browser surface.
 - **CLI tool**: Run commands with various arguments, pipe inputs, check exit codes and output.
 - **Library/SDK**: Write and execute a test script that imports and exercises the public API.
 - **Backend API**: Use curl/httpie to hit endpoints with various payloads, verify response codes and bodies.

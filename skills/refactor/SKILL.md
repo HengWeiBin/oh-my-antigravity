@@ -651,69 +651,56 @@ Then choose the path:
 
 Record the chosen path in the TodoWrite list.
 
-## Phase 5.1-T: \`refactor-squad\` team execution
+## Phase 5.1-T: `refactor-squad` subagent execution
 
 **Precondition checks** (fail hard if any step fails):
 
-1. Load the \`team-mode\` skill via the \`skill\` tool for lifecycle, message protocol, and limits.
-2. Call \`team_list\` and verify no active \`refactor-squad\` run exists; if one does, shutdown + delete the orphan before proceeding.
-3. If \`~/.omo/teams/refactor-squad/config.json\` is missing, write it using the spec below.
+1. Load subagent orchestration context via `invoke_subagent` and `send_message`.
+2. Call `manage_subagents` / `manage_task` (action: "list") and verify no active orphan subagents exist; if any do, kill the orphan before proceeding.
 
-**Team spec** (\`~/.omo/teams/refactor-squad/config.json\`):
+**Subagent squad dispatch**:
 
-\`\`\`json
-{
-  "name": "refactor-squad",
-  "lead": { "kind": "subagent_type", "subagent_type": "sisyphus" },
-  "members": [
+Dispatch refactoring subagents via `invoke_subagent`:
+
+```typescript
+invoke_subagent({
+  Subagents: [
     {
-      "kind": "category",
-      "category": "quick",
-      "prompt": "You handle mechanical refactoring steps (LSP rename, extract variable, inline, simple move, signature change). Use LSP tools for correctness. Apply the task description's per-step instructions verbatim — no scope expansion. After edits, run lsp_diagnostics on touched files. Report via team_send_message(teamRunId=<id>, to=\"lead\", summary=<files touched>, body=<lsp status + diff summary>) + team_task_update(status=completed). Never run tests — the external verifier handles that. Never git add, never --continue."
+      TypeName: "sisyphus-junior",
+      Role: "mechanical-refactor-1",
+      Prompt: "You handle mechanical refactoring steps (LSP rename, extract variable, inline, simple move, signature change). Use LSP tools for correctness. Apply step instructions verbatim. Report via send_message to lead with diff summary and lsp status. Never run tests."
     },
-    { "kind": "category", "category": "quick", "prompt": "Same contract as peer quick worker." },
     {
-      "kind": "category",
-      "category": "unspecified-low",
-      "prompt": "You handle logic-preserving refactors that need reasoning (extract function, restructure conditional, pattern transformation, cross-file API change). Read the task description's plan step carefully. Use the ast-grep skill helper or sg CLI to preview structural rewrites first, review the preview, then execute. If the step is ambiguous or would require out-of-scope changes, STOP and send team_send_message(teamRunId=<id>, to=\"lead\", summary=\"UNCLEAR\", body=<reason>) + team_task_update(status=pending). Same reporting contract as peer quick workers. Never run tests."
+      TypeName: "sisyphus-junior",
+      Role: "mechanical-refactor-2",
+      Prompt: "Same contract as mechanical-refactor-1."
     },
-    { "kind": "category", "category": "unspecified-low", "prompt": "Same contract as peer unspecified-low worker." }
+    {
+      TypeName: "sisyphus-junior",
+      Role: "reasoning-refactor-1",
+      Prompt: "You handle logic-preserving refactors that need reasoning (extract function, restructure conditional, pattern transformation). Use ast-grep or surgical replace tools. If ambiguous, send send_message to lead. Never run tests."
+    },
+    {
+      TypeName: "sisyphus-junior",
+      Role: "reasoning-refactor-2",
+      Prompt: "Same contract as reasoning-refactor-1."
+    }
   ]
-}
-\`\`\`
+})
+```
 
-Rationale for this composition:
-- **4 workers = team mode's parallel cap.** 5+ just queues.
-- **No verifier team member.** Verification needs \`deep\` reasoning (or \`unspecified-high\` fallback). In-team category routing downcasts to sisyphus-junior, which is weaker than required — the verifier runs OUTSIDE the team as a \`task(category="deep")\`.
-- **quick × 2** for mechanical edits, **unspecified-low × 2** for reasoning edits — mirrors the plan's split.
-
-**Team lifecycle** (one team, reused until Phase 6 cleanup):
-
-1. \`team_create(teamName="refactor-squad")\`. Record \`teamRunId\`.
-2. Broadcast the refactor Intent Card ONCE (keep task descriptions slim):
-   \`\`\`
-   team_send_message(
-     teamRunId=<id>, to="*", kind="announcement",
-     summary="refactor-intent",
-     body=<codemap summary + constraints + established patterns from Phase 2>
-   )
-   \`\`\`
-3. Broadcast the verification spec ONCE:
-   \`\`\`
-   team_send_message(
-     teamRunId=<id>, to="*", kind="announcement",
-     summary="verify-spec",
-     body=<exact test/typecheck/lint commands + expected pass counts + regression indicators from Phase 3.4>
-   )
-   \`\`\`
-4. For each plan step, \`team_task_create(teamRunId=<id>, subject="refactor step <N>: <short>", description=<per-step instructions from plan, including target files and line ranges, rollback strategy>, blockedBy=<from plan's per_step_assignment>)\`.
+**Lead orchestration**:
+1. Broadcast the refactor Intent Card to workers via `send_message`:
+   `send_message(Recipient="<subagent_id>", Message="<codemap summary + constraints + established patterns>")`
+2. Broadcast the verification spec:
+   `send_message(Recipient="<subagent_id>", Message="<exact test/typecheck/lint commands>")`
+3. Assign each plan step via `send_message`.
 
 **Lead monitoring loop**:
 
-While any team task is \`pending | claimed | in_progress\`:
-
-- Wait for \`<system-reminder>\` or member messages. Avoid tight polling; a single \`team_status\` check is acceptable if no notification arrives within roughly 10 seconds of expected completion.
-- On a worker completion report, immediately dispatch an **external verifier** — verification runs OUTSIDE the team because team-member category routing downcasts to sisyphus-junior:
+While tasks are in progress:
+- Wait for notification or member messages. Avoid tight polling; use `manage_subagents` / `manage_task` (action: "status") to inspect status if needed.
+- On a worker completion report, immediately dispatch an **external verifier** — verification runs OUTSIDE the worker pool via an independent verifier:
   \`\`\`
   task(
     category="deep",
@@ -726,19 +713,18 @@ While any team task is \`pending | claimed | in_progress\`:
   If \`deep\` is unavailable, fall back to \`category="unspecified-high"\`. Do not create a commit checkpoint until the verifier returns PASS.
 - On a verifier PASS: make the commit checkpoint for that step (see original 5.3). Proceed.
 - On a verifier FAIL: Lead decides:
-  - **Retry with fix hint**: \`team_task_update(status=pending)\` on the original step + \`team_send_message(teamRunId=<id>, to=<original member>, summary="retry", body=<specific failure from verifier>)\`. Runtime reassigns.
+  - **Retry with fix hint**: send `send_message(Recipient="<original member>", Message="retry: <specific failure from verifier>")`. Worker retries.
   - **Escalate**: after three FAIL cycles on the same step, STOP and consult the user with full evidence.
-- On a member UNCLEAR message: re-harvest context via a targeted \`task()\` outside the team, broadcast an updated Intent Card fragment, then reassign.
+- On a member UNCLEAR message: re-harvest context via a targeted `invoke_subagent` outside the team, broadcast an updated Intent Card fragment, then reassign.
 
-Proceed to Phase 6 only when every team task is \`completed\` AND every paired verifier task returned PASS.
+Proceed to Phase 6 only when every team task is `completed` AND every paired verifier task returned PASS.
 
 ## Phase 6 override: Team cleanup before summary
 
-If Phase 5 used the team path, dismantle \`refactor-squad\` BEFORE producing the 6.6 summary. Every exit path — success, escalation, abort — must cleanup; orphan teams poison the next session's precondition check.
+If Phase 5 used the team path, dismantle `refactor-squad` BEFORE producing the 6.6 summary. Every exit path — success, escalation, abort — must cleanup; orphan teams poison the next session's precondition check.
 
-1. \`team_shutdown_request\` for each member, then \`team_approve_shutdown\` if members do not self-approve within a reasonable window.
-2. \`team_delete(teamRunId=<id>)\`.
-3. \`team_list\` to confirm no residual \`refactor-squad\` run.
+1. Call `manage_subagents` / `manage_task` (action: "kill") for each member subagent to terminate completed workers.
+2. Call `manage_subagents` / `manage_task` (action: "list") to confirm no residual subagents remain active.
 
 The \`~/.omo/teams/refactor-squad/config.json\` declaration stays on disk; next session reuses it.
 

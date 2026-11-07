@@ -153,6 +153,16 @@ Plugins bundle hook configurations using `hooks.template.json` with dynamic plac
 >   ```
 > - **Git Untracking**: `hooks.template.json` is committed to version control; `hooks.json` is generated locally and ignored in `.gitignore` to prevent dirty working trees and git pull conflicts.
 
+#### C. Plugin CWD Isolation & Script Path Resolution
+
+When executing hook handlers, Antigravity enforces strict workspace isolation:
+1. **Execution Directory (`cwd`)**: Antigravity executes hook command processes with their working directory (`cwd`) set to the **active workspace path**, *not* the plugin installation directory.
+2. **Payload Reflection**: The `cwd` and `workspacePaths` properties in the `stdin` JSON payload always reflect the user's active project workspace.
+3. **Implications for Plugin Authors**:
+   - **No Naive Relative Paths in `hooks.json`**: A command like `"python scripts/pre_tool_use.py"` will fail with `FileNotFoundError` (Errno 2) whenever the active workspace is outside the plugin directory. Plugin hooks must declare absolute paths using the `{{PLUGIN_DIR}}` template placeholder rendered during installation.
+   - **Self-Location Resolution in Python**: Plugin hook scripts must dynamically resolve their own root directory using `Path(__file__).resolve().parent.parent` (or `os.path.dirname`) and configure `sys.path` accordingly, rather than relying on `os.getcwd()` or relative module imports.
+   - **Workspace File Access**: When a hook needs to inspect or validate workspace files (e.g., repository linters, git status, configuration files), it should resolve paths relative to `context.cwd` or entries in `context.workspace_paths`.
+
 ### Handler Properties & Defaults
 
 Within any hook definition list:
@@ -193,6 +203,7 @@ All lifecycle events provide the following base context fields on `stdin`:
 | `transcriptPath` | `string` | Absolute path to the transcript JSONL log file: `<app_data_dir>/brain/<conversationId>/.system_generated/logs/transcript.jsonl`. |
 | `artifactDirectoryPath` | `string` | Absolute path to the conversation artifacts directory: `<app_data_dir>/brain/<conversationId>`. |
 | `modelName` | `string` | Identifier of the active language model (e.g. `gemini-3.6-flash-medium`, `gemini-2.5-pro`). |
+| `lastUserInput` | `string` | *(Optional, primarily in `PreInvocation`)* Raw text of the user's latest prompt turn. Enables direct prompt inspection with zero additional disk I/O. |
 
 ---
 
@@ -250,6 +261,7 @@ All lifecycle events provide the following base context fields on `stdin`:
   "conversationId": "b67d4ce2-1b29-4e25-8598-e6636a3171aa",
   "invocationNum": 0,
   "initialNumSteps": 1,
+  "lastUserInput": "Build the feature now",
   "workspacePaths": ["C:/Users/user/project"],
   "cwd": "C:/Users/user/project",
   "transcriptPath": "C:/Users/user/.gemini/antigravity/brain/b67d4ce2-1b29-4e25-8598-e6636a3171aa/.system_generated/logs/transcript.jsonl",
@@ -258,8 +270,11 @@ All lifecycle events provide the following base context fields on `stdin`:
 }
 ```
 
-> [!NOTE]
-> `user_prompt` is **not** a guaranteed top-level payload field in `stdin`. The standard practice for hooks needing access to the user prompt (such as keyword detectors or instruction augmenters) is to read `transcriptPath` (JSONL) and parse the latest entry with `step_type` matching `USER_INPUT` or `USER_EXPLICIT`.
+> [!TIP]
+> **Native `lastUserInput` Prompt Extraction**:
+> Antigravity provides the native `lastUserInput` string property directly in the top-level `PreInvocation` stdin JSON payload. Hooks should extract `payload.get("lastUserInput")` directly for high-performance prompt analysis and keyword matching with zero additional disk I/O.
+> 
+> Reading and parsing `transcriptPath` (JSONL) is strictly a fallback mechanism for backward compatibility when running in environments where `lastUserInput` is omitted or empty.
 
 #### `PreInvocation` Stdout Response Contract
 ```json
@@ -287,15 +302,21 @@ All lifecycle events provide the following base context fields on `stdin`:
         }
       }
     }
-  ]
+  ],
+  "terminationBehavior": "terminate",
+  "errorMessage": "Pre-condition check failed: unauthorized operation"
 }
 ```
 
-- **`injectSteps` (array)**:
+- **`injectSteps` (`array`, optional)**: Steps to inject into the active conversation context before model invocation:
   - `systemMessage` (`object`): Injects system-level instructions or system prompt context. Object structure: `{"systemMessage": {"systemMessage": "<instruction_text>", "metadata": <optional_metadata_dict>}}`.
   - `ephemeralMessage` (`string`): Temporary context injected into the active prompt without persisting into the saved transcript.
   - `userMessage` (`string`): Synthesized user prompt appended to the session.
   - `toolCall` (`object`): Synthetic tool step pre-queued for execution.
+- **`terminationBehavior` (`string`, optional)**:
+  - `"terminate"`: Immediately halts and cancels the model invocation for this turn. Used to abort execution before dispatching to the LLM (e.g. security violations, guardrail rejections, or pre-condition failures).
+  - Omitted or `""`: Normal progression into model invocation.
+- **`errorMessage` (`string`, optional)**: Diagnostic explanation or user-facing error message describing why the invocation was aborted when `terminationBehavior="terminate"`. Surfaces directly in the session UI / error display as the cancellation reason.
 
 ---
 
@@ -474,9 +495,22 @@ All lifecycle events provide the following base context fields on `stdin`:
   "reason": "Tests have not yet been executed. You must run 'npm test' before ending this session."
 }
 ```
+Or for strict termination blocking:
+```json
+{
+  "decision": "block",
+  "reason": "Termination blocked: uncommitted critical changes or unresolved task requirements."
+}
+```
+
+- **`decision` (`string`, optional)**:
+  - `"continue"`: Cancels the shutdown sequence and forces the agent back into the execution loop. The `reason` string is injected into the context as an advisory prompt, prompting the agent to complete pending tasks.
+  - `"block"`: Strictly blocks session termination. Used when shutdown conditions are fundamentally invalid (e.g. uncommitted changes violating a clean-state rule, or unresolved dependencies in multi-agent orchestration).
+  - `{}` (empty JSON object): Permits normal termination and shutdown of the agent session.
+- **`reason` (`string`, optional)**: Diagnostic explanation of why termination was continued or blocked.
 
 > [!TIP]
-> **Continuation & Loop Re-entry**: Returning `"decision": "continue"` cancels the shutdown sequence and forces the agent back into the execution loop. The `reason` string is injected into the context as an advisory prompt, ensuring the agent finishes pending verifications or corrective tasks.
+> **Continuation & Loop Re-entry**: Returning `"decision": "continue"` cancels the shutdown sequence and forces the agent back into the execution loop. The `reason` string is injected into the context as an advisory prompt, ensuring the agent finishes pending verifications or corrective tasks. Alternatively, returning `"decision": "block"` stops termination when strict pre-termination conditions fail.
 
 ---
 
@@ -520,7 +554,7 @@ Antigravity provides standard tools organized into six functional categories. Ma
 
 ### 4. Agent Collaboration Tools
 - **`invoke_subagent`**: Spawns specialized subagents to execute concurrent tasks.
-  - *Arguments*: `Subagents` (array of subagent specs: `Prompt`, `Role`, `TypeName`, `Workspace` (optional: `'inherit' | 'branch' | 'share'`), `Model` (optional: `'inherit' | 'flash' | 'pro'`)).
+  - *Arguments*: `Subagents` (array of subagent specs: `Prompt`, `Role`, `TypeName`, `Workspace` (optional: `'inherit' | 'branch' | 'share'`), `Model` (optional: `'inherit' | 'flash' | 'flash_lite' | 'pro'`)).
 - **`define_subagent`**: Creates and registers a dynamic custom subagent persona.
   - *Arguments*: `name` (string, required), `description` (string, required), `system_prompt` (string, required), `enable_mcp_tools` (bool, optional), `enable_write_tools` (bool, optional), `enable_subagent_tools` (bool, optional).
 - **`send_message`**: Communicates with other agents (parent, children, or peers).
@@ -620,13 +654,13 @@ class HookContext:
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "continue"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "force_continue" | "terminate" | "continue" | "block"
     reason: str | None = None
-    permission_overrides: list[str] = field(default_factory=list)
-    termination_behavior: str | None = None  # "force_continue" | "terminate" | ""
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    permission_overrides: list[str] = field(default_factory=list)
     overwrite: dict[str, Any] | None = None
+    error_message: str | None = None
 ```
 
 #### Base Hook & Pipeline (`engine.py`)
@@ -714,6 +748,12 @@ class StopVerificationGuardHook(BaseHook):
                 decision="continue",
                 reason="Verification required: Please run the test suite before ending the session."
             )
+        # Block termination if critical conditions are violated
+        if context.raw_payload.get("uncommitted_changes"):
+            return HookResult(
+                decision="block",
+                reason="Termination blocked: Working directory has uncommitted changes."
+            )
         return HookResult()
 ```
 
@@ -732,6 +772,28 @@ class ProjectGuidelineInjectorHook(BaseHook):
             return HookResult(injected_steps=[
                 {"ephemeralMessage": f"Active in: {context.cwd}. Adhere to strict type-safety."}
             ])
+        return HookResult()
+```
+
+#### 4. Prompt Guard & Cancellation Hook (`PreInvocation`)
+```python
+from scripts.hooks.engine import BaseHook
+from scripts.hooks.models import HookContext, HookResult
+
+class PromptSafetyGuardHook(BaseHook):
+    @property
+    def name(self) -> str:
+        return "prompt_safety_guard"
+
+    def execute(self, context: HookContext) -> HookResult:
+        # Direct zero-overhead prompt access via context.user_prompt
+        user_prompt = context.user_prompt or ""
+        if "DROP DATABASE" in user_prompt.upper():
+            return HookResult(
+                decision="terminate",
+                reason="Prompt rejected by database protection policy",
+                error_message="Unauthorized prompt: Destructive SQL operations are blocked"
+            )
         return HookResult()
 ```
 
@@ -937,5 +999,7 @@ def test_pipeline_isolates_fault():
 | Permission overrides ignored | `permissionOverrides` passed as `{}` instead of `string[]` | Return a string array format, e.g. `["command(npm test)", "read_file(/path/*)"]`. |
 | PostInvocation loop not forcing continue | Returned `"decision": "force_continue"` instead of `terminationBehavior` | Update return payload to use `"terminationBehavior": "force_continue"`. |
 | Stop loop repeating infinitely | Stop hook unconditionally returning `"decision": "continue"` | Track turn/execution counter (`executionNum`) and allow shutdown when verifications complete or after max retries. |
+| Stop decision "block" vs "continue" confusion | Returning `"continue"` re-engages prompt loop with injected advisory message, whereas `"block"` forbids exit when invariants fail | Use `"continue"` when directing model to perform more tasks; use `"block"` to prevent exit when system invariants fail. |
+| PreInvocation cancellation not halting turn | Omitted `"terminationBehavior": "terminate"` when returning `errorMessage` | Set `"terminationBehavior": "terminate"` alongside `"errorMessage"` to abort model invocation for the turn. |
 | Role resolution returns ORCHESTRATOR | Transcript missing from brain logs directory | Ensure path `<app_data_dir>/brain/<conversationId>/.system_generated/logs/transcript.jsonl` exists; fallback to default is expected behavior. |
 | Skill instructions not loading | `SKILL.md` missing or outside resolution directories | Check directory precedence order (workspace -> plugin -> user config -> builtin). |

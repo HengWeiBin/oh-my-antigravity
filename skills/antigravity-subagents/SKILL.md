@@ -76,23 +76,24 @@ Static agent definitions begin with a YAML frontmatter block enclosed between tr
 | `tools` | `string[]` | `[]` | Explicit whitelist of permitted tools (e.g. `view_file`, `replace_file_content`, `grep_search`, `run_command`). **If omitted, no file system or execution tools are available!** |
 | `mainAgent` | `boolean` | `true` | If `true`, allows selection as the primary agent in chat interfaces. Set to `false` for dedicated worker subagents. |
 | `subagent` | `boolean` | `true` | If `true`, allows invocation via the `invoke_subagent` tool. Set to `false` for main-only controllers. |
-| `model` | `string` | `inherit` | Model tier used when invoked: `inherit`, `flash`, or `pro`. |
+| `model` | `string` | `inherit` | Model tier used when invoked: `inherit`, `flash`, `flash_lite`, or `pro`. |
 | `commandExecutionPolicy` | `string` | `sandbox` | Auto-execution policy for shell commands: `off`, `auto`, `eager`, `sandbox`. |
+| `inheritMcp` | `boolean` | `true` | When `true`, inherits Model Context Protocol (MCP) servers and tools registered in the parent session. |
+| `inheritCustomizations` | `boolean` | `true` | When `true`, inherits project-level rules, system instructions, and workspace customizations from the active project. |
 | `mcpServers` | `object[]` | `[]` | Custom Model Context Protocol (MCP) servers configured specifically for this subagent. |
 | `skills` / `plugins` | `string[]` | `[]` | Skill paths (e.g. `skills/my-helper-skill`, `skills/ast-grep`) or plugin dependencies pre-loaded into context. |
 
 > [!NOTE]
 > **Runtime Options & Frontmatter Boundary**:
 > - `workspace`: Workspace isolation mode (`inherit`, `branch`, or `share`) is a runtime parameter passed to the `invoke_subagent` tool call (see [Workspace Isolation Modes](#workspace-isolation-modes-workspace)) and **MUST NOT** be placed inside the YAML frontmatter of a static `.md` agent definition.
-> - `inheritCustomizations`: (Plugin extension, default `true`) controls whether project-level rules, instructions, and workspace customizations are inherited.
-> - `enable_mcp_tools`: (Default `true`) master toggle controlling access to registered MCP tools.
+> - `enable_mcp_tools`: (Default `true`) master toggle controlling access to registered MCP tools when defining agents programmatically via `define_subagent`.
 
 ### Model Selection Guidelines
 
 - **`inherit`** (Default for Master Orchestrators): Adopts whichever model is driving the parent session or orchestrator (e.g., `sisyphus`, `atlas`). Standard for lead orchestrators to dynamically match the user's active tier.
 - **`flash`** (Standard for Subagent Workers & Specialists): Ultra-fast execution, high throughput, and cost-efficient. The standard default for high-performance subagent workers, executors, and specialists (e.g., `hephaestus`, `sisyphus-junior`, `explore`, `librarian`), replacing `pro` to deliver rapid multi-tool execution with minimal token overhead.
+- **`flash_lite`** (Ultra-Low Latency & High-Frequency Workers): Designed for lightweight, sub-second latency tasks such as fast triage, classification, simple status checks, or atomic single-turn queries where token economy and responsiveness are paramount. Note: has tighter context windows and lower multi-turn reasoning capacity compared to `flash` or `pro`, so avoid using `flash_lite` for complex multi-file refactoring or intricate tool chains.
 - **`pro`**: High reasoning capacity and advanced architectural decomposition. Reserved for deep architectural review, heavy planning trade-offs, or strategic advisors when explicitly needed (e.g., `oracle`).
-- **Note on `flash_lite` compatibility**: While `flash_lite` is supported in some tiers for ultralow latency tasks, it has tighter context windows and less reliable complex tool-calling capabilities. Avoid using `flash_lite` for agents that execute multi-step tool sequences or handle large file edits.
 
 ### Command Execution Policies (`commandExecutionPolicy`)
 
@@ -364,7 +365,7 @@ The parent orchestrator maintains full read/write visibility into subagent works
 
 ---
 
-## 9. Multi-Agent Orchestrators (`/boost` & `/teamwork-preview`)
+## 9. Multi-Agent Orchestrators (`/boost` & `/teamwork`)
 
 Antigravity provides two official multi-agent orchestrators designed for different task scales and execution horizons:
 
@@ -380,16 +381,16 @@ $$\text{Orchestrator} \longrightarrow \text{DeepCoder / DeepInvestigator Coordin
 - **Verification**: Runs autonomous, independent verification loops with unit tests and assertion checks before presenting solutions.
 - **Horizon**: Operates across interactive coding sessions ranging from minutes to hours.
 
-### 2. Multi-Agent Teamwork (`/teamwork-preview`)
+### 2. Multi-Agent Teamwork (`/teamwork`)
 
 > [!NOTE]
 > **Plan Availability**: Available on **paid plans** (Ultra, Pro, and Enterprise) across Google Antigravity 2.0 and Antigravity CLI.
 
-Using `/teamwork-preview` coordinates a team of specialized AI agents designed for large software projects, multi-file refactoring, and complex codebase initiatives:
+Using `/teamwork` coordinates a team of specialized AI agents designed for large software projects, multi-file refactoring, and complex codebase initiatives:
 - **Autonomous Delegation**: Milestone decomposition, parallel task distribution, and independent verification checks.
 - **Shared Blackboard / Task Graph**: Agents claim, coordinate, and execute subtasks in parallel without step-by-step orchestrator intervention.
 - **Conflict-Free Synchronization**: Built-in AST-level reconciliation and git worktree isolation prevent overlapping file overwrite errors.
-- **Activation**: Initiate a collaborative teamwork session directly in chat using the `/teamwork-preview` command.
+- **Activation**: Initiate a collaborative teamwork session directly in chat using the `/teamwork` command.
 
 ---
 

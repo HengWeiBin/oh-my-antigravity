@@ -189,12 +189,12 @@
       <text x="40" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">11 Orchestrated Agents</text>
     </g>
 
-    <!-- Badge 3: 42 Bundled Skills -->
+    <!-- Badge 3: 44 Bundled Skills -->
     <g transform="translate(384, 0)">
       <rect width="160" height="44" rx="10" fill="url(#purpleBadgeBg)" stroke="#8B5CF6" stroke-opacity="0.4" stroke-width="1"/>
       <!-- Capability Lightning Icon -->
       <path d="M 23 13 L 15 23 L 20 23 L 17 31 L 27 20 L 22 20 Z" fill="#C084FC" filter="url(#glow)"/>
-      <text x="35" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">42 Bundled Skills</text>
+      <text x="35" y="27" font-family="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#F1F5F9">44 Bundled Skills</text>
     </g>
 
     <!-- Badge 4: Python 3.13 Hook Engine -->
@@ -288,7 +288,7 @@
 
   <!-- ================= TECHNICAL HUD METADATA ================= -->
   <text x="1150" y="38" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">CORE_SYS // AG-2.0</text>
-  <text x="1150" y="338" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">ORCHESTRATION_HARNESS v0.3.1</text>
+  <text x="1150" y="338" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="9" fill="#475569" letter-spacing="1">ORCHESTRATION_HARNESS v0.4.0</text>
 
   <!-- Precision Crosshairs -->
   <g stroke="#334155" stroke-width="1">

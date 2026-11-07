@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Google Antigravity plugin. Contains 11 agent profiles, 42 skills, and a hook-based lifecycle interceptor system (Python). All files are configuration/prompts/scripts — not a traditional application.
+Google Antigravity plugin. Contains 11 agent profiles, 44 skills, and a hook-based lifecycle interceptor system (Python). All files are configuration/prompts/scripts — not a traditional application.
 
 ## Python Toolchain
 
@@ -16,7 +16,7 @@ Google Antigravity plugin. Contains 11 agent profiles, 42 skills, and a hook-bas
 | Path | What |
 |------|------|
 | `agents/` | 11 agent profile `.md` files with YAML frontmatter. Orchestrators: sisyphus, atlas, prometheus, metis, momus. Workers: hephaestus, sisyphus-junior, explore, librarian, oracle, multimodal-looker. |
-| `skills/` | 42 skill directories. Each has a `SKILL.md`. |
+| `skills/` | 44 skill directories. Each has a `SKILL.md`. |
 | `rules/` | `oh-my-openagent-rules.md` — native rules loaded into every session. |
 | `scripts/` | Hook interceptors (Python). Entry points: `session_start.py`, `pre_invocation.py`, `pre_tool_use.py`, `post_tool_use.py`, `stop.py`. Shared logic in `scripts/hooks/`. |
 | `hooks.json` | Hook router config — 5-phase lifecycle: `SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`. |
