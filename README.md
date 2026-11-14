@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/actions)
-[![Release](https://img.shields.io/badge/Release-v0.4.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
+[![Release](https://img.shields.io/badge/Release-v0.5.0-orange?style=flat-square)](https://github.com/HengWeiBin/oh-my-antigravity/releases)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 **Oh-My-Antigravity** is the premier multi-agent orchestration harness engineered specifically for **Google Antigravity 2.0**.
 
-Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 44 turnkey domain skills.
+Ported and redesigned from [`code-yeongyu/oh-my-openagent`](https://github.com/code-yeongyu/oh-my-openagent), `oh-my-antigravity` transforms Antigravity into a coordinated software engineering team. It features a unified, zero-overhead Python lifecycle hook engine, strict role-based permission boundaries, and 11 specialized agent personas equipped with 47 turnkey domain skills.
 
 ### Key Pillars
 
@@ -106,10 +106,10 @@ Antigravity invokes `oh-my-antigravity` through a multi-phase interceptor pipeli
    - Executes at the beginning of each user turn.
    - Enforces todo/plan continuation, agent reminders, keyword triggers, and dynamically mounts requested skills matching slash-command syntax. (`AGENTS.md` and behavioral rules are loaded natively by Antigravity).
 3. **PreToolUse (`scripts/pre_tool_use.py`)**:
-   - Intercepts mutating tool operations (`write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`).
+   - Intercepts mutating tool operations (`write_file`, `edit_file`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`).
    - Enforces role-based permissions: orchestrators cannot edit source code directly; workers cannot modify plugin manifests or task states.
 4. **PostToolUse (`scripts/post_tool_use.py`)**:
-   - Fires upon completion of subagent invocations or file modifications.
+   - Fires upon completion of subagent invocations or file modifications (`write_file`, `edit_file`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`).
    - Enforces the 4-Phase Verification Protocol, checks plan format compliance, validates source code comments via comment checker, and alerts on empty responses.
 5. **Stop (`scripts/stop.py`)**:
    - Runs during session shutdown or task conclusion to clean scratch files, log session metrics, and enforce plan continuation.
@@ -210,23 +210,23 @@ sequenceDiagram
 
 | Agent | Type / Role | Model Tier | Description | Permitted Tools Scope |
 |---|---|---|---|---|
-| **`sisyphus`** | Lead Orchestrator | `inherit` | Primary workflow coordinator. Plans, breaks down epics, delegates tasks to workers, and tracks completion. Blocked from editing source code. | `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`, `invoke_subagent`, `manage_task`, `define_subagent`, `manage_subagents`, `.md` / `.omo/` writes. |
-| **`atlas`** | Master Orchestrator | `flash` | Relentless execution driver. Tracks multi-item todo lists and work plans, continuously delegating until all checklist tasks are 100% finished. | Read tools, web search, `invoke_subagent`, task management, `.md` / plan state updates. |
-| **`prometheus`** | Strategic Planner | `flash` | Strategic planning consultant. Investigates conventions, gathers codebase facts, and synthesizes complete, decision-complete work plans. | Read tools, web search, `invoke_subagent`, task management, `.md` / plan documentation. |
-| **`metis`** | Pre-Planning Consultant | `flash` | Pre-planning analyst. Scrutinizes requirements before planning starts to prevent over-engineering, scope creep, and ambiguous specifications. | Read-only inspection tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`momus`** | Plan Reviewer | `flash` | Hostile plan auditor. Ruthlessly challenges assumptions, spots missing files, identifies unexecutable steps, and exposes blind spots. | Read-only inspection tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`hephaestus`** | Deep Worker | `flash` | Senior staff autonomous engineer. Handles complex, multi-step implementations, architectural refactors, and test suites end-to-end. | Full tool access: all read tools, file edits (`write_to_file`, `replace_file_content`), command execution (`run_command`), subagents. Config-protected. |
-| **`sisyphus-junior`** | Task Executor | `flash` | Fast, disciplined executor focused on bite-sized implementations, bug fixes, and surgical edits with strict adherence to instructions. | Full tool access: all read tools, file edits (`write_to_file`, `replace_file_content`), command execution (`run_command`). Config-protected. |
-| **`explore`** | Contextual Search | `flash` | Lightning-fast codebase researcher. Locates symbol definitions, implementation files, and usages without modifying files. | Read-only exploration (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`librarian`** | Docs & OSS Specialist | `flash` | External research specialist. Fetches official documentation, external package references, and open-source implementation patterns. | Read-only web and local inspection (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`oracle`** | Architecture Advisor | `flash` | Strategic technical advisor. Provides deep reasoning for architectural trade-offs, deadlock resolution, security postures, and system debugging. | Read-only analytical tools (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
-| **`multimodal-looker`**| Media Analyst | `flash` | Visual inspector for UI screenshots, architecture diagrams, PDF documentation, and visual regression artifacts. | Read-only media & file inspection (`view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`sisyphus`** | Lead Orchestrator | `inherit` | Primary workflow coordinator. Plans, breaks down epics, delegates tasks to workers, and tracks completion. Blocked from editing source code. | `read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`, `invoke_subagent`, `manage_task`, `define_subagent`, `manage_subagents`, `.md` / `.omo/` writes (`write_file`, `edit_file`, etc.). |
+| **`atlas`** | Master Orchestrator | `flash` | Relentless execution driver. Tracks multi-item todo lists and work plans, continuously delegating until all checklist tasks are 100% finished. | Read tools (`read_file`, `view_file`), web search, `invoke_subagent`, task management, `.md` / plan state updates (`write_file`, `edit_file`, etc.). |
+| **`prometheus`** | Strategic Planner | `flash` | Strategic planning consultant. Investigates conventions, gathers codebase facts, and synthesizes complete, decision-complete work plans. | Read tools (`read_file`, `view_file`), web search, `invoke_subagent`, task management, `.md` / plan documentation (`write_file`, `edit_file`, etc.). |
+| **`metis`** | Pre-Planning Consultant | `flash` | Pre-planning analyst. Scrutinizes requirements before planning starts to prevent over-engineering, scope creep, and ambiguous specifications. | Read-only inspection tools (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`momus`** | Plan Reviewer | `flash` | Hostile plan auditor. Ruthlessly challenges assumptions, spots missing files, identifies unexecutable steps, and exposes blind spots. | Read-only inspection tools (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`hephaestus`** | Deep Worker | `flash` | Senior staff autonomous engineer. Handles complex, multi-step implementations, architectural refactors, and test suites end-to-end. | Full tool access: all read tools (`read_file`, `view_file`), file edits (`write_file`, `edit_file`, `write_to_file`, `replace_file_content`), command execution (`run_command`), subagents. Config-protected. |
+| **`sisyphus-junior`** | Task Executor | `flash` | Fast, disciplined executor focused on bite-sized implementations, bug fixes, and surgical edits with strict adherence to instructions. | Full tool access: all read tools (`read_file`, `view_file`), file edits (`write_file`, `edit_file`, `write_to_file`, `replace_file_content`), command execution (`run_command`). Config-protected. |
+| **`explore`** | Contextual Search | `flash` | Lightning-fast codebase researcher. Locates symbol definitions, implementation files, and usages without modifying files. | Read-only exploration (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`librarian`** | Docs & OSS Specialist | `flash` | External research specialist. Fetches official documentation, external package references, and open-source implementation patterns. | Read-only web and local inspection (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`oracle`** | Architecture Advisor | `flash` | Strategic technical advisor. Provides deep reasoning for architectural trade-offs, deadlock resolution, security postures, and system debugging. | Read-only analytical tools (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
+| **`multimodal-looker`**| Media Analyst | `flash` | Visual inspector for UI screenshots, architecture diagrams, PDF documentation, and visual regression artifacts. | Read-only media & file inspection (`read_file`, `view_file`, `grep_search`, `list_dir`, `find_by_name`, `read_url_content`, `search_web`). |
 
 ---
 
 ## Bundled Skills Catalog
 
-`oh-my-antigravity` includes **44 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
+`oh-my-antigravity` includes **47 production skills**. Any skill can be auto-loaded into an agent turn using slash-command syntax (e.g., `/debugging` or `/programming`).
 
 ### 1. Planning & Strategy
 
@@ -235,6 +235,8 @@ sequenceDiagram
 | `/hyperplan` | `hyperplan` | Hostile multi-agent planning orchestrating 5 competing perspectives for battle-tested blueprints. |
 | `/ulw-plan` | `ulw-plan` | Explore-first planning engine (Prometheus) producing decision-complete execution plans before coding. |
 | `/start-work` | `start-work` | Executes Prometheus work plans with boulder state tracking and Stop-hook resumption. |
+| `/ulw-execute` | `ulw-execute` | Direct boulder-driven plan execution orchestrating parallel worker subagents. |
+| `/mass-ulw` | `mass-ulw` | Massive parallel ultrawork execution swarm running multiple decoupled tasks concurrently. |
 | `/teammode` | `teammode` | Orchestrates parallel cooperating subagent workers for concurrent workflow execution. |
 | `/ultrawork` | `ultrawork` | Binding ultrawork mode enforcing parallel execution, proactive debugging, and 100% completion. |
 | `/ulw-loop` | `ulw-loop` | Systematic evidence-bound task iteration loop breaking goals into atomic verification steps. |
@@ -270,6 +272,7 @@ sequenceDiagram
 
 | Command | Skill | Description |
 |---|---|---|
+| `/browser` | `browser` | Built-in browser subagent driver for page interaction, rendering, and visual QA verification. |
 | `/agent-browser` | `agent-browser` | Headless browser driver for web testing, form completion, and DOM extraction. |
 | `/dev-browser` | `dev-browser` | Persistent-session browser automation for interactive testing and stateful workflows. |
 | `/ultimate-browsing` | `ultimate-browsing` | Stealth browser automation with WAF/bot bypass, TLS impersonation, and anti-scraping evasion. |
@@ -313,7 +316,7 @@ The plugin manifest declares metadata loaded by Antigravity:
 ```json
 {
   "name": "oh-my-antigravity",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "The ultimate agent orchestration harness for Google Antigravity 2.0, ported from oh-my-openagent.",
   "logo": "assets/logo.svg"
 }
@@ -334,24 +337,24 @@ Configures which lifecycle events and tool matchers trigger interceptor scripts:
     "SessionStart": [
       {
         "type": "command",
-        "command": "python scripts/session_start.py",
+        "command": "uv run python ./scripts/session_start.py",
         "timeout": 5
       }
     ],
     "PreInvocation": [
       {
         "type": "command",
-        "command": "python scripts/pre_invocation.py",
+        "command": "uv run python ./scripts/pre_invocation.py",
         "timeout": 8
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "^(write_to_file|replace_file_content|multi_replace_file_content|run_command)$",
+        "matcher": "^(write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content|run_command)$",
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/pre_tool_use.py",
+            "command": "uv run python ./scripts/pre_tool_use.py",
             "timeout": 5
           }
         ]
@@ -359,11 +362,11 @@ Configures which lifecycle events and tool matchers trigger interceptor scripts:
     ],
     "PostToolUse": [
       {
-        "matcher": "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content)$",
+        "matcher": "^(invoke_subagent|write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content)$",
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/post_tool_use.py",
+            "command": "uv run python ./scripts/post_tool_use.py",
             "timeout": 5
           }
         ]
@@ -372,7 +375,7 @@ Configures which lifecycle events and tool matchers trigger interceptor scripts:
     "Stop": [
       {
         "type": "command",
-        "command": "python scripts/stop.py",
+        "command": "uv run python ./scripts/stop.py",
         "timeout": 5
       }
     ]

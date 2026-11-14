@@ -1,4 +1,4 @@
-"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.4.0.
+"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.5.0.
 
 Validates:
 1. Manifest & Config integrity (plugin.json, hooks.json, pyproject.toml).
@@ -35,6 +35,7 @@ EXPECTED_SKILLS = [
     "antigravity-hooks",
     "antigravity-subagents",
     "ast-grep",
+    "browser",
     "call-atlas",
     "call-prometheus",
     "coding-agent-sessions",
@@ -52,6 +53,7 @@ EXPECTED_SKILLS = [
     "init-deep",
     "lsp",
     "lsp-setup",
+    "mass-ulw",
     "omomomo",
     "pi-goal",
     "pre-publish-review",
@@ -69,6 +71,7 @@ EXPECTED_SKILLS = [
     "ultimate-browsing",
     "ultraresearch",
     "ultrawork",
+    "ulw-execute",
     "ulw-loop",
     "ulw-plan",
     "ulw-research",
@@ -77,6 +80,7 @@ EXPECTED_SKILLS = [
     "work-with-pr",
 ]
 
+EXPECTED_47_SKILLS = EXPECTED_SKILLS
 EXPECTED_44_SKILLS = EXPECTED_SKILLS
 EXPECTED_43_SKILLS = EXPECTED_SKILLS
 EXPECTED_42_SKILLS = EXPECTED_SKILLS
@@ -96,7 +100,7 @@ def test_manifest_plugin_json():
     assert data.get("$schema") == "https://antigravity.google/schemas/v1/plugin.json"
     assert data.get("name") == "oh-my-antigravity", "Plugin name must be 'oh-my-antigravity'"
     assert data.get("displayName") == "Oh-My-Antigravity", "Plugin displayName must be 'Oh-My-Antigravity'"
-    assert data.get("version") == "0.4.0", "Plugin version must be '0.4.0'"
+    assert data.get("version") == "0.5.0", "Plugin version must be '0.5.0'"
     assert data.get("description"), "Plugin must contain a non-empty description"
     assert data.get("author") == "HengWeiBin", "Plugin author must be 'HengWeiBin'"
     assert data.get("license") == "MIT", "Plugin license must be 'MIT'"
@@ -174,7 +178,7 @@ def test_manifest_pyproject_toml():
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     project = data.get("project", {})
     assert project.get("name") == "oh-my-antigravity", "Project name must match"
-    assert project.get("version") == "0.4.0", "Project version must be '0.4.0'"
+    assert project.get("version") == "0.5.0", "Project version must be '0.5.0'"
     assert ">=3.13" in project.get("requires-python", ""), "Python 3.13+ required"
 
 
@@ -222,9 +226,9 @@ def test_vector_asset_banner():
         "OH-MY-ANTIGRAVITY",
         "Google Antigravity 2.0",
         "11 Orchestrated Agents",
-        "44 Bundled Skills",
+        "47 Bundled Skills",
         "Python 3.13",
-        "ORCHESTRATION_HARNESS v0.4.0",
+        "ORCHESTRATION_HARNESS v0.5.0",
     ]:
         assert text_token in content, f"Missing banner label '{text_token}'"
 
@@ -357,14 +361,75 @@ def test_all_11_agent_profiles():
         assert agent_file.stat().st_size > 1000, f"Agent profile {agent_file.name} must be substantial"
 
 
+def _extract_frontmatter(text: str, filename: str) -> str:
+    """Extract YAML frontmatter block from an agent markdown file."""
+    match = re.match(r"^---\r?\n(.*?)\r?\n---(?:\r?\n|$)", text, re.DOTALL)
+    assert match is not None, f"{filename} must start with valid YAML frontmatter"
+    return match.group(1)
+
+
+def _extract_tools_list(frontmatter: str, filename: str) -> set[str]:
+    """Parse YAML `tools:` entries from frontmatter."""
+    tools: set[str] = set()
+    in_tools = False
+    for line in frontmatter.splitlines():
+        if not in_tools:
+            if re.match(r"^tools:\s*$", line):
+                in_tools = True
+            else:
+                inline_match = re.match(r"^tools:\s*\[(.*)\]\s*$", line)
+                if inline_match:
+                    for item in inline_match.group(1).split(","):
+                        cleaned = item.strip().strip("'\"")
+                        if cleaned:
+                            tools.add(cleaned)
+                    return tools
+        else:
+            if re.match(r"^\s+-\s+", line):
+                item = re.sub(r"^\s+-\s+", "", line).strip().strip("'\"")
+                if item:
+                    tools.add(item)
+            elif line.strip() == "" or line.lstrip().startswith("#"):
+                continue
+            else:
+                break
+    assert tools, f"{filename} frontmatter must declare a non-empty tools list"
+    return tools
+
+
+def test_agent_tools_no_alias_conflicts():
+    """Verify all 11 agent profiles avoid alias/runtime tool name conflicts and declare inheritMcp: true."""
+    agents_dir = REPO_ROOT / "agents"
+    agent_files = sorted(agents_dir.glob("*.md"))
+    assert {f.stem for f in agent_files} == EXPECTED_11_AGENTS
+
+    conflict_pairs = [
+        {"view_file", "read_file"},
+        {"write_to_file", "write_file"},
+        {"replace_file_content", "edit_file"},
+    ]
+
+    for agent_file in agent_files:
+        content = agent_file.read_text(encoding="utf-8")
+        frontmatter = _extract_frontmatter(content, agent_file.name)
+        assert re.search(r"^inheritMcp:\s*true\s*$", frontmatter, re.MULTILINE), (
+            f"{agent_file.name} must declare inheritMcp: true in frontmatter"
+        )
+        tools = _extract_tools_list(frontmatter, agent_file.name)
+        for pair in conflict_pairs:
+            assert not pair.issubset(tools), (
+                f"{agent_file.name} lists conflicting tool aliases {sorted(pair)} simultaneously in tools:"
+            )
+
+
 def test_all_44_skills_catalog_and_filesystem():
     """Verify all 44 skills are cataloged in READMEs and all skills on disk are well-formed."""
-    assert len(EXPECTED_SKILLS) == 44, "Must declare exactly 44 skills"
+    assert len(EXPECTED_SKILLS) == 47, "Must declare exactly 47 skills"
 
     en_readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     zh_readme = (REPO_ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
 
-    # 1. Verify 44 skills cataloged in both bilingual READMEs
+    # 1. Verify 47 skills cataloged in both bilingual READMEs
     for readme_content, name in [(en_readme, "README.md"), (zh_readme, "README.zh-TW.md")]:
         for skill in EXPECTED_SKILLS:
             assert f"/{skill}" in readme_content, f"Missing trigger /{skill} in {name}"
@@ -375,7 +440,7 @@ def test_all_44_skills_catalog_and_filesystem():
     assert skills_dir.is_dir(), "skills/ directory must exist"
 
     skill_folders = [d for d in skills_dir.iterdir() if d.is_dir()]
-    assert len(skill_folders) == 44, f"Expected 44 skill folders in skills/, found {len(skill_folders)}"
+    assert len(skill_folders) == 47, f"Expected 47 skill folders in skills/, found {len(skill_folders)}"
 
     for folder in skill_folders:
         skill_md = folder / "SKILL.md"

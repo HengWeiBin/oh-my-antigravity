@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Google Antigravity plugin. Contains 11 agent profiles, 44 skills, and a hook-based lifecycle interceptor system (Python). All files are configuration/prompts/scripts — not a traditional application.
+Google Antigravity plugin. Contains 11 agent profiles, 47 skills, and a hook-based lifecycle interceptor system (Python). All files are configuration/prompts/scripts — not a traditional application.
 
 ## Python Toolchain
 
@@ -16,7 +16,7 @@ Google Antigravity plugin. Contains 11 agent profiles, 44 skills, and a hook-bas
 | Path | What |
 |------|------|
 | `agents/` | 11 agent profile `.md` files with YAML frontmatter. Orchestrators: sisyphus, atlas, prometheus, metis, momus. Workers: hephaestus, sisyphus-junior, explore, librarian, oracle, multimodal-looker. |
-| `skills/` | 44 skill directories. Each has a `SKILL.md`. |
+| `skills/` | 47 skill directories. Each has a `SKILL.md`. |
 | `rules/` | `oh-my-openagent-rules.md` — native rules loaded into every session. |
 | `scripts/` | Hook interceptors (Python). Entry points: `session_start.py`, `pre_invocation.py`, `pre_tool_use.py`, `post_tool_use.py`, `stop.py`. Shared logic in `scripts/hooks/`. |
 | `hooks.json` | Hook router config — 5-phase lifecycle: `SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`. |
@@ -28,11 +28,11 @@ Five hook phases, all Python scripts reading JSON from stdin and writing JSON to
 
 - **SessionStart** (`session_start.py`) — Runs once per conversation session. Injects: codegraph recommendation when `.codegraph` and MCP are active.
 - **PreInvocation** (`pre_invocation.py`) — Runs on every user turn. Injects: todo preservation/continuation, agent reminders, keyword detection, skill auto-loading for subagents. (`AGENTS.md` and `rules/` are loaded natively by Antigravity).
-- **PreToolUse** (`pre_tool_use.py`) — Intercepts `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`. Enforces role-based permissions: orchestrators can NOT write code (only `.md`, `.agents/`, `.omo/`), workers can NOT write plugin config or `.omo/` state.
+- **PreToolUse** (`pre_tool_use.py`) — Intercepts `write_file`, `edit_file`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`. Enforces role-based permissions: orchestrators can NOT write code (only `.md`, `.agents/`, `.omo/`), workers can NOT write plugin config or `.omo/` state.
 - **PostToolUse** (`post_tool_use.py`) — Intercepts `invoke_subagent` and file writes. Injects 4-phase verification reminder, empty response detection, comment checker, plan format validator.
 - **Stop** (`stop.py`) — Intercepts agent completion to enforce plan continuation when tasks remain incomplete.
 
-Hook paths in `hooks.json` use absolute paths (`C:/Users/...`). Do not hardcode user paths in new code.
+Hook paths in `hooks.json` use portable `<plugin-root>`-relative paths by default (`uv run python ./scripts/...`), while `setup_hooks.py` can render explicit/custom absolute paths if needed. Do not hardcode user paths in new code.
 
 ## Agent Roles
 
