@@ -11,12 +11,11 @@
 # ─── How to run ───
 # 1. Install uv (if not installed):
 #      curl -LsSf https://astral.sh/uv/install.sh | sh
-# 2. Install Playwright browsers (one-time):
-#      uv run --with playwright python -m playwright install chromium
+# 2. Chrome must already be installed locally:
+#      The script uses channel="chrome"; it downloads no browser.
 # 3. Run:
 #      uv run lighthouse-audit.py https://example.com
 #      uv run lighthouse-audit.py https://example.com --desktop-only
-#      uv run lighthouse-audit.py https://example.com --threshold 95
 # ──────────────────
 
 """Lighthouse audit via real Playwright Chrome.
@@ -33,12 +32,14 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 import typer
 from rich import print as rprint
 from rich.table import Table
+
 
 # Lighthouse config as Node.js script — run via subprocess
 LIGHTHOUSE_RUNNER_JS = """\
@@ -81,7 +82,6 @@ def _check_node_deps() -> bool:
         ["node", "-e", "require('lighthouse'); require('chrome-launcher')"],
         capture_output=True,
         text=True,
-        check=False,
     )
     return result.returncode == 0
 
@@ -108,7 +108,6 @@ def _run_lighthouse_via_cdp(url: str, cdp_port: int, preset: str) -> dict[str, i
             capture_output=True,
             text=True,
             timeout=120,
-            check=False,
         )
         if result.returncode != 0:
             rprint(f"[red]Lighthouse failed:[/red] {result.stderr}")
@@ -130,8 +129,10 @@ def _run_with_playwright(url: str, preset: str) -> dict[str, int]:
             args=["--remote-debugging-port=0"],
         )
 
+        # Get the actual CDP port from browser
+        cdp_url = browser.contexts[0].pages[0].url if browser.contexts else ""
         # Use the browser's websocket endpoint to extract port
-        ws_endpoint = browser._impl_obj._connection._transport._ws_url
+        ws_endpoint = browser._impl_obj._connection._transport._ws_url  # noqa: SLF001
         # Extract port from ws://127.0.0.1:PORT/...
         port_str = ws_endpoint.split("://")[1].split(":")[1].split("/")[0]
         cdp_port = int(port_str)

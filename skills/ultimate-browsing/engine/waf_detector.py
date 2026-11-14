@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import re
 from dataclasses import dataclass
+from typing import Optional
 
 try:
     import yaml  # PyYAML
@@ -37,7 +39,7 @@ _DEFAULT_PROFILES: dict = {
         ],
         "referer_strategies": ["self_root", "google_search", "none"],
         "url_transform_order": ["original", "mobile_subdomain"],
-        "fallback_when_challenge": ["playwright_mcp", "playwright_real_chrome"],
+        "fallback_when_challenge": ["surrogate_wayback", "playwright_mcp", "playwright_real_chrome"],
         "notes": "in-code default — waf_profiles.yaml unavailable",
     },
 }
@@ -45,7 +47,7 @@ _DEFAULT_PROFILES: dict = {
 
 # Module-level sticky error. Readers call `last_load_error()` after each
 # `_load_profiles()` call to surface YAML problems in FetchResult.trace.
-_LAST_LOAD_ERROR: str | None = None
+_LAST_LOAD_ERROR: Optional[str] = None
 
 
 @dataclass
@@ -55,7 +57,7 @@ class DetectionHit:
     signals: list[str]
 
 
-def last_load_error() -> str | None:
+def last_load_error() -> Optional[str]:
     """Return the most recent profile-loader error (or None if clean)."""
     return _LAST_LOAD_ERROR
 
@@ -82,12 +84,12 @@ def _load_profiles(path: str = PROFILES_PATH) -> dict:
     except yaml.YAMLError as e:
         _LAST_LOAD_ERROR = f"YAML parse error: {type(e).__name__}: {str(e)[:200]}"
         return dict(_DEFAULT_PROFILES)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         _LAST_LOAD_ERROR = f"profile loader: {type(e).__name__}: {str(e)[:200]}"
         return dict(_DEFAULT_PROFILES)
 
     if not isinstance(loaded, dict) or not any(k for k in loaded if not k.startswith("_")):
-        _LAST_LOAD_ERROR = "waf_profiles.yaml has no usable profiles"
+        _LAST_LOAD_ERROR = f"waf_profiles.yaml has no usable profiles"
         return dict(_DEFAULT_PROFILES)
 
     return loaded
@@ -96,17 +98,17 @@ def _load_profiles(path: str = PROFILES_PATH) -> dict:
 def _cookies_dict(resp) -> dict:
     try:
         return {c.name: c.value for c in resp.cookies.jar}
-    except Exception:  # noqa: BLE001
+    except Exception:
         try:
             return dict(resp.cookies) if hasattr(resp, "cookies") else {}
-        except Exception:  # noqa: BLE001
+        except Exception:
             return {}
 
 
 def _headers_dict(resp) -> dict:
     try:
         return {k.lower(): v for k, v in dict(resp.headers).items()}
-    except Exception:  # noqa: BLE001
+    except Exception:
         return {}
 
 
@@ -127,7 +129,7 @@ def _match_patterns(haystack_keys: list[str], patterns: list[str]) -> list[str]:
     return hits
 
 
-def _score_profile(profile_id: str, profile: dict, resp) -> DetectionHit | None:
+def _score_profile(profile_id: str, profile: dict, resp) -> Optional[DetectionHit]:
     """Apply profile detectors to resp. Returns hit or None."""
     if profile_id.startswith("_"):
         return None
@@ -177,7 +179,7 @@ def _score_profile(profile_id: str, profile: dict, resp) -> DetectionHit | None:
     return DetectionHit(profile_id=profile_id, confidence=conf, signals=signals)
 
 
-def detect(resp, *, profiles: dict | None = None, min_confidence: float = 0.0) -> list[DetectionHit]:
+def detect(resp, *, profiles: Optional[dict] = None, min_confidence: float = 0.0) -> list[DetectionHit]:
     """Return ranked list of detection hits (best first).
 
     When nothing fires, the returned list contains a single `unknown_challenge`
@@ -205,7 +207,7 @@ def detect(resp, *, profiles: dict | None = None, min_confidence: float = 0.0) -
     return hits
 
 
-def load_profile(profile_id: str, *, profiles: dict | None = None) -> dict:
+def load_profile(profile_id: str, *, profiles: Optional[dict] = None) -> dict:
     """Get one profile by id, resolving `unknown_challenge` if missing."""
     if profiles is None:
         profiles = _load_profiles()

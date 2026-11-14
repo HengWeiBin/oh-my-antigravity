@@ -411,6 +411,11 @@ After the plan agent's output has been presented to the user:
 
 1. Call `manage_subagents` / `manage_task` (action: "kill") for each member subagent to terminate completed workers.
 2. Confirm cleanup to the user with one line: "Hyperplan team disbanded."
+3. Once the user approves the finalized plan (and saves it to `.omo/plans/<slug>.md` when requested), hand off execution to `/ulw-execute` (or `/start-work`).
+
+## REFUSAL & STOP RULES
+
+- **Refusal is Final**: User refusals (NO, STOP, CANCEL, DENY) and tool/permission blocks are terminal boundaries for that operation. Never attempt workarounds via alternative tools, shell commands, or subagents; acknowledge immediately and report.
 
 ## ANTI-PATTERNS — DO NOT DO THESE
 

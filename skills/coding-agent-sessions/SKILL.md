@@ -1,6 +1,6 @@
 ---
 name: coding-agent-sessions
-description: "MUST USE when asked to find, read, list, search, inspect, fetch, export, or reconstruct coding-agent sessions across Codex, Claude Code/Desktop, OpenCode, Senpi/pi, OpenClaw, Factory Droid, Amp, Gemini/Antigravity/Kimi/Qwen CLIs, Codebuff, Roo/Kilo/Cline, Kodu, Cursor CLI, Aider, or unknown local agent logs. Covers transcripts, session IDs, rollout JSONL, state SQLite, Claude projects/pre-compact histories, OpenCode messages/parts, child/subagent linkage, cwd/model/time/token filters, archives, and cost clues. Expands fuzzy recall into parallel query lanes and first probes known stores so absent platforms are skipped cheaply. Triggers: coding agent sessions, Codex/Claude/OpenCode/Senpi/pi/OpenClaw/Droid/Amp/Antigravity/Kodu/Cursor/Aider sessions, transcript search, session history, session ID, read transcript, token usage, subagent sessions, what did I do yesterday, did we already do this."
+description: "Finds, reads, and reconstructs coding-agent sessions across Codex, Claude, OpenCode, OMO/Senpi, and other local agent logs. Use when asked to find or search past sessions, transcripts, or subagent runs, or to recover what an earlier session did."
 ---
 
 # Coding Agent Sessions
@@ -15,9 +15,10 @@ Find local coding-agent sessions across agent products before answering from mem
    |---|---|
    | Codex / OpenAI Codex CLI | `references/codex.md` |
    | Claude Code / Claude Desktop histories | `references/claude.md` |
-   | Senpi / pi coding-agent logs | `references/senpi.md` |
+   | OMO / Senpi / pi coding-agent logs | `references/senpi.md` |
+   | oh-my-pi (`omp`, `~/.omp`) and gajae-code (`gjc`, `~/.gjc`) logs | `references/senpi.md` |
    | OpenCode / oh-my-openagent (formerly oh-my-opencode) storage | `references/opencode.md` |
-   | OpenClaw, Droid, Amp, Gemini, Antigravity, Kimi, Qwen, Codebuff, Roo/Kilo/Cline, Kodu, Cursor CLI, Aider, Kiro, Goose, Hermes, Crush, Zed | `references/all-platforms.md` |
+   | OpenClaw, Droid, Amp, Gemini, Antigravity, Kimi, Qwen, Codebuff, Roo/Kilo/Cline, Kodu, Cursor CLI, Aider, Kiro, Goose, Hermes, Crush, Zed, Aside | `references/all-platforms.md` |
    | Unknown / "any session" / cross-agent search | `references/all-platforms.md` |
 
 2. **Run the broad finder first unless the user gave an exact file path. For fuzzy recall, expand the query first.**
@@ -25,15 +26,16 @@ Find local coding-agent sessions across agent products before answering from mem
 When the user remembers a task vaguely ("that OpenCode bug", "the dashboard PR", "when did we fix X"), derive 3-6 short query lanes before searching: product/tool aliases, repo/package names, exact error text, issue/PR/session IDs, English/Korean phrasing, and likely verbs such as `fix`, `review`, `plan`, `deploy`, or `merge`. Run the lanes together with repeated `--query` so `match_reasons` shows which wording found the hit.
 
 ```bash
-python "<skill-root>/scripts/find-agent-sessions.py" list --limit 20
-python "<skill-root>/scripts/find-agent-sessions.py" find "commit" --from 7d --platform senpi --platform opencode
-python "<skill-root>/scripts/find-agent-sessions.py" find "proxy" --platform openclaw --platform droid --platform amp
-python "<skill-root>/scripts/find-agent-sessions.py" find --query "deploy" --query "token usage" --workers 64
-python "<skill-root>/scripts/find-agent-sessions.py" find --query "opencode bug" --query "fix opencode" --query "OpenCode parent session" --include-subagents --workers 64
-python "<skill-root>/scripts/find-agent-sessions.py" read <session-id>
+python3 -B scripts/find-agent-sessions.py list --limit 20
+python3 -B scripts/find-agent-sessions.py find "commit" --from 7d --platform senpi --platform opencode
+python3 -B scripts/find-agent-sessions.py find "proxy" --platform openclaw --platform droid --platform amp
+python3 -B scripts/find-agent-sessions.py find "refactor" --platform oh-my-pi --platform gajae-code
+python3 -B scripts/find-agent-sessions.py find --query "deploy" --query "token usage" --workers 64
+python3 -B scripts/find-agent-sessions.py find --query "opencode bug" --query "fix opencode" --query "OpenCode parent session" --include-subagents --workers 64
+python3 -B scripts/find-agent-sessions.py read <session-id>
 ```
 
-Use `python` instead of `python` on systems where that is the available executable.
+Use `python` instead of `python3` on systems where that is the available executable. Keep `-B`: the skill can live inside a signed app bundle, and Python bytecode caches written next to the scripts break its signature.
 
 3. **Use explorer-style parallel lanes when one query batch is not enough.**
 
@@ -49,7 +51,7 @@ The finder prints JSON for stdout and `jq`. Every result includes:
 
 | Field | Meaning |
 |---|---|
-| `platform` | Registered platform key such as `codex`, `claude`, `opencode`, `openclaw`, `droid`, `amp`, `antigravity`, `kodu`, `cursor-cli`, `aider`, `roo-code`, `kilo-code`, `kilo-cli`, or `kiro` |
+| `platform` | Registered platform key such as `codex`, `claude`, `senpi`, `oh-my-pi`, `gajae-code`, `opencode`, `openclaw`, `droid`, `amp`, `kodu`, `cursor-cli`, `aider`, `roo-code`, `kilo-code`, `kilo-cli`, `kiro`, or `aside` |
 | `id` | Session ID or stable file-derived ID |
 | `path` | Raw transcript/index file |
 | `cwd` | Working directory when recoverable |
@@ -64,7 +66,7 @@ The finder prints JSON for stdout and `jq`. Every result includes:
 | `detail_hint` | Ready-to-run `read` command for detailed inspection |
 | `match_reasons` | Search-only array explaining which field/content matched each query |
 
-Each `match_reasons` entry includes `query`, `platform`, `field`, and `snippet`, so you can tell which platform matched and what content caused the hit without opening every transcript.
+Each `match_reasons` entry includes `query`, `platform`, `field`, and `snippet`, so you can tell which platform matched and what content caused the hit without opening every transcript. `field` is `user_message` when the query matched a user prompt that the `first_user_message`/`last_user_message` previews do not cover, such as a prompt in the middle of the session.
 
 ## Filters
 
@@ -78,15 +80,16 @@ Each `match_reasons` entry includes `query`, `platform`, `field`, and `snippet`,
 | `--cwd` | Working-directory substring |
 | `--model` | Model substring |
 | `--limit` | Maximum results |
-| `--query` | Repeatable search query; multiple queries return per-query groups plus a de-duplicated merged result list |
 | `--workers` | Parallel worker count for platform scans, transcript parsing, OpenCode message joins, and multi-query matching |
 | `--include-subagents` | Include subagent/child sessions as standalone `list`/`search` results (hidden by default) |
+
+`search` (alias `find`) also takes `--query`: a repeatable search query; multiple queries return per-query groups plus a de-duplicated merged result list. `list` ignores `--query` and positional text.
 
 When `--platform` is omitted, the finder searches every registered platform in parallel. Each optional platform first probes fixed, known transcript roots and returns immediately when the product has no local store, so broad default searches stay cheap. Use repeatable flags such as `--platform openclaw --platform droid` only when narrowing. Comma-separated platform values are intentionally unsupported.
 
 For OpenCode, the finder uses `opencode db path` plus direct SQLite queries first, then `opencode session list --format json` as a fallback. It avoids heavy `messages/` or `parts/` scans during normal list/search, and only falls back to file joins when the OpenCode DB/CLI is unavailable or explicit `--root` values request a nonstandard store.
 
-Usage-only sources such as Copilot OTEL, Mux, Antigravity tokscale cache rows (separate from session transcripts under `brain/`), Synthetic provider retagging, and Cursor IDE usage CSV are excluded from default transcript search because they do not reconstruct user prompts.
+Usage-only sources such as Copilot OTEL, Mux, Antigravity tokscale cache rows, Synthetic provider retagging, and Cursor IDE usage CSV are excluded from default transcript search because they do not reconstruct user prompts.
 
 ## Subagent / Child Sessions
 
@@ -105,9 +108,9 @@ When the user asks whether some specific work was ever done, search with `--incl
 For Codex sessions, use the same broad finder. It reads `state_*.sqlite`, rollout JSONL, and archived rollout files:
 
 ```bash
-python "<skill-root>/scripts/find-agent-sessions.py" list --platform codex --from 7d
-python "<skill-root>/scripts/find-agent-sessions.py" find "deploy" --platform codex
-python "<skill-root>/scripts/find-agent-sessions.py" read <session-id> --platform codex
+python3 -B scripts/find-agent-sessions.py list --platform codex --from 7d
+python3 -B scripts/find-agent-sessions.py find "deploy" --platform codex
+python3 -B scripts/find-agent-sessions.py read <session-id> --platform codex
 ```
 
 Use `references/codex.md` for Codex storage details.
@@ -117,8 +120,11 @@ Use `references/codex.md` for Codex storage details.
 | Problem | Fix |
 |---|---|
 | Missing Codex sessions | Set `CODEX_HOME` or pass `--root /path/to/.codex`. |
+| Missing oh-my-pi / gajae-code sessions | Those stores live in `~/.omp/agent/sessions` and `~/.gjc/agent/sessions`. For a custom `PI_CONFIG_DIR` / `PI_CODING_AGENT_DIR`, pass that agent dir with `--root`. |
+| Missing OMO / Senpi sessions | The `senpi` platform searches `~/.omo/agent/sessions`, `~/.senpi/agent/sessions`, and `~/.pi/agent/sessions` (plus matching profile roots). Pass a nonstandard agent directory with `--root`. |
 | Missing OpenCode sessions | Pass the data dir that contains `messages/` and `parts/`, often `~/.opencode` or `~/.local/share/opencode`. |
 | Missing Claude sessions | Search `~/.claude/projects`, `~/.claude/transcripts`, and `~/.claude/pre-compact-session-histories`; use `--root` for nonstandard config dirs. |
+| Missing Aside sessions | The Aside browser agent stores per-user data under `~/.aside/u/<n>/` (`sessions/<date>_<id>/messages.jsonl` transcripts + a `state.db` index; `agents/*/sessions/` is just a hardlink mirror). Pass `--root` for a nonstandard `.aside` dir or an exported user dir. |
 | Missing optional platform sessions | Check `references/all-platforms.md` for the exact local store. For project-local tools such as Aider, pass `--root /path/to/workspace` if the repo is outside the bounded default roots. |
 | Date filter misses local sessions | Timestamps are compared as UTC instants when parseable; otherwise file mtime is used. |
 | Search is slow | Narrow with repeated `--platform` flags or date/cwd filters. Optional stores are probed before parsing; avoid passing your whole home as `--root` unless you really want every bounded project-local scan. |

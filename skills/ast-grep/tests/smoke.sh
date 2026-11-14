@@ -49,7 +49,7 @@ fake_sg() {
   cat > "$target" <<'SH'
 #!/usr/bin/env bash
 if [ "${1:-}" = "--version" ]; then
-  printf 'ast-grep 0.43.0 fake\n'
+  printf 'ast-grep 0.45.0 fake\n'
 else
   printf 'fake ast-grep\n'
 fi
@@ -140,7 +140,7 @@ pass "OMO HOME runtime resolves before standalone fallback"
 # 9. search w/o binary => either runs successfully (binary found) OR exits 3 with hint
 # The CI may or may not have ast-grep installed; both are valid.
 set +e
-$HELPER -q search 'foo()' --lang ts /nonexistent-path-xyzzy > "$OUTPUT_DIR/s1.out" 2>&1
+$HELPER -q search 'foo()' /nonexistent-path-xyzzy --lang ts > "$OUTPUT_DIR/s1.out" 2>&1
 RC=$?
 set -e
 case "$RC" in

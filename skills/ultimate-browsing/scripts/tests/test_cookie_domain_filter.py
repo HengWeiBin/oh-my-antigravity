@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from extract_cookies import extract_cookies
+from extract_cookies import extract_cookies  # noqa: E402
 
 
 def _make_chromium_db(path: Path, rows: list[tuple[str, bytes, str]]) -> None:

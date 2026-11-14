@@ -41,7 +41,7 @@ Step 3 is the unlock — once you have plaintext source on disk, the rest is nor
 
 ```bash
 # Look for runtime-specific markers in plaintext strings
-strings -n 12 ./target 2>/dev/null | rg -iE 'bun|node_modules|webpack|esbuild|deno|pkg/lib|electron|pyinstaller|nexe|NODE_SEA_FUSE|NODE_SEA_BLOB|tauri|ESZIP_V2|denort' | head -20
+strings -n 12 ./target 2>/dev/null | rg -i 'bun|node_modules|webpack|esbuild|deno|pkg/lib|electron|pyinstaller|nexe|NODE_SEA_FUSE|NODE_SEA_BLOB|tauri|ESZIP_V2|denort' | head -20
 ```
 
 | Marker pattern | Bundler | Source format |
@@ -135,7 +135,7 @@ For single-file builds where the asar is embedded inside the executable, **do no
 
 ```bash
 # Recover the embedded archive without running the binary
-python pyinstxtractor.py ./target
+python3 pyinstxtractor.py ./target
 # Output: ./target_extracted/ with .pyc files
 
 # Decompile the .pyc files back to Python source
@@ -191,7 +191,7 @@ sys.stdout.buffer.write(bundle)
 ```
 
 ```bash
-python extract_bundled_js.py ./target > extracted-bundle.js
+python3 extract_bundled_js.py ./target > extracted-bundle.js
 wc -c extracted-bundle.js
 # Sanity check the tail is JS, not random binary
 tail -c 200 extracted-bundle.js
@@ -337,7 +337,7 @@ A consumer reading the strings output would conclude the template is empty.
 
 **Mitigation**:
 1. Use `strings` only for **fingerprinting** (Phase 1 triage), never as the source of extracted text.
-2. For actual extraction, **read the binary as bytes** with `python -c "open('./target','rb').read()"` and grep / parse from there.
+2. For actual extraction, **read the binary as bytes** with `python3 -c "open('./target','rb').read()"` and grep / parse from there.
 3. If you must use `strings`, try `strings -n 1 -t x ./target` and post-filter — but byte-level reads are still more reliable.
 
 ### G2. Stale cached binary ≠ latest features

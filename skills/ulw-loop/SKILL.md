@@ -14,8 +14,9 @@ This skill is intentionally compact. The full workflow lives in `references/full
 ## Required First Steps
 
 1. Open `references/full-workflow.md`.
-2. Read through **Bootstrap** (including its tier triage), **Execution Loop**, and the **Manual-QA channels** table before running any ULW command or recording evidence.
-3. If the task has code edits, tests, QA, or commit work, follow the full workflow's delegation and evidence rules. Tests alone never prove done.
+2. Read through **Bootstrap** (including its tier triage), **Execution Loop**, the **Manual-QA channels** table, and the **Stop Rules** before running any ULW command or recording evidence.
+3. Open `references/define-goal.md` and register the run's goal by it. Goal creation is NEVER skipped: shape the objective and every success criterion by that reference before any implementation.
+4. If the task has code edits, tests, QA, or commit work, follow the full workflow's delegation and evidence rules. Tests alone never prove done.
 
 ## Non-Negotiables
 
@@ -32,6 +33,24 @@ This skill is intentionally compact. The full workflow lives in `references/full
 - While children run, surface the active subagent count, agent names, and latest `WORKING:` phase.
 - Fallback only when the child is completed without the deliverable, ack-only after `followup_task`, explicitly `BLOCKED:`, or no longer running. Then record inconclusive and respawn a smaller `fork_turns: "none"` task with the missing deliverable.
 - Use `git-master` for git-tracked edits: inspect recent and touched-path commit history, then commit each verified work unit atomically in the repository's observed language, scope, and message style with only that unit's files staged.
+- **Refusal is Final**: User refusals (NO, STOP, CANCEL, DENY) and tool/permission blocks are terminal boundaries for that operation. Never attempt workarounds via alternative tools, shell commands, or subagents; acknowledge immediately and report.
+
+## Team mode: decide it, do not default to it
+
+Solo execution with parallel background subagent workers (`invoke_subagent`) is the default. Team mode (`teammode` skill — coordinated `invoke_subagent` + `send_message`) adds per-member briefing, shared-state, and relay overhead, so it must be paid for by the work's shape. Decide ONCE, when the plan's work units are known, and record the verdict plus its reason in the notepad.
+
+Stand up a team when BOTH hold:
+
+1. **The units' scopes overlap in a way you cannot cleanly cut.** They touch the same module, contract, or migration, so one unit's discovery changes what another should do. Fire-and-forget workers cannot exchange that mid-flight; teammates can, because the lead relays it.
+2. **Running them at the same time actually finishes sooner.** The units are each substantial and none is merely waiting on another's output. Two units where the second only consumes the first's result are a sequence, not a team.
+
+When the units are genuinely independent — separate files, no shared contract — spawn parallel background subagents via `invoke_subagent` instead and avoid the team coordination overhead entirely. When the work is one cohesive unit, keep it in this session — delegating only the code edits, test writes, fixes, and QA executions the rule above requires. Overlap alone is not enough: near-identical units that would collide on the same lines are faster done in sequence by one worker.
+
+Under team mode, isolate and land per unit:
+
+- **One git worktree per member**, never a shared checkout — concurrent members editing one working tree corrupt each other's diffs and evidence. Give each member its own branch off the base and its own worktree path. Apply the same resource rules when creating member worktrees.
+- **Merge per work unit, as each unit is verified.** A member's unit lands when its own evidence is captured and its gates are green; it does not wait for the slowest sibling. Integrate each merged unit back into the base the others branch from, so overlapping members rebase onto real merged work rather than guessing at it.
+- **Conflicts are the lead's job.** When two members' units touch the same lines, the lead decides the order they land and tells the later member what changed; members never resolve a sibling's conflict blind.
 
 ## Antigravity Tool Mapping
 
@@ -39,7 +58,7 @@ In Google Antigravity, we coordinate subagents using the native `invoke_subagent
 
 | Intent | Antigravity tool to use |
 | --- | --- |
-| Spawn a worker | `invoke_subagent({ Subagents: [{ TypeName: "self", Role: "<role>", Prompt: "TASK: ..." }] })` |
+| Spawn a worker | `invoke_subagent({ TypeName: "self", Role: "<role>", Prompt: "TASK: ..." })` |
 | Re-task or communicate | `send_message({ Recipient: "<conversation-id>", Message: "..." })` |
 | Wait for updates | Not needed. Stop calling tools to yield execution; the system notifies you automatically. |
 | List or terminate | `manage_subagents({ Action: "list" })` or `Action: "kill"` |

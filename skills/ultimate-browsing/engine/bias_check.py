@@ -17,6 +17,7 @@ import re
 import sys
 from pathlib import Path
 
+
 # Known brand / domain substrings that should NOT appear in engine code.
 # This is a non-exhaustive deny list. CI should treat hits as warnings that
 # require human review; false positives (e.g. "github" in comments) can be
@@ -53,6 +54,14 @@ URL_ALLOWLIST = {
     "www.google.com", "google.com",
     # Generic HTTP test endpoint for infrastructure / transport tests.
     "httpbin.org",
+    # Surrogate-tier infrastructure (engine/surrogates.yaml): archives/relays
+    # that serve a copy of ANY target URL. Same no-site-preference category as
+    # the google.com Referer — they are not target sites.
+    "archive.org", "web.archive.org",
+    "r.jina.ai",
+    # Placeholder host in the proxy-entry shape example; "canonical non-routable
+    # doc domain" (.invalid TLD), can never be a real target.
+    "relay.invalid",
 }
 
 # Files / dirs that must be clean.
@@ -79,6 +88,9 @@ EXPLICIT_ALLOW_FILES = {
     # None right now — add if needed with justification.
 }
 
+# NOTE-BIAS-OK convention for surrogate tests: fixture URLs (stub/interstitial
+# captures from third-party services) carry the marker on the flagged line.
+
 
 def _line_is_exempt(line: str, ext: str) -> bool:
     markers = COMMENT_OK_MARKERS.get(ext, ())
@@ -94,7 +106,7 @@ def _scan_file(path: Path, root: Path) -> list[str]:
     ext = path.suffix.lower()
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return [f"{rel}:0 — read error: {e}"]
 
     violations: list[str] = []
@@ -117,7 +129,7 @@ def _scan_file(path: Path, root: Path) -> list[str]:
             host = host.split("//", 1)[-1].split("/", 1)[0]
             if host in URL_ALLOWLIST:
                 continue
-            if host.endswith((".example.com", ".example.org")):
+            if host.endswith(".example.com") or host.endswith(".example.org"):
                 continue
             violations.append(f"{rel}:{lineno} — hardcoded host `{host}` in: {line.strip()[:120]}")
             break

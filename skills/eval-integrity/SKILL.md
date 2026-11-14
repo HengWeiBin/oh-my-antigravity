@@ -1,161 +1,107 @@
 ---
 name: eval-integrity
-description: "High-rigor evaluation and benchmark integrity auditing skill. Audits benchmark suites, LLM-as-a-judge setups, test holdout contamination, data leakage, and rubric hacking to ensure genuine model and prompt capabilities. Triggers: 'eval integrity', 'benchmark audit', 'contamination audit', 'rubric audit', 'eval-integrity', 'evaluation integrity', 'test leakage', 'judge gaming'."
+description: "Assess integrity of an eval, benchmark, metric, A/B test, holdout, LLM-judge, or user-study claim when the question is whether measurement, comparison, or evidence is independent and trustworthy."
 ---
 
-# Eval Integrity — Benchmark & Evaluation Rigor Audit
+# Evaluation Integrity
 
-Audit evaluation pipelines, test suites, benchmark datasets, and LLM-as-a-judge configurations against contamination, metric gaming, rubric leakage, and false-confidence artifacts.
+Provide a read-only audit of whether an evaluation can support its stated claim. Do not alter code,
+data, prompts, labels, or study operations. Begin with exactly one verdict line in the form
+`**Verdict: PASS**`, `**Verdict: FAIL**`, or `**Verdict: INCONCLUSIVE**`. Emit no other verdict
+line and do not restate the verdict later in the report. A favorable score is not itself evidence
+of integrity.
 
-## Core Mandate
+## Route correctly
 
-An evaluation suite that can be gamed or contaminated is worse than no evaluation suite: it produces false confidence while shielding regressions. This skill conducts forensic, evidence-grounded audits of evaluation harnesses to guarantee that reported benchmarks reflect genuine capability rather than memorization, artifact leakage, or metric exploitation.
+- **NOT for code review:** route implementation, correctness, security, or maintainability review to
+  `review-work`.
+- **NOT for data processing:** route cleaning, transforming, joining, modeling, or analyzing data to
+  `data-scientist`.
+- Use this skill for the independence and validity of the measurement setup, not for producing a
+  result from it.
 
-All audits must produce grounded evidence using Antigravity native inspection tools (`view_file`, `grep_search`, `run_command`, `invoke_subagent`). Never accept self-reported benchmark scores without verifying raw test cases and evaluation logs.
+## Audit method
 
----
+### 1. State the claim and map the evaluation
 
-## The Four Core Audit Dimensions
+Write the claim in testable form: what comparison, metric, threshold, or causal statement is being
+made; for which population; and under which decision rule. Map every role before judging it:
 
-Every evaluation integrity audit rigorously inspects four orthogonal dimensions:
+| Element | Record |
+| --- | --- |
+| Claim | The conclusion and decision it is meant to justify. |
+| System under test | Exact model, version, configuration, prompt, policy, or treatment. |
+| Dataset and split | Sources, collection dates, inclusion rules, train/dev/test or holdout assignment. |
+| Designer | Who selected the task, data, prompts, treatments, metric, and stopping rule. |
+| Evaluator or judge | Who or what assigns quality judgments, including model and prompt versions. |
+| Scorer | The rule or system that turns outputs or judgments into the reported metric. |
+| Subjects | Humans, records, tasks, or units exposed to treatment or observation. |
 
-| Dimension | Focus | Critical Vulnerabilities |
-|---|---|---|
-| **1. Benchmark Contamination** | Training/eval split leakage & test set memorization | Verbatim test prompts in pre-training or fine-tuning corpora, few-shot prompt contamination, leaked test questions in synthetic data pipelines. |
-| **2. Metric Gaming** | Exploiting evaluator heuristics rather than semantic correctness | Length bias (longer answers favored by LLM judges), keyword-matching shims, format-compliance rewards without logical reasoning, hardcoded heuristic shortcuts. |
-| **3. Rubric Ambiguity** | Vague, contradictory, or under-specified judge criteria | Non-orthogonal scoring dimensions, undefined tie-breakers, conflicting constraints between system and evaluation rubrics, high judge variance across seeds. |
-| **4. Holdout Integrity** | Validation/test set contamination & cross-split bleed | Leaked evaluation seeds, cross-fold overlap in split data, train/eval shared context, repeatedly querying test holdout without correction penalties. |
+Trace shared ownership, shared data, shared prompts, shared labels, and shared selection decisions
+across this map. Several models do **not** establish independence merely because there are several
+of them; identify distinct training, tuning, prompt design, labels, data, and decision authority.
 
----
+### 2. Check the ground truth
 
-## Tooling & Antigravity Native Adaptation
+Identify the independent ground truth that could confirm the claim without reusing the system's own
+preferences, outputs, labels, or optimization target. Test whether it is:
 
-In Google Antigravity, all evaluation audits are executed directly through canonical environment tools:
+- external to the system under test and its designer;
+- collected or adjudicated without seeing the treatment identity when blinding is feasible;
+- appropriate to the claim rather than a proxy selected because it favors one arm; and
+- fixed before comparison, or accompanied by a disclosed multiplicity and selection procedure.
 
-- `view_file`: Direct inspection of evaluation datasets (JSONL, CSV, Parquet), judge system prompts, scoring scripts, and test configurations.
-- `grep_search`: High-speed regex and string scanning for verbatim test prompts across training manifests, prompt templates, and synthetic generators.
-- `run_command`: Running evaluation harnesses, calculating contamination metrics (n-gram overlap, token Jaccard similarity), executing pytest test suites, or running statistical profiling scripts.
-- `invoke_subagent`: Spawning parallel, independent forensic review oracles (`TypeName: "oracle"`) to evaluate rubrics and verify that edge cases cannot bypass test assertions.
+If no independent ground truth exists, do not substitute agreement among related systems. Mark the
+claim **INCONCLUSIVE** unless the stated claim is explicitly limited to that related system's score.
 
----
+### 3. Probe independence failures
 
-## Audit Workflow
+Check only risks relevant to the mapped design:
 
-### Phase 0: Scope & Inventory Discovery
+- **Contamination:** benchmark items, answers, or near duplicates reached training, prompt design,
+  retrieval, tuning, or post-hoc selection.
+- **Invalid controls:** arms differ beyond the intended treatment, allocation is biased, exposure is
+  unequal, or the control cannot answer the causal comparison.
+- **Circular judging:** the evaluated system, its designer, or a derived rubric defines its own
+  success without external confirmation.
+- **Scorer-label coupling:** labels, thresholds, reward signals, or rubric choices are reused by the
+  scorer in a way that makes agreement self-fulfilling.
+- **Evaluator-designer coupling:** the evaluator, judge prompt, or adjudication process is selected,
+  tuned, or influenced by the comparison designer without an independent safeguard.
+- **Split or annotator dependence:** overlapping sources, duplicates, temporal leakage, shared
+  annotators, or correlated annotation policies invalidate assumed independence.
+- **Hypothesis priming:** task framing, examples, pre-registration gaps, or interim results steer
+  evaluators or analysts toward the expected outcome.
+- **Observer and demand effects:** subjects or observers infer the desired treatment or outcome, and
+  behavior or ratings change because of that knowledge.
 
-1. Identify evaluation targets:
-   - Benchmark test sets, question banks, or golden datasets.
-   - LLM-as-a-judge prompts, rubrics, and pairwise comparison configurations.
-   - Scoring code (Python scripts, custom loss/metric calculations, regex extractors).
-   - Training datasets, few-shot pools, or system prompt templates.
-2. Document target file paths, row counts, and scoring definitions before running any checks.
+For each concern, distinguish documented evidence from an assumption. Missing provenance for data,
+splits, labels, prompts, evaluator selection, or scoring is **INCONCLUSIVE**, not evidence that the
+design was independent.
 
-### Phase 1: Holdout & Benchmark Contamination Audit
+### 4. Reach the verdict
 
-Detect whether evaluation queries, ground-truth answers, or near-duplicates exist in prompt templates, fine-tuning data, or few-shot examples.
+- **PASS:** evidence supports an independent, valid measurement path for the stated claim, with no
+  material unresolved dependency.
+- **FAIL:** evidence shows a dependency or invalid design that materially invalidates or overstates
+  the stated claim.
+- **INCONCLUSIVE:** provenance or evidence is missing, the ground truth is not independently
+  established, or remaining uncertainty prevents either result.
 
-1. **Exact-Match & Substring Scanning**:
-   Use `grep_search` to check distinctive question stems or unique entity strings from the evaluation dataset against prompt libraries and synthetic data generators.
-2. **N-gram Overlap & Near-Duplicate Analysis**:
-   Use `run_command` with a Python one-liner to compute 8-gram or 13-gram overlap between the evaluation holdout and training/prompt sets:
-   ```powershell
-   uv run python -c "import json; # check n-gram containment"
-   ```
-3. **Few-Shot Isolation**:
-   Verify that few-shot in-context demonstrations are strictly quarantined from evaluation test cases. A test sample must NEVER appear as a few-shot demonstration.
+Do not convert uncertainty into PASS because a metric looks plausible, a result is statistically
+significant, or multiple related evaluators agree.
 
-### Phase 2: LLM-as-a-Judge & Rubric Audit
+## Report
 
-Examine judge prompts and scoring scripts for structural biases and rubric ambiguities:
+Report the verdict first. Then report only findings that fired; do not pad the report with risks
+that were checked and did not fire. For each fired finding include:
 
-1. **Position Bias**:
-   In pairwise evaluations (Model A vs Model B), verify whether candidate ordering is swapped (A/B and B/A) to control for position preference. If ordering is fixed, flag as **Compromised**.
-2. **Length Bias**:
-   Check if the judge prompt or downstream score correlates with verbosity rather than correctness. Verify whether concise, correct answers are penalized compared to verbose, fluffed responses.
-3. **Self-Enhancement / Model Bias**:
-   Check if the evaluator model is identical to the target model family, potentially favoring its own stylistic quirks and token frequencies.
-4. **Rubric Precision**:
-   Inspect rubric definitions via `view_file`. Are score bands (1 to 5) clearly differentiated with concrete behavioral anchors? Do rubrics handle partial correctness and silent failures deterministically?
+1. **Evidence:** the observed artifact, provenance record, or explicit absence of one.
+2. **Impact:** which claim or inference the issue weakens or invalidates.
+3. **Minimal independence fix:** the smallest separation, blind, held-out source, external
+   adjudication, or control change that would address it.
+4. **Missing evidence:** what must be supplied to resolve the finding, if applicable.
+5. **Residual risk:** what remains uncertain after the minimal fix.
 
-### Phase 3: Metric Gaming & Shortcut Detection
-
-Check whether the benchmark metric can be trivially satisfied by non-solution shortcuts:
-
-1. **Heuristic Exploitation**:
-   Inspect scoring functions for keyword presence checks (`if "success" in output:`), superficial formatting gates (e.g. JSON schema presence without payload validation), or regex bypasses.
-2. **Deterministic Triviality**:
-   Can a dummy model outputting constant values or random guesses achieve >20% score?
-3. **Adversarial Perturbation**:
-   Test how small, semantically invariant alterations (typos, swapped variable names, whitespace shifts) impact the benchmark score. Extreme sensitivity indicates overfitting to exact token sequences.
-
-### Phase 4: Independent Oracle Verification
-
-For complex benchmarks or subtle rubric ambiguities, dispatch an independent read-only oracle subagent via Antigravity native orchestration:
-
-```typescript
-invoke_subagent({
-  Subagents: [
-    {
-      TypeName: "oracle",
-      Role: "Eval Integrity Auditor",
-      Prompt: `TASK: Audit this LLM-as-a-judge rubric and dataset for contamination and gaming vulnerabilities.
-DATASET PATHS: [paths to eval datasets]
-JUDGE PROMPT: [verbatim rubric text]
-SCORING SCRIPT: [path to scorer]
-Verify whether a model could game the rubric with superficial formatting, length expansion, or keyword stuffing without genuine correctness.`
-    }
-  ]
-})
-```
-
-### Phase 5: Synthesis & Reporting
-
-Compile the audit findings into a standardized `EVAL_INTEGRITY_AUDIT.md` report with one of four overall integrity verdicts:
-
-- **Pristine**: Complete separation between train/eval, robust debiasing, precise rubrics, zero evidence of leakage or shortcut gaming.
-- **Minor Risk**: Clean holdouts, but rubric has minor ambiguities or length sensitivity that warrants calibration.
-- **Compromised**: Evidence of partial contamination, unmitigated position/length bias in judges, or easily gameable heuristic scoring.
-- **Invalid**: Evaluation set is leaked, heavily contaminated, or trivially bypassed by dummy answers; benchmark scores cannot be trusted.
-
----
-
-## Output Template (`EVAL_INTEGRITY_AUDIT.md`)
-
-```markdown
-# Evaluation Integrity Audit Report
-
-## Executive Summary
-- **Overall Verdict**: [PRISTINE | MINOR RISK | COMPROMISED | INVALID]
-- **Audited Target**: [eval suite / benchmark name / file paths]
-- **Key Finding**: [One-sentence summary of highest-severity finding]
-
-## Dimension Scores & Findings
-
-| Dimension | Verdict | Evidence / Observation |
-|---|---|---|
-| Benchmark Contamination | PASS / RISK / FAIL | [Leakage / n-gram overlap results] |
-| Metric Gaming | PASS / RISK / FAIL | [Length bias / keyword bypass findings] |
-| Rubric Ambiguity | PASS / RISK / FAIL | [Score separation / position bias control] |
-| Holdout Integrity | PASS / RISK / FAIL | [Split hygiene / seed isolation] |
-
-## Located Vulnerabilities & Exploit Vectors
-1. **[Dimension]** - [Issue Title]
-   - **Location**: `path/to/file:line`
-   - **Observed Behavior**: [Verbatim snippet or calculation]
-   - **Exploit Vector**: [How a model or engineer could game this]
-   - **Remediation**: [Concrete patch or redesign recommendation]
-
-## Remediation Plan
-- [ ] Action item 1
-- [ ] Action item 2
-```
-
----
-
-## Anti-Patterns & Red Lines
-
-- ❌ NEVER calculate benchmark scores on training or few-shot demonstration samples.
-- ❌ NEVER use single-turn pairwise judge evaluation without position-swapped (A/B and B/A) runs.
-- ❌ NEVER allow keyword-presence checks to substitute for AST, semantic, or unit test verification.
-- ❌ NEVER ignore length-to-score correlation in LLM-as-a-judge pipelines.
-- ❌ NEVER report benchmark percentages without documenting sample size, error margins, and holdout splits.
+Keep conclusions bounded to the evidence. This audit advises; it does not certify a system,
+recompute results, or approve deployment.

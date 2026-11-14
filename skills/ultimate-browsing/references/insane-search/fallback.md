@@ -23,9 +23,12 @@
 
 ## Phase 1: 경량 프로브 (병렬)
 
+> **R1 ([README.md](README.md))**: 차단된 URL에는 WebFetch나 즉흥 curl을 쓰지 않는다. `python3 -B -m engine "<URL>"`이
+> 아래 Phase 1-3(curl_cffi 프로브, Referer/변환/디바이스 격자, 서로게이트, Playwright 폴백)을 실행한다.
+> 이 문서는 `--trace` 출력을 읽기 위한 단계 설명이다.
+
 **먼저 시도** (동시):
-- WebFetch (Claude 내장)
-- Jina Reader (기본 / JSON / SPA 모드)
+- Jina Reader (기본 / JSON / SPA 모드, `JINA_API_KEY` 있을 때만)
 - curl Chrome Desktop UA
 
 **아직 성공 없으면 추가 시도**:
@@ -34,7 +37,6 @@
 - URL 변형 시도: `.json`, `/rss`, `/feed`
 
 **사이드카** (1차와 동시, low-trust):
-- Google AMP 캐시
 - archive.today
 - Wayback Machine
 → **원본이 하나라도 성공하면 사이드카는 참고만.** 전부 실패 시에만 사이드카 채택 (provenance 태깅 필수)
@@ -69,7 +71,7 @@ Phase 1 → Phase 2 전환 조건:
 
 **의존성 확보**:
 ```bash
-python -c "import curl_cffi" 2>/dev/null || pip install curl_cffi -q
+python3 -c "import curl_cffi" 2>/dev/null || pip install curl_cffi -q
 ```
 설치 실패 시 → 즉시 Phase 3으로.
 
@@ -90,7 +92,7 @@ for target in TARGETS:
         session = requests.Session(impersonate=target)
         session.headers.update(HEADERS)
         resp = session.get("{URL}", timeout=20)
-        if resp.status_code == 200 and len(resp.text) > 300:
+        if resp.status_code == 200 and len(resp.text) >= 3072 and not any(m in resp.text for m in ("Access Denied", "Just a moment...", "DataDome", "sec-if-cpt-container")):
             # 성공 — JSON-LD도 같이 추출
             break
     except:
@@ -103,7 +105,7 @@ for target in TARGETS:
 
 ---
 
-## Phase 3: Playwright MCP (브라우저)
+## Phase 3: 브라우저 (owned engine, 또는 이미 연결된 Playwright MCP)
 
 **조건**: Phase 2도 실패 또는 JS 챌린지/CAPTCHA 감지
 
@@ -114,7 +116,9 @@ browser_evaluate → () => document.body.innerText  (Light Mode — 먼저)
 필요 시 browser_snapshot → 접근성 트리 전체
 ```
 
-**API 발견**: `browser_network_requests`로 숨은 JSON API를 찾으면 이후 curl_cffi로 재사용 가능.
+위 흐름은 Playwright MCP가 이미 세션에 연결된 경우의 도구 이름이다. 없으면 같은 단계를 Tier 2a owned engine(js eval의 omowright `connectPipe` / `connectCloakProfile`)으로 실행한다 — [README.md](README.md) "`needs_js_exec only` 폴백 규칙".
+
+**API 발견**: `browser_network_requests`(MCP) 또는 owned engine의 `createNetworkSnoop`(the `browser` skill's `references/owned-engine/network.md`)로 숨은 JSON API를 찾으면 이후 curl_cffi로 재사용 가능.
 
 상세: [playwright.md](playwright.md)
 
@@ -141,7 +145,7 @@ browser_evaluate → () => document.body.innerText  (Light Mode — 먼저)
 
 | 패턴 | 감지 방법 | 처리 |
 |------|----------|------|
-| X SPA 셸 (247KB) | 200 OK + `Sign in to X` 또는 `hasResults: false` | 실패 — WebSearch+oEmbed 폴백 |
+| X SPA 셸 (247KB) | 200 OK + `Sign in to X` 또는 `hasResults: false` | 실패 — 웹 검색 도구+oEmbed 폴백 |
 | CAPTCHA 페이지 | 200 OK + `captcha\|recaptcha\|hcaptcha\|cf-turnstile` | 실패 — 다음 Phase |
 | 소프트 페이월 | 200 OK + `member-only\|subscribe to read\|구독하세요` | 부분 성공 — 메타만 채택 |
 | DDG 소프트 리밋 | 202 Accepted + body 15KB 미만 | 실패 — 다른 엔진 폴백 |

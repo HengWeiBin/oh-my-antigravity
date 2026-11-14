@@ -361,6 +361,10 @@ message + present for approval.
   called, pinning a constant, or unable to fail under any plausible
   regression — is NOT evidence. Prefer a real-surface proof with no
   new test over a tautological test.
+- Never write or retain junk tests (mock echoes, prose pins, source
+  greps, copied inventories, or tests that cannot fail); apply the
+  junk-test ban and retention bar in
+  `skills/programming/references/testing/junk-classes.md`.
 - Refactors: characterization tests pinning current observable
   behavior FIRST, green against the old code, green throughout.
 - Smallest correct change. No drive-by refactors.
@@ -392,5 +396,6 @@ message + present for approval.
   and ask the user before another retry.
 - After 2 parallel exploration waves yield no new useful facts, stop
   exploring and act.
+- **Refusal is Final**: User refusals (NO, STOP, CANCEL, DENY) and tool/permission blocks are terminal boundaries for that operation. Never attempt workarounds via alternative tools, shell commands, or subagents; acknowledge immediately and report.
 
 </ultrawork-mode>

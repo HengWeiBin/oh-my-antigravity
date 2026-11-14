@@ -20,7 +20,7 @@ Quick check:
 ```bash
 file ./target                                                    # Mach-O / ELF / PE - inconclusive
 du -h ./target                                                   # 50 MB+ for a "simple CLI" → suspect bundled
-strings -n 12 ./target | rg -iE 'bun|node_modules|webpack|esbuild|deno|pkg/lib|electron|pyinstaller|nexe|NODE_SEA_FUSE|tauri' | head -5
+strings -n 12 ./target | rg -i 'bun|node_modules|webpack|esbuild|deno|pkg/lib|electron|pyinstaller|nexe|NODE_SEA_FUSE|tauri' | head -5
 ```
 
 **If any hits** → close this file, open [bundled-js-binary.md](bundled-js-binary.md) instead. Following the Ghidra/pwndbg path on a bundled-app binary wastes hours decompiling the runtime VM while the app-level bundle is recoverable with the right per-bundler tool (plaintext for Bun/pkg/nexe/Electron-asar; eszip / V8-cache / `.pyc` for Deno / Node SEA / PyInstaller).
@@ -96,7 +96,7 @@ LC_ALL=C grep -aoc 'NEEDLE' ./target
 LC_ALL=C grep -aob 'NEEDLE' ./target | head
 
 # Or via Python for byte-precise context
-python -c "
+python3 -c "
 import sys
 data = open('./target','rb').read()
 needle = b'NEEDLE'
@@ -106,6 +106,24 @@ print(repr(data[max(0,pos-100):pos+200]))
 ```
 
 If you must keep using `strings`, lower the threshold: `strings -n 1 -t x ./target | rg ...`. The signal-to-noise drops sharply but short content is preserved.
+
+### Sanitizer build for a crashing C/C++ binary
+
+If the binary can be rebuilt from C/C++ sources, reproduce the crash with sanitizers before
+trying to infer the fault from stripped machine code. AddressSanitizer catches out-of-bounds
+accesses and use-after-free; UndefinedBehaviorSanitizer reports undefined operations.
+
+```bash
+# Rebuild with source locations and runtime checks enabled
+CFLAGS='-g -O1 -fsanitize=address,undefined' \
+CXXFLAGS='-g -O1 -fsanitize=address,undefined' \
+make clean all
+./target
+```
+
+The sanitizer report identifies the invalid access and its allocation/free or undefined
+operation stack, often making the root cause clear before dynamic analysis. For a binary
+that cannot be rebuilt, continue with the native tracing and debugger workflow below.
 
 Write the triage summary to the journal:
 
@@ -228,6 +246,26 @@ lldb ./target
 (lldb) image dump sections ./target
 (lldb) image dump symtab ./target
 ```
+
+### Data watchpoints — catch the corruption, not just the crash
+
+When a value is already wrong by the time execution reaches the crash, watch the memory
+address for writes and stop at the instruction that corrupts it. Use the address of the
+field or buffer identified from the static/dynamic hypothesis; see [tools/pwndbg.md](../tools/pwndbg.md)
+for the richer pwndbg watchpoint workflow rather than duplicating it here.
+
+```text
+# lldb: watch writes to an address (replace with a valid expression/address)
+(lldb) watchpoint set expression -- <addr>
+
+# gdb: stop on writes, or on reads when a read is the first observable symptom
+(gdb) watch *(<type> *)<addr>
+(gdb) rwatch *(<type> *)<addr>
+```
+
+A watchpoint is most useful after narrowing the suspect object: continue from its
+allocation or initialization, and inspect the backtrace and writer when it triggers.
+Hardware watchpoint slots are limited, so remove broad watchpoints before adding more.
 
 **Function interception via `DYLD_INSERT_LIBRARIES`** (macOS equivalent of `LD_PRELOAD`):
 

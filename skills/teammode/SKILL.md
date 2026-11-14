@@ -218,3 +218,4 @@ is never disbanded is a leak.
 - Stop if the selected transport's tools (V2 spawn/message/wait/list/interrupt, or Codex App
   create/read/send/title/archive) stop working mid-run; say so instead of faking it or silently
   switching transports. Pre-init absence is not a stop - it routes to the plain-subagent split.
+- **Refusal is Final**: User refusals (NO, STOP, CANCEL, DENY) and tool/permission blocks are terminal boundaries for that operation. Never attempt workarounds via alternative tools, shell commands, or subagents; acknowledge immediately and report.

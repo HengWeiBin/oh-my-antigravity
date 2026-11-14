@@ -5,7 +5,8 @@
 
 .DESCRIPTION
   Tries package managers in priority order, then falls back to downloading a
-  pinned release zip from GitHub into <skill_root>/bin/sg.exe.
+  pinned release zip from GitHub into %LOCALAPPDATA%\omo-ast-grep\bin\sg.exe
+  (never into the skill directory, which can sit inside a signed app bundle).
 
   Order:
     1. Already installed?  -> nothing to do
@@ -15,13 +16,13 @@
     5. npm (@ast-grep/cli)
     6. cargo binstall / cargo install
     7. pip (ast-grep-cli)
-    8. GitHub release zip -> <skill_root>/bin/sg.exe
+    8. GitHub release zip -> %LOCALAPPDATA%\omo-ast-grep\bin\sg.exe
 
 .PARAMETER Method
   Force one method: scoop | winget | choco | npm | cargo | pip | github
 
 .PARAMETER Version
-  Pin a specific version when downloading from GitHub. Default: 0.43.0
+  Pin a specific version when downloading from GitHub. Default: 0.45.0
 
 .PARAMETER NoFallback
   Don't fall back to GitHub zip; fail if all package managers miss
@@ -37,14 +38,15 @@
 
 param(
     [string]$Method = "",
-    [string]$Version = "0.43.0",
+    [string]$Version = "0.45.0",
     [switch]$NoFallback,
     [switch]$Quiet
 )
 
 $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$CacheBinDir = if ($env:OMO_AST_GREP_BIN_DIR) { $env:OMO_AST_GREP_BIN_DIR } else { Join-Path $ScriptDir "bin" }
+$CacheRoot = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $HOME "AppData\Local" }
+$CacheBinDir = if ($env:OMO_AST_GREP_BIN_DIR) { $env:OMO_AST_GREP_BIN_DIR } else { Join-Path $CacheRoot "omo-ast-grep\bin" }
 
 function Log([string]$msg) {
     if (-not $Quiet) {

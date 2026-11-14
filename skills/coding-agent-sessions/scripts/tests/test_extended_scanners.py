@@ -37,12 +37,13 @@ def test_default_platforms_are_canonical_transcript_sources() -> None:
         "codex",
         "claude",
         "senpi",
+        "oh-my-pi",
+        "gajae-code",
         "opencode",
         "openclaw",
         "droid",
         "amp",
         "gemini",
-        "antigravity",
         "kimi",
         "qwen",
         "codebuff",
@@ -58,37 +59,15 @@ def test_default_platforms_are_canonical_transcript_sources() -> None:
         "crush",
         "zed",
         "kiro",
+        "aside",
     }
-    forbidden = {"copilot", "mux", "synthetic", "cursor"}
+    forbidden = {"copilot", "mux", "antigravity", "synthetic", "cursor"}
 
     assert scanners.DEFAULT_PLATFORMS == required
     assert not forbidden & scanners.DEFAULT_PLATFORMS
     assert scanners.PLATFORM_ALIASES["roocode"] == "roo-code"
     assert scanners.PLATFORM_ALIASES["kilocode"] == "kilo-code"
     assert scanners.PLATFORM_ALIASES["kilo"] == "kilo-cli"
-
-
-def test_antigravity_scanner_finds_transcript_logs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
-
-    log_dir = tmp_path / ".gemini" / "antigravity" / "brain" / "anti-sess-1" / ".system_generated" / "logs"
-    _write_jsonl(
-        log_dir / "transcript.jsonl",
-        [
-            {"step_index": 0, "source": "USER_EXPLICIT", "type": "USER_INPUT", "status": "DONE", "created_at": "2026-08-04T06:35:03Z", "content": "antigravity task request"},
-            {"step_index": 1, "source": "MODEL", "type": "PLANNER_RESPONSE", "status": "DONE", "created_at": "2026-08-04T06:35:08Z", "content": "done"},
-        ],
-    )
-
-    sessions = scanners.scan(frozenset({"antigravity"}), (), 4)
-
-    assert len(sessions) == 1
-    session = sessions[0]
-    assert session.platform == "antigravity"
-    assert session.id == "anti-sess-1"
-    assert session.first_user_message == "antigravity task request"
-    assert session.created_at == "2026-08-04T06:35:03Z"
 
 
 def test_extended_default_scanners_find_transcript_rich_stores(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

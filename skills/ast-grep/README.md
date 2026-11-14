@@ -11,7 +11,7 @@ git clone https://github.com/code-yeongyu/ast-grep-skill ~/.agents/skills/ast-gr
 bash ~/.agents/skills/ast-grep/install.sh        # installs the ast-grep binary
 ```
 
-That is it. The wrapper script is single-file Python 3 stdlib; no `pip install` needed. The installer tries `brew` → `npm` → `cargo` → `pip` → `nix` → `mise` → GitHub release in priority order, picks the first that works, and falls back to a cached binary at `<skill>/bin/sg`.
+That is it. The wrapper script is single-file Python 3 stdlib; no `pip install` needed. The installer tries `brew` → `npm` → `cargo` → `pip` → `nix` → `mise` → GitHub release in priority order, picks the first that works, and falls back to a cached binary in a user cache folder (`~/.cache/omo-ast-grep/bin/sg`, or `%LOCALAPPDATA%\omo-ast-grep\bin\sg.exe` on Windows), never inside the skill.
 
 ### Symlink for active development
 
@@ -23,35 +23,35 @@ ln -s /path/to/your/clone ~/.agents/skills/ast-grep
 
 - **Claude Code / OpenCode**: drop the directory under `~/.agents/skills/` (or `~/.config/opencode/skills/`) and the skill auto-registers via the `name` + `description` in `SKILL.md` frontmatter.
 - **pi (`~/.senpi/agent`)**: not a `pi` extension — this is a skill. Pi consumes skills via `~/.agents/skills/` symlinks; the actual `pi-ast-grep` extension is at <https://github.com/code-yeongyu/pi-extensions>.
-- **Direct CLI use**: `python ~/.agents/skills/ast-grep/scripts/ast_grep_helper.py <subcommand>`.
+- **Direct CLI use**: `python3 ~/.agents/skills/ast-grep/scripts/ast_grep_helper.py <subcommand>`.
 
 ## Usage
 
 ```bash
 # Search by AST pattern (the helper validates patterns offline first)
-python scripts/ast_grep_helper.py search 'console.log($MSG)' --lang ts src/
+python3 scripts/ast_grep_helper.py search 'console.log($MSG)' src/ --lang ts
 
 # Rewrite (dry-run preview by default)
-python scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/
+python3 scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' src/ --lang ts
 
 # Apply the rewrite (two-pass: preview JSON + then --update-all)
-python scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/ --apply
+python3 scripts/ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' src/ --lang ts --apply
 
 # Run YAML lint rules from sgconfig.yml
-python scripts/ast_grep_helper.py scan src/
+python3 scripts/ast_grep_helper.py scan src/
 
 # Validate a pattern OFFLINE (no sg call, no filesystem)
-python scripts/ast_grep_helper.py validate '\w+' --lang ts
+python3 scripts/ast_grep_helper.py validate '\w+' --lang ts
 # → exit 2: regex \w not supported. Use $VAR for identifiers.
 
 # Doctor: check ast-grep binary availability
-python scripts/ast_grep_helper.py doctor
+python3 scripts/ast_grep_helper.py doctor
 
 # List 25 supported languages
-python scripts/ast_grep_helper.py langs
+python3 scripts/ast_grep_helper.py langs
 
 # Install / re-install the ast-grep binary
-python scripts/ast_grep_helper.py install
+python3 scripts/ast_grep_helper.py install
 ```
 
 See [SKILL.md](./SKILL.md) for full agent-facing usage and the [`references/`](./references/) directory for deep dives.
@@ -85,7 +85,7 @@ ast-grep-skill/
 
 1. **Wraps `sg`** with a single Python 3 stdlib script that works the same on macOS, Linux, Windows, WSL, Git Bash.
 2. **Validates patterns offline** before calling `sg` — catches the regex-misuse class of mistakes (`\w`, `.*`, `|`, `[a-z]`) plus language-specific traps (Python trailing colons, JS/Go/Rust missing function bodies).
-3. **Resolves the binary** through 6 candidate paths: cached → PATH (with Linux `setgroups` collision detection) → Homebrew. Falls through to a clear install hint with copy-paste commands.
+3. **Resolves the binary** through 5 candidates: `OMO_AST_GREP_SG_PATH` override → OMO runtime dirs → cached → PATH (with Linux `setgroups` collision detection) → Homebrew. Falls through to a clear install hint with copy-paste commands.
 4. **Runs the two-pass write trick** when applying rewrites — `sg run` silently ignores `--update-all` when `--json` is set, so `replace --apply` runs two invocations: pass 1 collects JSON matches, pass 2 mutates files.
 5. **Ships per-OS installers** that try every reasonable package manager and fall back to a GitHub release tarball.
 6. **Documents the failure modes** the model will hit (regex misuse, incomplete patterns, `--update-all` + `--json` trap, scope/type questions ast-grep can't answer) in `references/pitfalls.md`.

@@ -4,11 +4,11 @@
 The OS-keyring lookup is an injected boundary: cookie_paths resolves profile
 paths and cookie_crypto derives keys + decrypts values, both pure and testable
 with synthetic fixtures on any OS. This module wires them to a real browser DB
-and the agent-browser CDP session.
+and a local Chrome CDP session controlled by playwright-core scripts.
 
 Usage:
-    python extract_cookies.py --browser chrome --domain youtube.com --output /tmp/cookies.json
-    python extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
+    python -B extract_cookies.py --browser chrome --domain youtube.com --output /tmp/cookies.json
+    python -B extract_cookies.py --browser chrome --domain youtube.com --inject --cdp 9242
 """
 from __future__ import annotations
 
@@ -20,9 +20,10 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
-from collections.abc import Callable
 from pathlib import Path
-from typing import NotRequired, TypedDict
+from typing import Callable, NotRequired, TypedDict
+
+sys.dont_write_bytecode = True
 
 from cookie_crypto import (
     decrypt_chromium_value,
@@ -32,13 +33,7 @@ from cookie_crypto import (
     windows_oscrypt_key,
 )
 from cookie_domains import domain_where_clause
-from cookie_paths import (
-    BROWSERS,
-    BrowserSpec,
-    UnsupportedPlatform,
-    platform_base,
-    resolve_cookie_db,
-)
+from cookie_paths import BROWSERS, BrowserSpec, UnsupportedPlatform, platform_base, resolve_cookie_db
 
 _SAMESITE = {-1: "None", 0: "None", 1: "Lax", 2: "Strict"}
 
@@ -125,8 +120,9 @@ process.stdin.on("end", () => {
 
 
 def _secure_cookie_db_copy(db_path: Path) -> Path:
-    with tempfile.NamedTemporaryFile(prefix="omo-cookies-", suffix=".sqlite", delete=False) as handle:
-        tmp = Path(handle.name)
+    handle = tempfile.NamedTemporaryFile(prefix="omo-cookies-", suffix=".sqlite", delete=False)
+    tmp = Path(handle.name)
+    handle.close()
     try:
         shutil.copyfile(db_path, tmp)
         tmp.chmod(0o600)
@@ -257,12 +253,11 @@ def inject_cookies(cookies: list[CookieRecord], cdp_port: int) -> None:
         capture_output=True,
         text=True,
         timeout=15,
-        check=False,
     )
     if proc.returncode != 0:
         raise RuntimeError((proc.stderr or "CDP cookie injection failed").strip())
     ok = int((proc.stdout or "0").strip() or "0")
-    print(f"Injected {ok}/{len(filtered)} cookies into agent-browser (CDP {cdp_port})")
+    print(f"Injected {ok}/{len(filtered)} cookies into local Chrome (playwright-core CDP {cdp_port})")
 
 
 def main() -> None:
@@ -270,7 +265,7 @@ def main() -> None:
     parser.add_argument("--browser", required=True, choices=sorted(BROWSERS.keys()))
     parser.add_argument("--domain", required=True, action="append", dest="domains")
     parser.add_argument("--output", help="Write cookies JSON to file")
-    parser.add_argument("--inject", action="store_true", help="Inject into agent-browser")
+    parser.add_argument("--inject", action="store_true", help="Inject into the local Chrome CDP endpoint used by a playwright-core script")
     parser.add_argument("--cdp", type=int, default=9242, help="CDP port (default 9242)")
     args = parser.parse_args()
 

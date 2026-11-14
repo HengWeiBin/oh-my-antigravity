@@ -2,13 +2,16 @@
 """CLI entrypoint for the insane-search engine.
 
 Usage:
-    python3 -m engine URL [--selector CSS] [--device auto|desktop|mobile]
-                          [--timeout N] [--max-attempts N] [--json] [--trace]
+    python3 -B -m engine URL [--selector CSS] [--device auto|desktop|mobile]
+                             [--timeout N] [--max-attempts N] [--json] [--trace]
+
+`-B` is required: `-m` compiles the package before any engine code runs, so only
+the interpreter flag keeps bytecode caches out of a signed app bundle.
 
 Examples:
-    python3 -m engine "https://example.com/" --selector "h1"
-    python3 -m engine "https://example.com/" --json
-    python3 -m engine "https://example.com/" --device mobile --trace
+    python3 -B -m engine "https://example.com/" --selector "h1"
+    python3 -B -m engine "https://example.com/" --json
+    python3 -B -m engine "https://example.com/" --device mobile --trace
 
 Exit codes:
     0   strong_ok or weak_ok
@@ -25,7 +28,7 @@ from . import fetch
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="python3 -m engine",
+    p = argparse.ArgumentParser(prog="python3 -B -m engine",
                                 description="Generic WAF-profile fetch chain.")
     p.add_argument("url", help="URL to fetch.")
     p.add_argument("--selector", "-s", action="append", default=None,
@@ -39,6 +42,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Upper bound across all phases (default 12).")
     p.add_argument("--no-playwright", action="store_true",
                    help="Skip Playwright fallback (curl-only).")
+    p.add_argument("--allow-proxy", action="store_true",
+                   help=("Enable kind=proxy surrogate entries (raw relay routes; "
+                        "MITM by construction — never citable alone, never "
+                        "receives cookies/auth headers). Off by default."))
     p.add_argument("--json", action="store_true",
                    help="Emit FetchResult as JSON to stdout (content omitted).")
     p.add_argument("--trace", action="store_true",
@@ -56,8 +63,9 @@ def main(argv: list[str] | None = None) -> int:
             timeout=args.timeout,
             max_attempts=args.max_attempts,
             enable_playwright=not args.no_playwright,
+            allow_surrogate_proxy=args.allow_proxy,
         )
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"engine fatal: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
 
@@ -96,7 +104,9 @@ def main(argv: list[str] | None = None) -> int:
         # Default: HTML to stdout, status to stderr.
         print(result.content, end="")
         print(f"\n[engine] ok={result.ok} verdict={result.verdict} "
-              f"profile={result.profile_used} attempts={len(result.trace)}",
+              f"profile={result.profile_used} attempts={len(result.trace)} "
+              f"provenance={result.provenance}"
+              + (f" snapshot_ts={result.snapshot_timestamp}" if result.snapshot_timestamp else ""),
               file=sys.stderr)
 
     return 0 if result.ok else 1

@@ -2,12 +2,18 @@
 
 > `r.jina.ai/URL` 한 줄로 거의 모든 공개 URL을 마크다운으로 변환.
 > Puppeteer 기반 실제 브라우저 렌더링 — JS SPA까지 처리.
-> **API 키 불필요. 무료: 분당 500 RPM.**
+>
+> **2026-08-09 probe 기준 무료 무키 경로는 종료됨.** 익명 호출은 401이며,
+> 리다이렉트를 따라가면 Cloudflare Turnstile(`Just a moment...`)에 막힌다.
+> **이제 `JINA_API_KEY` 환경 변수가 필요**하다 — `Authorization: Bearer <key>` 헤더.
+> 엔진에서는 `engine/surrogates.yaml`의 `jina_reader` 엔트리가 키가 있을 때만 활성화된다
+> (kind=reader, provenance=live — 서버 측 재렌더링).
+> 예전 "무료 500 RPM" 안내는 모두 폐기되었으므로 따르지 않는다.
 
 ## 기본 사용
 
 ```bash
-curl -s "https://r.jina.ai/{URL}"
+curl -s -H "Authorization: Bearer ${JINA_API_KEY}" "https://r.jina.ai/{URL}"
 ```
 
 ## 고급 기능
@@ -15,7 +21,7 @@ curl -s "https://r.jina.ai/{URL}"
 ### JSON 구조화 출력
 
 ```bash
-curl -H "Accept: application/json" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "Accept: application/json" "https://r.jina.ai/{URL}"
 ```
 
 반환: `data.{title, description, url, content, metadata, external, usage}`
@@ -25,7 +31,7 @@ curl -H "Accept: application/json" "https://r.jina.ai/{URL}"
 ### CSS 선택자 타겟팅
 
 ```bash
-curl -H "X-Target-Selector: .article-body" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Target-Selector: .article-body" "https://r.jina.ai/{URL}"
 ```
 
 네비게이션/풋터 제거, 본문만 추출. 커뮤니티 게시판에서 특히 효과적.
@@ -33,7 +39,7 @@ curl -H "X-Target-Selector: .article-body" "https://r.jina.ai/{URL}"
 ### SPA 스트리밍 모드
 
 ```bash
-curl -H "Accept: text/event-stream" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "Accept: text/event-stream" "https://r.jina.ai/{URL}"
 ```
 
 JS 로딩 완료까지 대기. 동적 콘텐츠가 완전히 렌더링된 최종 버전 반환.
@@ -41,7 +47,7 @@ JS 로딩 완료까지 대기. 동적 콘텐츠가 완전히 렌더링된 최종
 ### 스크린샷
 
 ```bash
-curl -H "X-Respond-With: screenshot" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Respond-With: screenshot" "https://r.jina.ai/{URL}"
 ```
 
 GCS 서명 URL 반환 (4시간 유효). 비주얼 검증 용도.
@@ -49,7 +55,7 @@ GCS 서명 URL 반환 (4시간 유효). 비주얼 검증 용도.
 ### PDF 처리
 
 ```bash
-curl -s "https://r.jina.ai/https://example.com/file.pdf"
+curl -s -H "Authorization: Bearer ${JINA_API_KEY}" "https://r.jina.ai/https://example.com/file.pdf"
 ```
 
 PDF → 마크다운 자동 변환. 페이지 수 메타데이터 포함.
@@ -57,33 +63,33 @@ PDF → 마크다운 자동 변환. 페이지 수 메타데이터 포함.
 ### 쿠키 전달 (인증 사이트)
 
 ```bash
-curl -H "X-Set-Cookie: session=abc123" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Set-Cookie: session=abc123" "https://r.jina.ai/{URL}"
 ```
 
 ### 링크 보존
 
 ```bash
-curl -H "X-With-Links: true" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-With-Links: true" "https://r.jina.ai/{URL}"
 ```
 
 ### 캐시 제어
 
 ```bash
 # 캐시 우회 (실시간 필요 시)
-curl -H "X-No-Cache: true" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-No-Cache: true" "https://r.jina.ai/{URL}"
 
 # 캐시 TTL 지정 (초)
-curl -H "X-Cache-Tolerance: 600" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Cache-Tolerance: 600" "https://r.jina.ai/{URL}"
 ```
 
 ### 순수 텍스트 / 원본 HTML
 
 ```bash
 # body.innerText만
-curl -H "X-Respond-With: text" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Respond-With: text" "https://r.jina.ai/{URL}"
 
 # 원본 HTML
-curl -H "X-Respond-With: html" "https://r.jina.ai/{URL}"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "X-Respond-With: html" "https://r.jina.ai/{URL}"
 ```
 
 ## 검증된 성공 사이트
@@ -125,6 +131,6 @@ curl -H "X-Respond-With: html" "https://r.jina.ai/{URL}"
 Jina JSON 모드의 `external.alternate`에서 사이트의 RSS URL이 자동 노출됨:
 
 ```bash
-curl -H "Accept: application/json" "https://r.jina.ai/{URL}" | \
-python -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}))"
+curl -H "Authorization: Bearer ${JINA_API_KEY}" -H "Accept: application/json" "https://r.jina.ai/{URL}" | \
+python3 -c "import sys,json; print(json.load(sys.stdin)['data'].get('external',{}))"
 ```

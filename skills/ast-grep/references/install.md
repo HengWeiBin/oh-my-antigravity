@@ -94,7 +94,7 @@ If every package manager fails:
 #      app-aarch64-pc-windows-msvc.zip       Windows ARM64
 
 # 2. Download and extract:
-VERSION=0.43.0
+VERSION=0.45.0
 TRIPLE=aarch64-apple-darwin
 curl -fsSL "https://github.com/ast-grep/ast-grep/releases/download/${VERSION}/app-${TRIPLE}.zip" -o /tmp/ast-grep.zip
 unzip /tmp/ast-grep.zip -d /tmp/ast-grep
@@ -105,7 +105,7 @@ sudo chmod +x /usr/local/bin/sg
 sg --version
 ```
 
-The skill's `install.sh` does steps 1-3 automatically and drops the binary in `<skill_root>/bin/sg` so you can use it without sudo.
+The skill's `install.sh` does steps 1-3 automatically and drops the binary in `${XDG_CACHE_HOME:-~/.cache}/omo-ast-grep/bin/sg` (`%LOCALAPPDATA%\omo-ast-grep\bin\sg.exe` on Windows; override with `OMO_AST_GREP_BIN_DIR`) so you can use it without sudo. It never writes into the skill directory, which can sit inside a signed app bundle.
 
 ---
 
@@ -125,7 +125,7 @@ Requires Rust 1.74+. Slowest path; only useful when you need a specific commit o
 
 ```bash
 ast-grep --version            # or `sg --version`
-# ast-grep 0.43.0
+# ast-grep 0.45.0
 ```
 
 Then sanity-check a real query:
@@ -163,4 +163,4 @@ See `references/cli.md` for `ast-grep lsp` flags.
 | scoop | `scoop uninstall ast-grep` |
 | winget | `winget uninstall --id ast-grep.ast-grep` |
 | choco | `choco uninstall ast-grep` |
-| GitHub binary | `rm <skill_root>/bin/sg` |
+| GitHub binary | `rm ${XDG_CACHE_HOME:-~/.cache}/omo-ast-grep/bin/sg` |

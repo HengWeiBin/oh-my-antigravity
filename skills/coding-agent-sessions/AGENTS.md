@@ -1,34 +1,63 @@
-# coding-agent-sessions
+# coding-agent-sessions — Cross-Platform Session Finder (Python)
+
+**Generated:** 2026-08-24 (f3642fcda)
 
 ## OVERVIEW
-Local search and indexing utility for multi-platform coding agent session logs and databases.
 
-## WHERE TO LOOK
-| File / Path | Purpose / Description |
-|---|---|
-| [SKILL.md](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/SKILL.md) | Entry point specifying platform router routing rules and tool usage constraints. |
-| [pyrightconfig.json](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/pyrightconfig.json) | Pyright configuration defining script include paths and path resolutions for typechecking. |
-| [agents/openai.yaml](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/agents/openai.yaml) | YAML configuration file defining the OpenAI agent template. |
-| [references/](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/references) | Platform-specific reference details for Codex, Claude, Senpi, and OpenCode. |
-| [scripts/find-agent-sessions.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/find-agent-sessions.py) | Main executable CLI entrypoint invoking the underlying session indexer. |
-| [scripts/agent_sessions/cli.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/cli.py) | Command line parser and output formatter for the session search tool. |
-| [scripts/agent_sessions/scanners.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/scanners.py) | Conductor mapping platform keys to target scanner tasks. |
-| [scripts/agent_sessions/file_scanners.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/file_scanners.py) | Scanner functions for various JSONL/file-based agents (Aider, Roo, Cline, Gemini, etc.). |
-| [scripts/agent_sessions/sqlite_scanners.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/sqlite_scanners.py) | Scanners parsing local SQLite databases such as Kodu Azad.db and Cursor-CLI store.db. |
-| [scripts/agent_sessions/sqlite_optional_scanners.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/sqlite_optional_scanners.py) | Scanners parsing optional SQLite databases such as Goose, Crush, Hermes, and Zed. |
-| [scripts/agent_sessions/jsonio.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/jsonio.py) | Core utility functions for parsing JSON and JSONL records efficiently. |
-| [scripts/agent_sessions/timeparse.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/timeparse.py) | Parses multi-format timestamps, date boundaries, and relative intervals (e.g. 7d). |
-| [scripts/agent_sessions/transcript.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/transcript.py) | Parallel file parsers managing thread-pool file reading and JSONL event extraction. |
-| [scripts/agent_sessions/types.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/types.py) | Shared type definitions and Pydantic/dataclass interfaces for sessions. |
-| [scripts/tests/](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/tests) | Test suites verifying CLI contracts, indexers, and SQLite/JSONL scanner behaviors. |
+The only shared skill besides `ultimate-browsing` carrying a real sub-project: a Python package + CLI that finds, lists, searches, and reads local coding-agent session transcripts across ~25 platforms (Codex, Claude, OpenCode, OMO/Senpi/pi, and a long tail), normalizing them into one `Session` model. Earned this file: 33 files, 23 Python modules, own test suite, own `pyrightconfig.json`, own `.npmignore` (ships in the npm package minus tests/caches).
+
+## STRUCTURE
+
+```
+coding-agent-sessions/
+├── SKILL.md                      # router: platform table → references/<platform>.md
+├── references/                   # codex, claude, opencode, senpi, all-platforms (store layouts per platform)
+├── agents/openai.yaml            # Codex agent role declaration
+├── scripts/
+│   ├── find-agent-sessions.py    # thin shebang entry (PEP 723, >=3.11); runpy → agent_sessions.cli
+│   ├── agent_sessions/           # the package (12 modules)
+│   └── tests/                    # 6 pytest modules
+└── pyrightconfig.json            # extraPaths scripts/, excludes scripts/tests
+```
+
+## PUBLIC API (`scripts/agent_sessions/`)
+
+| Module | Key exports |
+|--------|-------------|
+| `scanners.py` | `scan`, `DEFAULT_PLATFORMS`, `PLATFORM_SCANNERS`, per-platform `scan_*` (codex, claude, opencode, senpi, oh_my_pi, gajae_code, …) |
+| `types.py` | `Session`, `Options`, `Json`, `JsonMap` — imported by nearly every module and test |
+| `transcript.py` | parallel file reads, normalization, timestamps, session ids; `recent`, `MAX_PLATFORM_FILES` |
+| `cli.py` | command parsing, filtering, payload construction, JSON emission (283 LOC — behavioral hotspot) |
+| platform adapters | `file_scanners.py` (file-backed providers), `opencode.py` (CLI/SQLite/storage fallbacks), `sqlite_scanners.py`, `sqlite_optional_scanners.py`, `pi_family.py`, `aside_scanner.py`, `kiro_scanner.py` |
+
+## CLI CONTRACT
+
+`python3 -B scripts/find-agent-sessions.py <command>`; aliases `find`=`search`, `read`=`get`. Commands: `list`, `find`/`search` (repeated `--query` lanes, `--from 7d`, repeated `--platform`, `--workers`, `--cwd/--model`, `--include-subagents`, `--limit`), `get`/`read <session-id>`. Output is JSON with `match_reasons` and reconstructed first/last user prompts — that JSON shape is the stable contract.
 
 ## CONVENTIONS
-- **Thread-Pool Scan Architecture**: Platform scans are executed concurrently in [scanners.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/scanners.py#L62-L72), and target log files or database connections are parsed concurrently in [transcript.py](file:///c:/Users/K20879/.gemini/config/plugins/oh-my-antigravity/skills/coding-agent-sessions/scripts/agent_sessions/transcript.py#L16-L35).
-- **PEP 723 Metadata Syntax**: Python scripts intended to run standalone must declare dependencies and python version requirements in inline script metadata blocks using the `# /// script` format.
-- **Pytest PEP 723 Configs**: Test scripts must declare `pytest` under `dependencies` in their script block to enable running via `uv run --with pytest pytest <test_file>`.
-- **Deduplication with Linkage Score**: When multiple scanners yield the same platform/id combination, standardise and select the one with a higher linkage score based on parent ID and agent metadata presence.
+
+- Stdlib-only Python (`>=3.11`), `from __future__ import annotations`, pathlib everywhere; no third-party deps at runtime.
+- Probe-first, bounded discovery: platform-specific roots checked before broad globbing; optional platforms excluded from default search when they cannot reconstruct user prompts.
+- Main sessions hide subagent children by default but report child counts; `--include-subagents` flips it. Parent/child linkage preserved and records deduplicated.
+- Tests are pytest with `tmp_path` + `MonkeyPatch` isolation; in-file `# pyright: ignore[reportMissingImports]`-style relaxations for import diagnostics only.
+- `.npmignore` strips `scripts/tests/`, `pyrightconfig.json`, and caches from the shipped skill.
+- The shipped skill must never write next to itself (#11373): `find-agent-sessions.py` sets `sys.dont_write_bytecode` before importing `agent_sessions`, and every documented command passes `-B`. `packages/shared-skills/bundled-skill-scripts-write-nothing.test.ts` runs every bundled entry and fails on any new file.
 
 ## ANTI-PATTERNS
-- **Blocking File I/O in Platform Loop**: Avoid scanning file contents sequentially inside the platform router loop. Always delegate to thread-pool runners `jsonl_parallel` or `flat_parallel`.
-- **Database Locks**: Do not open persistent write connections during scanning. Always use read-only SQLite connections and immediately close them after fetching the metadata.
-- **Hardcoded Absolute User Paths**: Never use hardcoded absolute system paths (e.g. `C:\Users\name`) directly for scanning. Use `Path.home()` or `env_path()` to ensure cross-user and cross-OS portability.
+
+- NEVER answer from normalized previews alone — pull the raw transcript (`read`/`get`) for exact evidence.
+- Usage-only stores are NOT transcript sources.
+- A Claude subagent's embedded `sessionId` is NOT its identity — use its `agentId` + parent-directory linkage.
+- Don't add a platform by globbing blindly; register it in `PLATFORM_SCANNERS`/`DEFAULT_PLATFORMS` with a bounded root probe.
+
+## COMMANDS
+
+```bash
+# from packages/shared-skills/skills/coding-agent-sessions/
+python3 -B scripts/find-agent-sessions.py list --limit 20
+python3 -B scripts/find-agent-sessions.py find "commit" --from 7d --platform senpi --platform opencode
+python3 -B scripts/find-agent-sessions.py read <session-id>
+pytest scripts/tests
+```
+
+- Parent (source checkout only, not shipped with the installed skill): `packages/shared-skills/AGENTS.md`.

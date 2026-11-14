@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from heapq import nlargest
 from pathlib import Path
+from typing import Callable
 
 from .jsonio import as_map, iter_jsonl, parse_json_text, text
 from .timeparse import file_time
@@ -39,6 +39,7 @@ def jsonl_session(platform: str, path: Path, fallback_id: str) -> Session:
     sid = fallback_id
     cwd = provider = model = first_user = parent = agent = None
     last_user = ""
+    prompts: list[str] = []
     created = updated = None
     usage: JsonMap = {}
     for data in iter_jsonl(path):
@@ -46,8 +47,8 @@ def jsonl_session(platform: str, path: Path, fallback_id: str) -> Session:
         session_line_id = text(data.get("id")) if event_type == "session" else None
         sid = text(data.get("sessionId")) or session_line_id or sid
         cwd = cwd or text(data.get("cwd"))
-        created = created or text(data.get("timestamp")) or text(data.get("created_at"))
-        updated = text(data.get("timestamp")) or text(data.get("created_at")) or updated
+        created = created or text(data.get("timestamp"))
+        updated = text(data.get("timestamp")) or updated
         provider = provider or text(data.get("provider"))
         model = model or text(data.get("modelId")) or text(data.get("model"))
         payload = as_map(data.get("payload"))
@@ -65,8 +66,9 @@ def jsonl_session(platform: str, path: Path, fallback_id: str) -> Session:
         if prompt:
             first_user = first_user or prompt
             last_user = prompt
+            prompts.append(prompt)
         merge_usage(usage, as_map(message.get("usage")) or as_map(data.get("usage")))
-    return Session(platform, sid, str(path), cwd, created or file_time(path), updated or created or file_time(path), provider, model, first_user or "", usage, parent, agent, last_user)
+    return Session(platform, sid, str(path), cwd, created or file_time(path), updated or created or file_time(path), provider, model, first_user or "", usage, parent, agent, last_user, tuple(prompts))
 
 
 def spawn_info(source: Json | None) -> tuple[str | None, str | None]:
@@ -90,7 +92,7 @@ def nick_role(nickname: str | None, role: str | None) -> str | None:
 
 
 def user_text(data: JsonMap, message: JsonMap) -> str:
-    if data.get("type") in ("user", "USER_INPUT") or data.get("source") in ("USER_EXPLICIT", "USER_INPUT"):
+    if data.get("type") == "user":
         value = content_text(data.get("content"))
         if value:
             return value

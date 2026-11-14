@@ -5,14 +5,7 @@ from urllib.parse import unquote, urlparse
 
 from .jsonio import as_map, int_value, iter_jsonl, parse_json_text, read_json, text
 from .timeparse import file_time, unix_millis, unix_seconds
-from .transcript import (
-    content_text,
-    env_path,
-    existing,
-    flat_parallel,
-    jsonl_parallel,
-    recent,
-)
+from .transcript import content_text, env_path, existing, flat_parallel, jsonl_parallel, recent
 from .types import Json, JsonMap, Session
 
 
@@ -43,25 +36,6 @@ def scan_gemini(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
     roots = _roots([Path.home() / ".gemini"], extra_roots, (".gemini",))
     paths = [path for root in roots for path in (root / "tmp").glob("*/chats/*.json")]
     return flat_parallel(recent(paths), workers, _gemini_sessions)
-
-
-def scan_antigravity(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
-    defaults = [Path.home() / ".gemini" / "antigravity" / "brain"]
-    roots = _roots(defaults, extra_roots, ("brain", "antigravity/brain", ".gemini/antigravity/brain"))
-    paths: list[Path] = []
-    for root in roots:
-        paths.extend(root.glob("*/.system_generated/logs/transcript.jsonl"))
-        paths.extend(root.glob("*/.system_generated/logs/transcript_full.jsonl"))
-        paths.extend(root.glob(".system_generated/logs/transcript.jsonl"))
-        paths.extend(root.glob(".system_generated/logs/transcript_full.jsonl"))
-    return jsonl_parallel(recent(paths), workers, "antigravity", _antigravity_id)
-
-
-def _antigravity_id(path: Path) -> str:
-    parent_name = path.parent.parent.parent.name
-    if parent_name and parent_name not in ("brain", "antigravity", ".gemini", ""):
-        return parent_name
-    return path.parent.parent.name or path.stem
 
 
 def scan_kimi(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
@@ -106,6 +80,7 @@ def scan_aider(extra_roots: tuple[Path, ...], workers: int) -> list[Session]:
 def _droid_session(path: Path) -> Session:
     sid = path.stem
     cwd = model = first_user = last_user = None
+    prompts: list[str] = []
     created = updated = None
     settings = as_map(read_json(path.with_suffix(".settings.json"))) or {}
     for data in iter_jsonl(path):
@@ -120,7 +95,8 @@ def _droid_session(path: Path) -> Session:
             if prompt:
                 first_user = first_user or prompt
                 last_user = prompt
-    return Session("droid", sid, str(path), cwd, created or file_time(path), updated or created or file_time(path), None, text(settings.get("model")) or model, first_user or "", _usage(settings), last_user_message=last_user or "")
+                prompts.append(prompt)
+    return Session("droid", sid, str(path), cwd, created or file_time(path), updated or created or file_time(path), None, text(settings.get("model")) or model, first_user or "", _usage(settings), last_user_message=last_user or "", user_messages=tuple(prompts))
 
 
 def _amp_sessions(path: Path) -> list[Session]:
@@ -162,6 +138,7 @@ def _gemini_sessions(path: Path) -> list[Session]:
 
 def _kimi_session(path: Path) -> Session:
     first_user = last_user = ""
+    prompts: list[str] = []
     created = updated = None
     for data in iter_jsonl(path):
         stamp = data.get("timestamp")
@@ -172,7 +149,8 @@ def _kimi_session(path: Path) -> Session:
         if prompt:
             first_user = first_user or prompt
             last_user = prompt
-    return Session("kimi", path.parent.name, str(path), None, created or file_time(path), updated or file_time(path), "moonshot", None, first_user, {}, last_user_message=last_user)
+            prompts.append(prompt)
+    return Session("kimi", path.parent.name, str(path), None, created or file_time(path), updated or file_time(path), "moonshot", None, first_user, {}, last_user_message=last_user, user_messages=tuple(prompts))
 
 
 def _codebuff_sessions(path: Path) -> list[Session]:

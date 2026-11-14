@@ -1,6 +1,7 @@
 ---
 name: refactor
-description: "Intelligent refactor command. Triggers: refactor, refactoring, cleanup, restructure, extract, simplify, modernize."
+description: "Guides a refactor, cleanup, or restructure with the right decomposition. Use when the user asks to refactor, simplify, extract, or modernize code."
+argument-hint: "<refactoring-target> [--scope=<file|module|project>] [--strategy=<safe|aggressive>]"
 ---
 
 export const REFACTOR_TEMPLATE = `# Intelligent Refactor Command
@@ -154,14 +155,14 @@ While background agents are running, use direct tools:
 
 \`\`\`typescript
 // Find definition(s)
-LspGotoDefinition(filePath, line, character)  // Where is it defined?
+lsp_goto_definition(filePath, line, character)  // Where is it defined?
 
 // Find ALL usages across workspace
-LspFindReferences(filePath, line, character, includeDeclaration=true)
+lsp_find_references(filePath, line, character, includeDeclaration=true)
 
 // Get file structure
-LspDocumentSymbols(filePath)  // Hierarchical outline
-LspWorkspaceSymbols(filePath, query="[target_symbol]")  // Search by name
+lsp_symbols(filePath, scope="document")  // Hierarchical outline
+lsp_symbols(filePath, scope="workspace", query="[target_symbol]")  // Search by name
 
 // Get current diagnostics
 lsp_diagnostics(filePath)  // Errors, warnings before we start

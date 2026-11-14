@@ -27,13 +27,13 @@ USAGE
 
 EXAMPLES
     # Find all console.log calls in TypeScript
-    ast_grep_helper.py search 'console.log($MSG)' --lang ts src/
+    ast_grep_helper.py search 'console.log($MSG)' src/ --lang ts
 
     # Migrate console.log -> logger.info (dry-run preview)
-    ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/
+    ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' src/ --lang ts
 
     # Apply the same replacement
-    ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' --lang ts src/ --apply
+    ast_grep_helper.py replace 'console.log($MSG)' 'logger.info($MSG)' src/ --lang ts --apply
 
     # Validate a pattern offline (no sg call, no filesystem access)
     ast_grep_helper.py validate '\\w+' --lang ts
@@ -59,6 +59,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 VERSION = "0.1.0"
 
@@ -139,25 +140,35 @@ def skill_root() -> Path:
     return script_dir().parent
 
 
-def cached_binary() -> Path | None:
-    """Look in <skill_root>/bin/ for a previously downloaded binary."""
+def cache_bin_dir() -> Path:
+    """Where install.sh / install.ps1 drop a downloaded binary; never inside the skill (#11373)."""
+    override = os.environ.get("OMO_AST_GREP_BIN_DIR")
+    if override:
+        return Path(override).expanduser()
+    if os.name == "nt":
+        return Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "omo-ast-grep" / "bin"
+    return Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "omo-ast-grep" / "bin"
+
+
+def cached_binary() -> Optional[Path]:
+    """Look in cache_bin_dir() for a previously downloaded binary."""
     binname = "sg.exe" if os.name == "nt" else "sg"
     altname = "ast-grep.exe" if os.name == "nt" else "ast-grep"
     for name in (binname, altname):
-        p = skill_root() / "bin" / name
+        p = cache_bin_dir() / name
         if p.is_file() and os.access(p, os.X_OK):
             return p
     return None
 
 
-def npm_binary() -> Path | None:
+def npm_binary() -> Optional[Path]:
     """If @ast-grep/cli is installed globally via npm, find its binary."""
     # `sg` shipped by @ast-grep/cli is on PATH when npm prefix bin is on PATH.
     # We rely on shutil.which for that case.
     return None  # handled by which_binary
 
 
-def which_binary() -> Path | None:
+def which_binary() -> Optional[Path]:
     """Use shutil.which to find sg or ast-grep on PATH.
 
     On Linux, plain `sg` collides with the setgroups command from util-linux
@@ -178,17 +189,16 @@ def which_binary() -> Path | None:
                         capture_output=True,
                         text=True,
                         timeout=5,
-                        check=False,
                     )
                     if out.returncode != 0 or "ast-grep" not in (out.stdout + out.stderr).lower():
                         continue
-                except Exception:  # noqa: BLE001, S112
+                except Exception:
                     continue
             return p
     return None
 
 
-def homebrew_binary() -> Path | None:
+def homebrew_binary() -> Optional[Path]:
     """Common Homebrew install paths."""
     candidates = [
         Path("/opt/homebrew/bin/ast-grep"),
@@ -204,7 +214,7 @@ def homebrew_binary() -> Path | None:
 
 # --- OMO runtime resolution (vendored patch) ---
 
-def omo_env_binary() -> Path | None:
+def omo_env_binary() -> Optional[Path]:
     raw_path = os.environ.get("OMO_AST_GREP_SG_PATH")
     if not raw_path:
         return None
@@ -227,7 +237,7 @@ def omo_runtime_slug() -> str:
     return f"{os_slug}-{arch_slug}"
 
 
-def omo_runtime_binary() -> Path | None:
+def omo_runtime_binary() -> Optional[Path]:
     binary_name = "sg.exe" if sys.platform.startswith("win") else "sg"
     slug = omo_runtime_slug()
     candidates: list[Path] = []
@@ -243,12 +253,12 @@ def omo_runtime_binary() -> Path | None:
     return None
 
 
-def resolve_binary() -> Path | None:
+def resolve_binary() -> Optional[Path]:
     """Resolve the ast-grep binary in priority order.
 
     1. OMO_AST_GREP_SG_PATH override
     2. OMO runtime dirs
-    3. Cached binary in <skill>/bin/
+    3. Cached binary in cache_bin_dir()
     4. PATH (via shutil.which)
     5. Homebrew default paths
     """
@@ -287,14 +297,14 @@ def require_binary() -> Path:
 # Each tuple: (regex_to_detect, hint_message)
 REGEX_ANTIPATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\\w|\\d|\\s|\\b"),
-     ("Backslash escapes (\\w, \\d, \\s, \\b) are regex syntax, not ast-grep. "
-     "Use $VAR to capture any identifier, or switch to grep for text patterns.")),
+     "Backslash escapes (\\w, \\d, \\s, \\b) are regex syntax, not ast-grep. "
+     "Use $VAR to capture any identifier, or switch to grep for text patterns."),
     (re.compile(r"(?<!\$)\.\*|(?<!\$)\.\+"),
-     ("'.*' and '.+' are regex wildcards, not ast-grep. "
-     "Use $$$ between AST fragments to match many nodes, or $VAR for one node.")),
+     "'.*' and '.+' are regex wildcards, not ast-grep. "
+     "Use $$$ between AST fragments to match many nodes, or $VAR for one node."),
     (re.compile(r"\[[a-zA-Z0-9-]+\]"),
-     ("Character classes like '[a-z]' are regex syntax. "
-     "ast-grep has no AST equivalent - use grep for character-level patterns.")),
+     "Character classes like '[a-z]' are regex syntax. "
+     "ast-grep has no AST equivalent - use grep for character-level patterns."),
 ]
 
 
@@ -310,41 +320,46 @@ def find_alternation(pattern: str) -> bool:
     return bool(re.search(r"\w\s*\|\s*\w", stripped)) and "||" not in stripped
 
 
-def lang_specific_hints(pattern: str, lang: str | None) -> list[str]:
+def lang_specific_hints(pattern: str, lang: Optional[str]) -> list[str]:
     """Return a list of hints for language-specific common mistakes."""
     if not lang:
         return []
     canonical = LANG_ALIASES.get(lang.lower(), lang.lower())
     hints: list[str] = []
 
-    if canonical == "python" and re.search(r"^\s*(def|class)\s+\$?\w+[^:]*:\s*$", pattern, re.MULTILINE):
-        hints.append(
-            "Python pattern has trailing ':'. ast-grep parses pattern as a complete "
-            "definition - drop the trailing colon. Try: 'def $FUNC($$$)' or 'class $C($$$)'."
-        )
+    if canonical == "python":
+        # def foo($$$):  <-- trailing colon breaks the parse
+        if re.search(r"^\s*(def|class)\s+\$?\w+[^:]*:\s*$", pattern, re.MULTILINE):
+            hints.append(
+                "Python pattern has trailing ':'. ast-grep parses pattern as a complete "
+                "definition - drop the trailing colon. Try: 'def $FUNC($$$)' or 'class $C($$$)'."
+            )
 
-    if canonical in ("javascript", "typescript", "tsx") and re.search(r"^\s*(async\s+)?function\s+\$?\w+\s*$", pattern):
-        hints.append(
-            "JS/TS function pattern is incomplete. Add params and body: "
-            "'function $NAME($$$) { $$$ }'."
-        )
+    if canonical in ("javascript", "typescript", "tsx"):
+        if re.search(r"^\s*(async\s+)?function\s+\$?\w+\s*$", pattern):
+            hints.append(
+                "JS/TS function pattern is incomplete. Add params and body: "
+                "'function $NAME($$$) { $$$ }'."
+            )
 
-    if canonical == "go" and re.search(r"^\s*func\s+\$?\w+\s*$", pattern):
-        hints.append(
-            "Go function pattern is incomplete. Add params and body: "
-            "'func $NAME($$$) { $$$ }'."
-        )
+    if canonical == "go":
+        if re.search(r"^\s*func\s+\$?\w+\s*$", pattern):
+            hints.append(
+                "Go function pattern is incomplete. Add params and body: "
+                "'func $NAME($$$) { $$$ }'."
+            )
 
-    if canonical == "rust" and re.search(r"^\s*fn\s+\$?\w+\s*$", pattern):
-        hints.append(
-            "Rust fn pattern is incomplete. Add params, return type, and body: "
-            "'fn $NAME($$$) -> $RET { $$$ }' (or '-> ()' if returning unit)."
-        )
+    if canonical == "rust":
+        if re.search(r"^\s*fn\s+\$?\w+\s*$", pattern):
+            hints.append(
+                "Rust fn pattern is incomplete. Add params, return type, and body: "
+                "'fn $NAME($$$) -> $RET { $$$ }' (or '-> ()' if returning unit)."
+            )
 
     return hints
 
 
-def validate_pattern(pattern: str, lang: str | None) -> list[str]:
+def validate_pattern(pattern: str, lang: Optional[str]) -> list[str]:
     """Return a list of hints. Empty list = pattern looks plausible."""
     hints: list[str] = []
 
@@ -363,7 +378,7 @@ def validate_pattern(pattern: str, lang: str | None) -> list[str]:
     return hints
 
 
-def normalize_lang(lang: str | None) -> str | None:
+def normalize_lang(lang: Optional[str]) -> Optional[str]:
     if not lang:
         return None
     canonical = LANG_ALIASES.get(lang.lower(), lang.lower())
@@ -391,7 +406,6 @@ def run_sg(
             capture_output=capture,
             text=True,
             timeout=timeout,
-            check=False,
         )
     except subprocess.TimeoutExpired:
         err(f"ast-grep call timed out after {timeout}s")
@@ -601,7 +615,7 @@ def cmd_install(_args: argparse.Namespace) -> int:
         err(f"installer not found: {installer}")
         return 1
     trace(f"running installer: {' '.join(cmd)}")
-    return subprocess.run(cmd, check=False).returncode
+    return subprocess.run(cmd).returncode
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -732,7 +746,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     global _QUIET
     parser = build_parser()
     args = parser.parse_args(argv)
