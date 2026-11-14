@@ -21,6 +21,8 @@ KEYWORD_SKILLS: dict[str, str] = {
     "$frontend": "frontend",
     "$debugging": "debugging",
     "$init": "init",
+    "$ulw-execute": "ulw-execute",
+    "$mass-ulw": "mass-ulw",
 }
 
 

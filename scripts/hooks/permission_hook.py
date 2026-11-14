@@ -14,14 +14,22 @@ class PermissionHook(BaseHook):
         return "permission_hook"
 
     def execute(self, context: HookContext) -> HookResult:
-        if context.tool_name not in [
+        if context.tool_name not in {
             "write_to_file",
             "replace_file_content",
             "multi_replace_file_content",
-        ]:
+            "write_file",
+            "edit_file",
+        }:
             return HookResult(decision="allow")
 
-        target_file = context.tool_input.get("TargetFile") or context.tool_input.get("file_path")
+        target_file = None
+        for key in ("TargetFile", "target_file", "Path", "path", "FilePath", "file_path"):
+            val = context.tool_input.get(key)
+            if val and isinstance(val, str):
+                target_file = val
+                break
+
         if not target_file:
             return HookResult(decision="allow")
 

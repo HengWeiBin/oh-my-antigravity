@@ -13,18 +13,19 @@ from scripts.hooks.models import HookContext, HookResult, LifecycleEvent
 DIAGNOSTIC_WARNING_TEMPLATE = (
     "[EditErrorRecovery] Surgical edit failed on '{target_file}'. "
     "STOP guessing line numbers or context strings. "
-    "You MUST call 'view_file' on this file before attempting any further edits."
+    "You MUST call 'view_file' (or 'read_file') on this file before attempting any further edits."
 )
 
 LOCK_DENIAL_REASON_TEMPLATE = (
     "STOP. A prior surgical edit on this file failed. "
     "Repeated blind edits or writes without inspecting the file are prohibited to prevent guessing loops. "
-    "You MUST call 'view_file' on '{target_file}' to inspect its current content before attempting any further edits or writes."
+    "You MUST call 'view_file' on '{target_file}' (or 'read_file') to inspect its current content before attempting any further edits or writes."
 )
 
 TARGET_FILE_KEYS = (
     "TargetFile",
     "target_file",
+    "Path",
     "path",
     "file_path",
     "filePath",
@@ -209,8 +210,13 @@ class EditErrorRecoveryHook(BaseHook):
     def _handle_post_tool_use(self, context: HookContext) -> HookResult:
         tool_name = (context.tool_name or "").lower()
 
-        # If a file was successfully inspected via view_file, unlock it
-        if tool_name == "view_file" and not (context.tool_error and context.tool_error.strip()):
+        # If a file was successfully inspected via view_file / read_file, unlock it
+        if tool_name in (
+            "view_file",
+            "view_file_outline",
+            "view_code_item",
+            "read_file",
+        ) and not (context.tool_error and context.tool_error.strip()):
             viewed_file = extract_target_file(context.tool_input)
             if viewed_file:
                 session_id = self._get_session_id(context)
@@ -218,7 +224,7 @@ class EditErrorRecoveryHook(BaseHook):
             return HookResult()
 
         # Monitor surgical edits for failure
-        if tool_name in ("replace_file_content", "multi_replace_file_content"):
+        if tool_name in ("replace_file_content", "multi_replace_file_content", "edit_file"):
             has_error = bool(context.tool_error and context.tool_error.strip())
             if has_error:
                 target_file = extract_target_file(context.tool_input)
@@ -233,8 +239,8 @@ class EditErrorRecoveryHook(BaseHook):
     def _handle_pre_tool_use(self, context: HookContext) -> HookResult:
         tool_name = (context.tool_name or "").lower()
 
-        # Unlock when file is inspected via view_file
-        if tool_name == "view_file":
+        # Unlock when file is inspected via view_file / read_file
+        if tool_name in ("view_file", "view_file_outline", "view_code_item", "read_file"):
             viewed_file = extract_target_file(context.tool_input)
             if viewed_file:
                 session_id = self._get_session_id(context)
@@ -245,7 +251,9 @@ class EditErrorRecoveryHook(BaseHook):
         if tool_name in (
             "replace_file_content",
             "multi_replace_file_content",
+            "edit_file",
             "write_to_file",
+            "write_file",
         ):
             target_file = extract_target_file(context.tool_input)
             if target_file:

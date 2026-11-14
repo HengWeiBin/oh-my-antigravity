@@ -7,6 +7,8 @@ from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
 from scripts.hooks.utils import resolve_path
 
+UNCHECKED_RE = re.compile(r"^\s*[-*]\s*\[[\s~]\]")
+
 
 def check_uncompleted_plans(payload: dict, cwd: str = "") -> tuple[bool, int, list[str]]:
     """Checks .omo/plans/ in workspace paths and cwd for incomplete markdown plans.
@@ -38,8 +40,13 @@ def check_uncompleted_plans(payload: dict, cwd: str = "") -> tuple[bool, int, li
         plans_dir = os.path.join(d, ".omo", "plans")
         if os.path.isdir(plans_dir):
             for filename in os.listdir(plans_dir):
-                if filename.endswith(".md"):
-                    plan_files.append(os.path.join(plans_dir, filename))
+                full_path = os.path.join(plans_dir, filename)
+                if (
+                    os.path.isfile(full_path)
+                    and filename.endswith(".md")
+                    and not filename.endswith(("-review.md", ".review.md"))
+                ):
+                    plan_files.append(full_path)
 
     plan_files = list({os.path.abspath(f) for f in plan_files})
 
@@ -53,7 +60,7 @@ def check_uncompleted_plans(payload: dict, cwd: str = "") -> tuple[bool, int, li
 
             unchecked_count = 0
             for line in content.splitlines():
-                if re.search(r"^\s*[-*]\s*\[\s\]", line):
+                if UNCHECKED_RE.search(line):
                     unchecked_count += 1
 
             if unchecked_count > 0:
@@ -75,7 +82,10 @@ class StopPlanContinuationHook(BaseHook):
         termination_reason = payload.get("terminationReason")
         fully_idle = payload.get("fullyIdle", True)
 
-        if termination_reason != "model_stop" or not fully_idle:
+        if termination_reason not in ("model_stop", "NO_TOOL_CALL") or not fully_idle:
+            return HookResult()
+
+        if payload.get("continuationActive") is True or context.continuation_active:
             return HookResult()
 
         has_uncompleted, total_unchecked, unchecked_files = check_uncompleted_plans(
@@ -86,7 +96,12 @@ class StopPlanContinuationHook(BaseHook):
             files_str = ", ".join(unchecked_files)
             return HookResult(
                 decision="continue",
-                reason=f"Active plan has {total_unchecked} incomplete task(s) in [{files_str}]. Please complete all tasks before stopping.",
+                reason=(
+                    f"Active plan has {total_unchecked} incomplete task(s) in [{files_str}]. "
+                    f"Please complete all tasks before stopping. "
+                    f"Note: If the user explicitly refused, canceled, or denied an operation or permission, "
+                    f"treat that refusal as final and do not retry the refused action."
+                ),
             )
 
         return HookResult()

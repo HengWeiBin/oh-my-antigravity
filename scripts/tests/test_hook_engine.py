@@ -596,6 +596,144 @@ def test_stop_plan_continuation_hook_no_plans(tmp_path: pytest.TempPathFactory) 
     assert result.decision is None
 
 
+def test_stop_plan_continuation_hook_no_tool_call(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "feature_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("# Task\n- [ ] Unfinished task\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-no-tool-call",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "NO_TOOL_CALL",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "continue"
+    assert result.reason is not None
+    assert "incomplete task" in result.reason
+    assert "treat that refusal as final" in result.reason
+
+
+def test_stop_plan_continuation_hook_continuation_active(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "feature_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("# Task\n- [ ] Unfinished task\n")
+
+    hook = StopPlanContinuationHook()
+    # Test payload.get("continuationActive") is True
+    ctx1 = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-ca-1",
+        cwd=ws_dir,
+        continuation_active=True,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "continuationActive": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+    assert hook.execute(ctx1).decision is None
+
+    # Test context.continuation_active is True even if payload lacks it
+    ctx2 = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-ca-2",
+        cwd=ws_dir,
+        continuation_active=True,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+    assert hook.execute(ctx2).decision is None
+
+
+def test_stop_plan_continuation_hook_in_progress_tasks(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    plan_file = os.path.join(plans_dir, "wip_plan.md")
+    with open(plan_file, "w", encoding="utf-8") as f:
+        f.write("# Task\n- [~] In progress task\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-wip",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "continue"
+    assert result.reason is not None
+    assert "incomplete task" in result.reason
+    assert "wip_plan.md" in result.reason
+
+
+def test_stop_plan_continuation_hook_review_file_exclusion(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    reviews_dir = os.path.join(plans_dir, "reviews")
+    os.makedirs(reviews_dir, exist_ok=True)
+
+    # Put unchecked item in -review.md
+    with open(os.path.join(plans_dir, "feature-review.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Review feedback\n")
+    # Put unchecked item in .review.md
+    with open(os.path.join(plans_dir, "code.review.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Review feedback\n")
+    # Put unchecked item inside reviews subfolder
+    with open(os.path.join(reviews_dir, "momus.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Review feedback\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-stop-review-exclude",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
 def test_hook_engine_run_session_start(capsys: pytest.CaptureFixture[str]) -> None:
     HookEngine.clear_pipelines()
 
@@ -836,8 +974,11 @@ def test_hook_engine_serialize_pre_invocation_error_message(capsys: pytest.Captu
     captured = capsys.readouterr()
     output = json.loads(captured.out)
     assert output.get("terminationBehavior") == "terminate"
-    assert output.get("errorMessage") == "Unauthorized prompt detected: safety boundary violation"
-    assert output.get("injectSteps") == [{"ephemeralMessage": "Safety alert"}]
+    assert "errorMessage" not in output
+    assert output.get("injectSteps") == [
+        {"ephemeralMessage": "Safety alert"},
+        {"errorMessage": {"userMessage": "Unauthorized prompt detected: safety boundary violation"}},
+    ]
 
 
 def test_hook_engine_serialize_pre_invocation_terminate_with_reason(capsys: pytest.CaptureFixture[str]) -> None:
@@ -854,7 +995,10 @@ def test_hook_engine_serialize_pre_invocation_terminate_with_reason(capsys: pyte
     captured = capsys.readouterr()
     output = json.loads(captured.out)
     assert output.get("terminationBehavior") == "terminate"
-    assert output.get("errorMessage") == "Pre-condition check failed"
+    assert "errorMessage" not in output
+    assert output.get("injectSteps") == [
+        {"errorMessage": {"userMessage": "Pre-condition check failed"}},
+    ]
 
 
 def test_hook_engine_serialize_stop_block(capsys: pytest.CaptureFixture[str]) -> None:
@@ -871,7 +1015,7 @@ def test_hook_engine_serialize_stop_block(capsys: pytest.CaptureFixture[str]) ->
     captured = capsys.readouterr()
     output = json.loads(captured.out)
     assert output == {
-        "decision": "block",
+        "decision": "continue",
         "reason": "Verification incomplete: pytest must run before stop",
     }
 
@@ -889,7 +1033,7 @@ def test_hook_engine_serialize_stop_block_default_reason(capsys: pytest.CaptureF
 
     captured = capsys.readouterr()
     output = json.loads(captured.out)
-    assert output["decision"] == "block"
+    assert output["decision"] == "continue"
     assert bool(output.get("reason"))
 
 
@@ -908,9 +1052,29 @@ def test_hook_engine_serialize_stop_block_priority_over_continue(capsys: pytest.
     captured = capsys.readouterr()
     output = json.loads(captured.out)
     assert output == {
-        "decision": "block",
+        "decision": "continue",
         "reason": "Hard stop block",
     }
+
+
+def test_hook_engine_build_context_new_fields() -> None:
+    payload = {
+        "conversationId": "c-new-fields",
+        "cwd": "/workspace",
+        "hookEventName": "PreToolUse",
+        "continuationActive": True,
+        "toolCall": {
+            "id": "call_12345",
+            "name": "write_file",
+            "args": {"Path": "test.txt", "Content": "hi"},
+        },
+    }
+    ctx = HookEngine.build_context(LifecycleEvent.PRE_TOOL_USE, payload)
+    assert ctx.hook_event_name == "PreToolUse"
+    assert ctx.tool_call_id == "call_12345"
+    assert ctx.continuation_active is True
+    assert ctx.tool_name == "write_file"
+    assert ctx.tool_input == {"Path": "test.txt", "Content": "hi"}
 
 
 

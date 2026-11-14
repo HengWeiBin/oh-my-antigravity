@@ -57,6 +57,7 @@ def render_hooks(
     python_cmd: str | None = None,
     template_name: str = "hooks.template.json",
     output_name: str = "hooks.json",
+    portable: bool = False,
 ) -> Path:
     """Render hooks.json from template file.
 
@@ -65,6 +66,7 @@ def render_hooks(
         python_cmd: Python executable or command string. Defaults to detected Python.
         template_name: Template filename (default hooks.template.json).
         output_name: Output filename (default hooks.json).
+        portable: Whether to generate portable config with relative paths and uv run python.
 
     Returns:
         Path to the generated hooks.json file.
@@ -76,12 +78,18 @@ def render_hooks(
     plugin_dir_path = Path(plugin_dir).resolve()
     norm_plugin_dir = normalize_dir_path(plugin_dir_path)
 
-    if not python_cmd:
-        python_cmd = detect_python()
+    if portable:
+        if not python_cmd:
+            python_cmd = "uv run python"
+        target_plugin_dir = "."
     else:
-        python_cmd = python_cmd.replace("\\", "/")
-        if " " in python_cmd and not (python_cmd.startswith('"') and python_cmd.endswith('"')):
-            python_cmd = f'"{python_cmd}"'
+        if not python_cmd:
+            python_cmd = detect_python()
+        else:
+            python_cmd = python_cmd.replace("\\", "/")
+            if " " in python_cmd and not (python_cmd.startswith('"') and python_cmd.endswith('"')):
+                python_cmd = f'"{python_cmd}"'
+        target_plugin_dir = norm_plugin_dir
 
     template_path = plugin_dir_path / template_name
     if not template_path.is_file():
@@ -93,7 +101,7 @@ def render_hooks(
     rendered = (
         template_content
         .replace("{{PYTHON}}", python_cmd)
-        .replace("{{PLUGIN_DIR}}", norm_plugin_dir)
+        .replace("{{PLUGIN_DIR}}", target_plugin_dir)
     )
 
     # Validate JSON syntax
@@ -129,11 +137,22 @@ def main() -> int:
         default=None,
         help="Path to oh-my-antigravity plugin root directory (default: auto-resolved)",
     )
+    parser.add_argument(
+        "--portable",
+        dest="portable",
+        action="store_true",
+        default=False,
+        help="Generate portable hooks configuration using uv run python and relative paths.",
+    )
 
     args = parser.parse_args()
 
     try:
-        out_file = render_hooks(plugin_dir=args.plugin_dir, python_cmd=args.python_cmd)
+        out_file = render_hooks(
+            plugin_dir=args.plugin_dir,
+            python_cmd=args.python_cmd,
+            portable=args.portable,
+        )
         print(f"[setup_hooks] Successfully generated hooks config: {out_file}")
         return 0
     except Exception as err:  # noqa: BLE001

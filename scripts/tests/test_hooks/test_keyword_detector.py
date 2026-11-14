@@ -105,3 +105,12 @@ def test_mixed_valid_and_ignored():
         assert len(msgs) == 1
         assert "Start work content" in msgs[0]["ephemeralMessage"]
 
+
+def test_ulw_execute_and_mass_ulw_keywords():
+    payload = {"prompt": "Please run $ulw-execute and $mass-ulw now"}
+    with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="Skill instruction content")):
+        msgs = get_keyword_detector_messages(payload)
+        assert len(msgs) == 2
+        assert all("<skill-instruction>" in m["ephemeralMessage"] for m in msgs)
+
+

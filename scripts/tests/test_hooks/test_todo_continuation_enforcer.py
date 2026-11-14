@@ -1,8 +1,12 @@
 import json
 import os
+import sys
 import tempfile
 
 import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from hooks.todo_continuation_enforcer import get_todo_continuation_messages
 
 
@@ -76,6 +80,7 @@ def test_plan_file_with_unchecked_first_time(temp_workspace, temp_artifact_dir):
     assert "- [ ] task 3" in result[0]["ephemeralMessage"]
     assert "- [x] task 2" not in result[0]["ephemeralMessage"]
     assert "AUTO-CONTINUE" in result[0]["ephemeralMessage"]
+    assert "treat that refusal as final" in result[0]["ephemeralMessage"]
 
     # Check state file
     state_file = os.path.join(temp_artifact_dir, "todo_continuation_state.json")
@@ -83,6 +88,28 @@ def test_plan_file_with_unchecked_first_time(temp_workspace, temp_artifact_dir):
         state = json.load(f)
         assert state["last_injection_invocation"] == 3
         assert state["last_unchecked_count"] == 2
+
+def test_plan_file_with_in_progress_checkbox(temp_workspace, temp_artifact_dir):
+    payload = {
+        "invocationNum": 3,
+        "artifactDirectoryPath": temp_artifact_dir,
+        "workspacePaths": [temp_workspace]
+    }
+    create_plan_file(temp_workspace, "wip.md", "- [~] in-progress task 1")
+    result = get_todo_continuation_messages(payload)
+    assert len(result) == 1
+    assert "- [~] in-progress task 1" in result[0]["ephemeralMessage"]
+
+def test_skip_review_files(temp_workspace, temp_artifact_dir):
+    payload = {
+        "invocationNum": 3,
+        "artifactDirectoryPath": temp_artifact_dir,
+        "workspacePaths": [temp_workspace]
+    }
+    create_plan_file(temp_workspace, "feature-review.md", "- [ ] review comment")
+    create_plan_file(temp_workspace, "code.review.md", "- [ ] another comment")
+    result = get_todo_continuation_messages(payload)
+    assert result == []
 
 def test_throttling_last_injection_recent(temp_workspace, temp_artifact_dir):
     payload = {

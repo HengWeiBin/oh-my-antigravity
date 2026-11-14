@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "uv run python ./scripts/session_start.py",
+        "timeout": 5
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "uv run python ./scripts/pre_invocation.py",
+        "timeout": 8
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file|run_command)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python ./scripts/pre_tool_use.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python ./scripts/post_tool_use.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "uv run python ./scripts/stop.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

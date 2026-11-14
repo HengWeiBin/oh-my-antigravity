@@ -125,10 +125,69 @@ def test_worker_allowed_paths() -> None:
 
 
 def test_read_tools_always_allowed() -> None:
-    res = PermissionPolicy.evaluate(
-        role=AgentRole.ORCHESTRATOR,
-        tool_name="view_file",
-        target_path="src/app.py",
-    )
-    assert res.allowed
-    assert res.decision == "allow"
+    for tool in ["view_file", "read_file"]:
+        res1 = PermissionPolicy.evaluate(
+            role=AgentRole.ORCHESTRATOR,
+            tool_name=tool,
+            target_path="src/app.py",
+        )
+        assert res1.allowed
+        assert res1.decision == "allow"
+
+        res2 = PermissionPolicy.evaluate(
+            role=AgentRole.WORKER,
+            tool_name=tool,
+            target_path="src/app.py",
+        )
+        assert res2.allowed
+        assert res2.decision == "allow"
+
+
+def test_orchestrator_write_file_and_edit_file() -> None:
+    for tool in ["write_file", "edit_file"]:
+        # Blocked on product source code
+        res_code = PermissionPolicy.evaluate(
+            role=AgentRole.ORCHESTRATOR,
+            tool_name=tool,
+            target_path="src/app.py",
+        )
+        assert not res_code.allowed
+        assert res_code.decision == "ask"
+
+        # Allowed on docs/plans
+        res_doc = PermissionPolicy.evaluate(
+            role=AgentRole.ORCHESTRATOR,
+            tool_name=tool,
+            target_path="plans/plan.md",
+        )
+        assert res_doc.allowed
+        assert res_doc.decision == "allow"
+
+
+def test_worker_write_file_and_edit_file() -> None:
+    for tool in ["write_file", "edit_file"]:
+        # Allowed on source code
+        res_code = PermissionPolicy.evaluate(
+            role=AgentRole.WORKER,
+            tool_name=tool,
+            target_path="src/app.py",
+        )
+        assert res_code.allowed
+        assert res_code.decision == "allow"
+
+        # Denied on plugin config or plan state
+        res_config = PermissionPolicy.evaluate(
+            role=AgentRole.WORKER,
+            tool_name=tool,
+            target_path="hooks.json",
+        )
+        assert not res_config.allowed
+        assert res_config.decision == "deny"
+
+        res_plan = PermissionPolicy.evaluate(
+            role=AgentRole.WORKER,
+            tool_name=tool,
+            target_path=".omo/plans/feature.md",
+        )
+        assert not res_plan.allowed
+        assert res_plan.decision == "deny"

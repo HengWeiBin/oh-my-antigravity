@@ -7,6 +7,8 @@ import re
 from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
 
+TODO_UNCHECKED_RE = re.compile(r"^\s*[-*]\s*\[[\s~]\]")
+
 
 def resolve_path(path: str, cwd: str | None = None) -> str:
     """Helper to resolve paths"""
@@ -59,8 +61,13 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
         plans_dir = os.path.join(d, ".omo", "plans")
         if os.path.isdir(plans_dir):
             for filename in os.listdir(plans_dir):
-                if filename.endswith(".md"):
-                    plan_files.append(os.path.join(plans_dir, filename))
+                full_path = os.path.join(plans_dir, filename)
+                if (
+                    os.path.isfile(full_path)
+                    and filename.endswith(".md")
+                    and not filename.endswith(("-review.md", ".review.md"))
+                ):
+                    plan_files.append(full_path)
 
     # Deduplicate based on absolute path
     plan_files = list({os.path.abspath(f) for f in plan_files})
@@ -75,7 +82,7 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
 
             unchecked = []
             for line in content.splitlines():
-                if re.search(r"^\s*-\s*\[\s\]", line):
+                if TODO_UNCHECKED_RE.search(line):
                     unchecked.append(line.strip())
 
             if unchecked:
@@ -116,6 +123,7 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
 
     msg_lines.append("Please continue working on these tasks without asking for permission to proceed.")
     msg_lines.append("AUTO-CONTINUE: Do not ask the user 'should I continue?'")
+    msg_lines.append("Note: If the user explicitly refused, canceled, or denied an operation or permission, treat that refusal as final and do not retry the refused action.")
 
     message = "\n".join(msg_lines).strip()
 

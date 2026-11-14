@@ -1,6 +1,7 @@
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from hooks.comment_checker import check_comment_preservation
 
@@ -52,3 +53,23 @@ def test_multi_replace_file_content_no_comments():
     )
     assert res is not None
     assert "⚠️ COMMENT CHECKER" in res
+
+def test_write_file_with_path_and_content():
+    code = "\n".join([f"line {i}" for i in range(25)])
+    res = check_comment_preservation("write_file", {"Path": "test.py", "Content": code}, None)
+    assert res is not None
+    assert "⚠️ COMMENT CHECKER" in res
+
+    code_with_comment = "\n".join([f"line {i}" for i in range(25)] + ["# my comment"])
+    res_ok = check_comment_preservation("write_file", {"Path": "test.py", "Content": code_with_comment}, None)
+    assert res_ok is None
+
+def test_edit_file_with_path_and_replacement():
+    code = "\n".join([f"line {i}" for i in range(25)])
+    res = check_comment_preservation("edit_file", {"Path": "test.ts", "Replacement": code}, None)
+    assert res is not None
+    assert "⚠️ COMMENT CHECKER" in res
+
+    code_with_comment = "\n".join([f"line {i}" for i in range(25)] + ["// ts comment"])
+    res_ok = check_comment_preservation("edit_file", {"Path": "test.ts", "Replacement": code_with_comment}, None)
+    assert res_ok is None

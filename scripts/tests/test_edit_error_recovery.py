@@ -468,3 +468,49 @@ def test_engine_run_post_and_pre_tool_use_end_to_end(
     allow_res = json.loads(captured_post_view.out)
     assert allow_res["decision"] == "allow"
 
+
+def test_edit_file_locks_on_error_and_read_file_unlocks(
+    isolated_state: SessionEditState,
+) -> None:
+    cid = "conv-edit-file-flow"
+    target = "src/payment.ts"
+    hook = EditErrorRecoveryHook(state=isolated_state)
+
+    # 1. edit_file with error locks the file
+    ctx_edit = HookContext(
+        lifecycle=LifecycleEvent.POST_TOOL_USE,
+        conversation_id=cid,
+        cwd="C:/project",
+        tool_name="edit_file",
+        tool_input={"Path": target, "Target": "old", "Replacement": "new"},
+        tool_error="Target string not found",
+    )
+    res_edit = hook.execute(ctx_edit)
+    assert res_edit.additional_context is not None
+    assert "read_file" in res_edit.additional_context
+    assert isolated_state.is_locked(cid, target, cwd="C:/project") is True
+
+    # 2. pre_tool_use blocks write_file on locked file
+    ctx_write = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id=cid,
+        cwd="C:/project",
+        tool_name="write_file",
+        tool_input={"Path": target, "Content": "new content"},
+    )
+    res_write = hook.execute(ctx_write)
+    assert res_write.decision == "deny"
+    assert "read_file" in (res_write.reason or "")
+
+    # 3. read_file unlocks the file
+    ctx_read = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id=cid,
+        cwd="C:/project",
+        tool_name="read_file",
+        tool_input={"Path": target},
+    )
+    res_read = hook.execute(ctx_read)
+    assert res_read.decision == "allow"
+    assert isolated_state.is_locked(cid, target, cwd="C:/project") is False
+

@@ -273,6 +273,18 @@ class HookEngine:
         if not isinstance(model_name, str):
             model_name = None
 
+        hook_event_name = payload.get("hookEventName")
+        if not isinstance(hook_event_name, str):
+            hook_event_name = None
+
+        tool_call_id = None
+        if "toolCall" in payload and isinstance(payload["toolCall"], dict):
+            t_id = payload["toolCall"].get("id")
+            if isinstance(t_id, str):
+                tool_call_id = t_id
+
+        continuation_active = bool(payload.get("continuationActive", False))
+
         return HookContext(
             lifecycle=lifecycle,
             conversation_id=conversation_id,
@@ -285,6 +297,9 @@ class HookEngine:
             raw_payload=payload,
             step_idx=step_idx,
             model_name=model_name,
+            hook_event_name=hook_event_name,
+            tool_call_id=tool_call_id,
+            continuation_active=continuation_active,
         )
 
     @classmethod
@@ -311,11 +326,13 @@ class HookEngine:
                 elif res.decision == "terminate" and res.reason and error_message is None:
                     error_message = res.reason
 
+            if error_message is not None:
+                steps.append({"errorMessage": {"userMessage": error_message}})
+                termination_behavior = "terminate"
+
             out: dict[str, Any] = {"injectSteps": steps}
             if termination_behavior is not None:
                 out["terminationBehavior"] = termination_behavior
-            if error_message is not None:
-                out["errorMessage"] = error_message
             return out
 
         elif lifecycle == LifecycleEvent.POST_INVOCATION:
@@ -379,7 +396,7 @@ class HookEngine:
         elif lifecycle == LifecycleEvent.STOP:
             for res in results:
                 if res.decision == "block":
-                    return {"decision": "block", "reason": res.reason or "Stop blocked"}
+                    return {"decision": "continue", "reason": res.reason or "Stop blocked"}
             for res in results:
                 if res.decision == "continue":
                     return {"decision": "continue", "reason": res.reason or "Tasks incomplete"}

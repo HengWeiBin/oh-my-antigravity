@@ -12,6 +12,8 @@ REQUIRED_SECTIONS = [
     "## Dependency Matrix",
 ]
 
+CHECKBOX_RE = re.compile(r"^\s*[-*]\s+\[([ xX~])\]\s+", re.MULTILINE)
+
 
 def check_plan_format(tool_name: str, tool_input: dict, tool_response: dict | None) -> str | None:
     """
@@ -19,10 +21,22 @@ def check_plan_format(tool_name: str, tool_input: dict, tool_response: dict | No
     Returns feedback string if plan is malformed.
     Returns None if valid or not a plan file.
     """
-    if tool_name not in ["write_to_file", "replace_file_content", "multi_replace_file_content"]:
+    if tool_name not in [
+        "write_to_file",
+        "replace_file_content",
+        "multi_replace_file_content",
+        "write_file",
+        "edit_file",
+    ]:
         return None
 
-    target_file = tool_input.get("TargetFile", "")
+    target_file = (
+        tool_input.get("TargetFile")
+        or tool_input.get("Path")
+        or tool_input.get("file_path")
+        or tool_input.get("path")
+        or ""
+    )
     if not target_file:
         return None
 
@@ -31,9 +45,13 @@ def check_plan_format(tool_name: str, tool_input: dict, tool_response: dict | No
     if ".omo/plans/" not in normalized_path or not normalized_path.endswith(".md"):
         return None
 
+    # Skip review files under .omo/plans/reviews/ or ending with -review.md / .review.md
+    if ".omo/plans/reviews/" in normalized_path or normalized_path.endswith(("-review.md", ".review.md")):
+        return None
+
     content = ""
-    if tool_name == "write_to_file":
-        content = tool_input.get("CodeContent", "")
+    if tool_name in ("write_to_file", "write_file") and not tool_input.get("Append"):
+        content = tool_input.get("CodeContent") or tool_input.get("Content") or tool_input.get("content") or ""
     else:
         try:
             with open(target_file, "r", encoding="utf-8") as f:
@@ -53,10 +71,10 @@ def check_plan_format(tool_name: str, tool_input: dict, tool_response: dict | No
         todos_match = re.search(r"## todos\s*(.*?)(?=\n## |\Z)", content, re.IGNORECASE | re.DOTALL)
         if todos_match:
             todos_content = todos_match.group(1)
-            if "- [ ]" not in todos_content:
+            if not CHECKBOX_RE.search(todos_content):
                 missing_sections.append("Checkboxes (at least one `- [ ]`) in Todos")
         else:
-            if "- [ ]" not in content:
+            if not CHECKBOX_RE.search(content):
                 missing_sections.append("Checkboxes (at least one `- [ ]`) in Todos")
 
     if missing_sections:
@@ -85,7 +103,13 @@ class PlanFormatValidatorHook(BaseHook):
         return "plan_format_validator"
 
     def execute(self, context: HookContext) -> HookResult:
-        if context.tool_name not in ["write_to_file", "replace_file_content", "multi_replace_file_content"]:
+        if context.tool_name not in [
+            "write_to_file",
+            "replace_file_content",
+            "multi_replace_file_content",
+            "write_file",
+            "edit_file",
+        ]:
             return HookResult()
         warning = check_plan_format(context.tool_name, context.tool_input, None)
         if warning:

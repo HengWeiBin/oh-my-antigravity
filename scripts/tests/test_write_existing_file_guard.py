@@ -414,3 +414,90 @@ def test_engine_run_denies_unread_overwrite_via_json(
         "reason", ""
     )
 
+
+def test_blocks_unread_overwrite_with_write_file_and_path_arg(tmp_path: Path) -> None:
+    target_file = tmp_path / "existing_doc.py"
+    target_file.write_text("initial = 123", encoding="utf-8")
+
+    hook = WriteExistingFileGuardHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id="conv-write-file-1",
+        cwd=str(tmp_path),
+        tool_name="write_file",
+        tool_input={
+            "Path": str(target_file),
+            "Overwrite": True,
+            "Content": "initial = 456",
+        },
+        raw_payload={},
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "deny"
+    assert "STOP. Overwriting an existing non-empty file without inspecting it first is prohibited" in (
+        result.reason or ""
+    )
+    assert "read_file" in (result.reason or "")
+    assert "edit_file" in (result.reason or "")
+
+
+def test_allows_write_file_with_append(tmp_path: Path) -> None:
+    target_file = tmp_path / "existing_log.txt"
+    target_file.write_text("first line\n", encoding="utf-8")
+
+    hook = WriteExistingFileGuardHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id="conv-write-file-2",
+        cwd=str(tmp_path),
+        tool_name="write_file",
+        tool_input={
+            "Path": str(target_file),
+            "Append": True,
+            "Content": "second line\n",
+        },
+        raw_payload={},
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "allow"
+
+
+def test_allows_write_file_when_inspected_via_read_file(tmp_path: Path) -> None:
+    target_file = tmp_path / "read_then_written.py"
+    target_file.write_text("x = 10", encoding="utf-8")
+
+    brain_dir = tmp_path / "brain"
+    cid = "test-read-file-conv"
+    logs_dir = brain_dir / cid / ".system_generated" / "logs"
+    logs_dir.mkdir(parents=True)
+    transcript_file = logs_dir / "transcript.jsonl"
+    entry = {
+        "toolCall": {
+            "name": "read_file",
+            "args": {"Path": str(target_file)},
+        }
+    }
+    transcript_file.write_text(json.dumps(entry) + "\n", encoding="utf-8")
+
+    hook = WriteExistingFileGuardHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id=cid,
+        cwd=str(tmp_path),
+        tool_name="write_file",
+        tool_input={
+            "Path": str(target_file),
+            "Overwrite": True,
+            "Content": "x = 20",
+        },
+        raw_payload={
+            "conversationId": cid,
+            "artifactDirectoryPath": str(brain_dir / cid),
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision == "allow"
+

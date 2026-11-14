@@ -11,18 +11,32 @@ def check_notepad_write_guard(tool_name: str, tool_input: dict) -> dict | None:
     Returns a denial dict if the write would destructively shrink a notepad file >50%.
     Returns None to allow the write.
     """
-    if tool_name != "write_to_file":
+    if tool_name not in ("write_to_file", "write_file"):
         return None
 
-    target_file = tool_input.get("TargetFile", "")
-    if not target_file:
+    if tool_name == "write_file" and tool_input.get("Append") is True:
+        return None
+
+    target_file = (
+        tool_input.get("TargetFile")
+        or tool_input.get("Path")
+        or tool_input.get("file_path")
+        or tool_input.get("path")
+        or ""
+    )
+    if not target_file or not isinstance(target_file, str):
         return None
 
     normalized_path = target_file.replace("\\", "/")
-    if "/.omo/notepads/" not in normalized_path:
+    if "/.omo/notepads/" not in normalized_path and not normalized_path.startswith(".omo/notepads/"):
         return None
 
-    new_content = tool_input.get("CodeContent", "")
+    new_content = (
+        tool_input.get("CodeContent")
+        or tool_input.get("Content")
+        or tool_input.get("content")
+        or ""
+    )
 
     if not os.path.exists(target_file):
         return None
@@ -58,7 +72,7 @@ class NotepadWriteGuardHook(BaseHook):
         return "notepad_write_guard"
 
     def execute(self, context: HookContext) -> HookResult:
-        if context.tool_name != "write_to_file":
+        if context.tool_name not in ("write_to_file", "write_file"):
             return HookResult(decision="allow")
         res = check_notepad_write_guard(context.tool_name, context.tool_input)
         if res:

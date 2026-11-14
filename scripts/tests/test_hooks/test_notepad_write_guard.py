@@ -2,9 +2,11 @@ import os
 import sys
 
 # Ensure the module can be found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from hooks.notepad_write_guard import check_notepad_write_guard
+from hooks.models import HookContext, LifecycleEvent
+from hooks.notepad_write_guard import NotepadWriteGuardHook, check_notepad_write_guard
 
 
 def test_non_notepad_file():
@@ -69,3 +71,50 @@ def test_notepad_write_deny(tmp_path):
     assert result.get("decision") == "deny"
     assert "reduce the notepad content by >50%" in result.get("reason", "")
     assert "permissionDecision" not in result
+
+
+def test_notepad_write_file_path_and_content_deny(tmp_path):
+    target = tmp_path / ".omo" / "notepads" / "notes.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("a" * 100, encoding="utf-8")
+
+    tool_input = {
+        "Path": str(target),
+        "Content": "b" * 10,
+    }
+    result = check_notepad_write_guard("write_file", tool_input)
+    assert result is not None
+    assert result.get("decision") == "deny"
+    assert "reduce the notepad content by >50%" in result.get("reason", "")
+
+
+def test_notepad_write_file_append_allowed(tmp_path):
+    target = tmp_path / ".omo" / "notepads" / "notes.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("a" * 100, encoding="utf-8")
+
+    tool_input = {
+        "Path": str(target),
+        "Append": True,
+        "Content": "short note",
+    }
+    result = check_notepad_write_guard("write_file", tool_input)
+    assert result is None
+
+
+def test_notepad_write_guard_hook_execute(tmp_path):
+    target = tmp_path / ".omo" / "notepads" / "notes.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("a" * 100, encoding="utf-8")
+
+    hook = NotepadWriteGuardHook()
+    ctx_deny = HookContext(
+        lifecycle=LifecycleEvent.PRE_TOOL_USE,
+        conversation_id="conv-np",
+        cwd=str(tmp_path),
+        tool_name="write_file",
+        tool_input={"Path": str(target), "Content": "x"},
+    )
+    res = hook.execute(ctx_deny)
+    assert res.decision == "deny"
+    assert "reduce the notepad content by >50%" in (res.reason or "")

@@ -34,6 +34,9 @@ class HookContext:
     raw_payload: dict[str, Any] = field(default_factory=dict)
     step_idx: int | None = None
     model_name: str | None = None
+    hook_event_name: str | None = None
+    tool_call_id: str | None = None
+    continuation_active: bool = False
 
 
 @dataclass

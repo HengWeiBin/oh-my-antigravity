@@ -128,6 +128,3 @@ Thumbs.db
 .omo/
 .agents/teamwork/
 .scratch/
-
-# Generated hook configuration
-hooks.json

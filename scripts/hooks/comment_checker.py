@@ -14,11 +14,17 @@ def check_comment_preservation(
     Returns a warning string if significant comments were lost.
     Returns None if comment density looks OK.
     """
-    valid_tools = {"write_to_file", "replace_file_content", "multi_replace_file_content"}
+    valid_tools = {"write_to_file", "replace_file_content", "multi_replace_file_content", "write_file", "edit_file"}
     if tool_name not in valid_tools:
         return None
 
-    target_file = tool_input.get("TargetFile", "")
+    target_file = (
+        tool_input.get("TargetFile")
+        or tool_input.get("Path")
+        or tool_input.get("file_path")
+        or tool_input.get("path")
+        or ""
+    )
     if not target_file:
         return None
 
@@ -28,10 +34,10 @@ def check_comment_preservation(
         return None
 
     content = ""
-    if tool_name == "write_to_file":
-        content = tool_input.get("CodeContent", "")
-    elif tool_name == "replace_file_content":
-        content = tool_input.get("ReplacementContent", "")
+    if tool_name in ("write_to_file", "write_file"):
+        content = tool_input.get("CodeContent") or tool_input.get("Content") or tool_input.get("content") or ""
+    elif tool_name in ("replace_file_content", "edit_file"):
+        content = tool_input.get("ReplacementContent") or tool_input.get("Replacement") or ""
     elif tool_name == "multi_replace_file_content":
         chunks = tool_input.get("ReplacementChunks", [])
         content = "\n".join(chunk.get("ReplacementContent", "") for chunk in chunks)
@@ -74,7 +80,13 @@ class CommentCheckerHook(BaseHook):
         return "comment_checker"
 
     def execute(self, context: HookContext) -> HookResult:
-        if context.tool_name not in {"write_to_file", "replace_file_content", "multi_replace_file_content"}:
+        if context.tool_name not in {
+            "write_to_file",
+            "replace_file_content",
+            "multi_replace_file_content",
+            "write_file",
+            "edit_file",
+        }:
             return HookResult()
         warning = check_comment_preservation(context.tool_name, context.tool_input, None)
         if warning:

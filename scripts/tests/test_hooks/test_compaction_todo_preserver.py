@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from hooks.compaction_todo_preserver import get_compaction_todo_messages
 
 
@@ -28,6 +33,33 @@ def test_plan_with_unchecked_items(tmp_path):
     assert "- [ ] task 1" in messages[0]["ephemeralMessage"]
     assert "- [ ] task 3" in messages[0]["ephemeralMessage"]
     assert "- [x] task 2" not in messages[0]["ephemeralMessage"]
+
+def test_plan_with_in_progress_items(tmp_path):
+    plans_dir = tmp_path / ".omo" / "plans"
+    plans_dir.mkdir(parents=True)
+    plan_file = plans_dir / "wip_plan.md"
+    plan_file.write_text("- [~] task in progress\n* [~] star in progress\n", encoding="utf-8")
+
+    payload = {
+        "invocationNum": 15,
+        "workspacePaths": [str(tmp_path)]
+    }
+    messages = get_compaction_todo_messages(payload)
+    assert len(messages) == 1
+    assert "- [~] task in progress" in messages[0]["ephemeralMessage"]
+    assert "* [~] star in progress" in messages[0]["ephemeralMessage"]
+
+def test_skip_review_files(tmp_path):
+    plans_dir = tmp_path / ".omo" / "plans"
+    plans_dir.mkdir(parents=True)
+    (plans_dir / "plan-review.md").write_text("- [ ] unchecked review item\n", encoding="utf-8")
+    (plans_dir / "code.review.md").write_text("- [ ] unchecked review item 2\n", encoding="utf-8")
+
+    payload = {
+        "invocationNum": 15,
+        "workspacePaths": [str(tmp_path)]
+    }
+    assert get_compaction_todo_messages(payload) == []
 
 def test_plan_with_all_items_checked(tmp_path):
     plans_dir = tmp_path / ".omo" / "plans"

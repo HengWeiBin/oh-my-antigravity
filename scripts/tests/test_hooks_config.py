@@ -46,6 +46,18 @@ class TestHooksConfig(unittest.TestCase):
         for phase in ["SessionStart", "PreInvocation", "PreToolUse", "PostToolUse", "Stop"]:
             self.assertIn(phase, hooks, f"Missing lifecycle phase {phase} in hooks.template.json")
 
+        # Validate PreToolUse and PostToolUse matchers include write_file and edit_file
+        pre_matcher = hooks["PreToolUse"][0].get("matcher", "")
+        self.assertEqual(
+            pre_matcher,
+            "^(write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file|run_command)$",
+        )
+        post_matcher = hooks["PostToolUse"][0].get("matcher", "")
+        self.assertEqual(
+            post_matcher,
+            "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file)$",
+        )
+
         commands = extract_commands(data)
         self.assertGreater(len(commands), 0, "No commands found in hooks.template.json")
 
@@ -93,6 +105,36 @@ class TestHooksConfig(unittest.TestCase):
                 python_cmd="python",
             )
             self.assertTrue(custom_output.is_file())
+
+    def test_setup_hooks_renders_portable_config(self):
+        """Verify render_hooks(..., portable=True) produces 'uv run python ./scripts/...' with no placeholders."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            template_path = os.path.join(ROOT_DIR, "hooks.template.json")
+            with open(template_path, "r", encoding="utf-8") as f:
+                template_content = f.read()
+
+            (tmp_path / "hooks.template.json").write_text(template_content, encoding="utf-8")
+
+            generated_path = render_hooks(
+                plugin_dir=tmp_path,
+                portable=True,
+            )
+            self.assertTrue(generated_path.is_file(), "Generated hooks.json must exist")
+
+            with open(generated_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            commands = extract_commands(data)
+            self.assertGreater(len(commands), 0)
+
+            for cmd in commands:
+                self.assertNotIn("{{PYTHON}}", cmd, f"Command '{cmd}' contains unrendered {{{{PYTHON}}}}")
+                self.assertNotIn("{{PLUGIN_DIR}}", cmd, f"Command '{cmd}' contains unrendered {{{{PLUGIN_DIR}}}}")
+                self.assertTrue(
+                    cmd.startswith("uv run python ./scripts/"),
+                    f"Command '{cmd}' should start with 'uv run python ./scripts/'",
+                )
 
     def test_detect_python_runtime(self):
         """Verify detect_python detects a non-empty string for Python binary."""

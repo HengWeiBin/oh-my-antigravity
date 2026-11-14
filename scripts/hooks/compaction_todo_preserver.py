@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
@@ -48,7 +49,7 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
             continue
         try:
             for fname in sorted(os.listdir(d)):
-                if not fname.endswith(".md"):
+                if not fname.endswith(".md") or fname.endswith(("-review.md", ".review.md")):
                     continue
                 fpath = os.path.join(d, fname)
                 if not os.path.isfile(fpath):
@@ -59,7 +60,7 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
                     with open(fpath, "r", encoding="utf-8") as f:
                         for line in f:
                             stripped = line.strip()
-                            if stripped.startswith(("- [ ]", "* [ ]")):
+                            if re.match(r"^\s*[-*]\s*\[[\s~]\]", line):
                                 unchecked_items.append(stripped)
                                 if len(unchecked_items) >= 10:
                                     break

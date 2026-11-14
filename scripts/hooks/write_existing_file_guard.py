@@ -156,12 +156,20 @@ def was_file_inspected_or_written_in_transcript(
 
                 tool_calls = extract_tool_calls(entry)
                 for tool_name, args in tool_calls:
-                    if tool_name in ("view_file", "write_to_file"):
+                    if tool_name in (
+                        "view_file",
+                        "view_file_outline",
+                        "view_code_item",
+                        "read_file",
+                        "write_to_file",
+                        "write_file",
+                    ):
                         file_val = (
                             args.get("AbsolutePath")
                             or args.get("absolute_path")
                             or args.get("TargetFile")
                             or args.get("target_file")
+                            or args.get("Path")
                             or args.get("path")
                             or args.get("file_path")
                             or args.get("filePath")
@@ -184,7 +192,10 @@ class WriteExistingFileGuardHook(BaseHook):
         return "write_existing_file_guard"
 
     def execute(self, context: HookContext) -> HookResult:
-        if context.tool_name != "write_to_file":
+        if context.tool_name not in ("write_to_file", "write_file"):
+            return HookResult(decision="allow")
+
+        if context.tool_name == "write_file" and context.tool_input.get("Append") is True:
             return HookResult(decision="allow")
 
         if not is_overwrite_requested(context.tool_input):
@@ -193,6 +204,7 @@ class WriteExistingFileGuardHook(BaseHook):
         target_file = (
             context.tool_input.get("TargetFile")
             or context.tool_input.get("target_file")
+            or context.tool_input.get("Path")
             or context.tool_input.get("path")
             or context.tool_input.get("file_path")
         )
@@ -231,7 +243,7 @@ class WriteExistingFileGuardHook(BaseHook):
 
         reason = (
             "STOP. Overwriting an existing non-empty file without inspecting it first is "
-            "prohibited to prevent accidental code loss. Please view the file with 'view_file' "
-            f"first, or use 'replace_file_content' for surgical edits. (File: {target_file})"
+            "prohibited to prevent accidental code loss. Please view the file with 'view_file' or 'read_file' "
+            f"first, or use 'replace_file_content' or 'edit_file' for surgical edits. (File: {target_file})"
         )
         return HookResult(decision="deny", reason=reason)

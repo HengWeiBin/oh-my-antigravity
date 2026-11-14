@@ -17,6 +17,8 @@ WRITE_TOOLS = {
     "write_to_file",
     "replace_file_content",
     "multi_replace_file_content",
+    "write_file",
+    "edit_file",
 }
 
 
