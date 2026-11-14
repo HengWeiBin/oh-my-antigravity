@@ -113,7 +113,7 @@ function initPipelineInspector() {
     'pre_tool_use': {
       title: isZh ? '工具執行前階段 (PreToolUse)' : 'Pre-Tool Security Gate (PreToolUse)',
       script: 'scripts/pre_tool_use.py',
-      timing: isZh ? '在變更型工具 (write_to_file, replace_file_content, run_command) 執行前攔截' : 'Intercepts mutating tool calls before execution',
+      timing: isZh ? '在變更型工具 (write_file, edit_file, write_to_file, replace_file_content, run_command) 執行前攔截' : 'Intercepts mutating tool calls before execution',
       action: isZh ? '角色權限守衛' : 'Role-Based Permission Enforcement',
       desc: isZh 
         ? '實施基於角色的嚴格權限邊界：主調度指揮官（sisyphus, atlas, prometheus）嚴禁直接修改原始碼；實作工匠（hephaestus, sisyphus-junior）嚴禁竄改外掛配置與規則。'
