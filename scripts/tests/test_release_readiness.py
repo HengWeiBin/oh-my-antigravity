@@ -1,4 +1,4 @@
-"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.5.0.
+"""Comprehensive release-readiness verification suite for oh-my-antigravity v0.5.1.
 
 Validates:
 1. Manifest & Config integrity (plugin.json, hooks.json, pyproject.toml).
@@ -100,7 +100,7 @@ def test_manifest_plugin_json():
     assert data.get("$schema") == "https://antigravity.google/schemas/v1/plugin.json"
     assert data.get("name") == "oh-my-antigravity", "Plugin name must be 'oh-my-antigravity'"
     assert data.get("displayName") == "Oh-My-Antigravity", "Plugin displayName must be 'Oh-My-Antigravity'"
-    assert data.get("version") == "0.5.0", "Plugin version must be '0.5.0'"
+    assert data.get("version") == "0.5.1", "Plugin version must be '0.5.1'"
     assert data.get("description"), "Plugin must contain a non-empty description"
     assert data.get("author") == "HengWeiBin", "Plugin author must be 'HengWeiBin'"
     assert data.get("license") == "MIT", "Plugin license must be 'MIT'"
@@ -178,7 +178,7 @@ def test_manifest_pyproject_toml():
     data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     project = data.get("project", {})
     assert project.get("name") == "oh-my-antigravity", "Project name must match"
-    assert project.get("version") == "0.5.0", "Project version must be '0.5.0'"
+    assert project.get("version") == "0.5.1", "Project version must be '0.5.1'"
     assert ">=3.13" in project.get("requires-python", ""), "Python 3.13+ required"
 
 
@@ -228,7 +228,7 @@ def test_vector_asset_banner():
         "11 Orchestrated Agents",
         "47 Bundled Skills",
         "Python 3.13",
-        "ORCHESTRATION_HARNESS v0.5.0",
+        "ORCHESTRATION_HARNESS v0.5.1",
     ]:
         assert text_token in content, f"Missing banner label '{text_token}'"
 
