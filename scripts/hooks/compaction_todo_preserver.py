@@ -3,14 +3,15 @@ from __future__ import annotations
 import os
 import re
 
+from scripts.hooks.boulder import get_bound_active_plans
 from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
 
 
-def get_compaction_todo_messages(payload: dict) -> list[dict]:
+def get_compaction_todo_messages(payload: dict, conversation_id: str = "") -> list[dict]:
     """
     On high invocation numbers (>= 15, suggesting context compaction),
-    scans .omo/plans/ and .omo/drafts/ for unchecked TODOs and returns
+    checks active plans bound via .omo/boulder.json for unchecked TODOs and returns
     ephemeral messages to re-inject them.
     Returns list of {'ephemeralMessage': str} dicts, or empty list.
     """
@@ -18,70 +19,40 @@ def get_compaction_todo_messages(payload: dict) -> list[dict]:
     if not isinstance(invocation_num, int) or invocation_num < 15:
         return []
 
-    workspace_paths_raw = payload.get("workspacePaths", [])
-    workspace_paths = []
-    if isinstance(workspace_paths_raw, list):
-        for wp in workspace_paths_raw:
-            if isinstance(wp, str) and wp:
-                workspace_paths.append(wp)
-
-    cwd = payload.get("cwd", "")
-    if isinstance(cwd, str) and cwd and cwd not in workspace_paths:
-        workspace_paths.append(cwd)
-
-    if not workspace_paths:
+    plan_files = get_bound_active_plans(payload, conversation_id=conversation_id)
+    if not plan_files:
         return []
-
-    dirs_to_check = []
-    for wp in workspace_paths:
-        plans_dir = os.path.join(wp, ".omo", "plans")
-        drafts_dir = os.path.join(wp, ".omo", "drafts")
-        if plans_dir not in dirs_to_check:
-            dirs_to_check.append(plans_dir)
-        if drafts_dir not in dirs_to_check:
-            dirs_to_check.append(drafts_dir)
 
     messages = []
     files_processed = 0
 
-    for d in dirs_to_check:
-        if not os.path.isdir(d):
-            continue
+    for fpath in plan_files:
+        fname = os.path.basename(fpath)
+        unchecked_items = []
         try:
-            for fname in sorted(os.listdir(d)):
-                if not fname.endswith(".md") or fname.endswith(("-review.md", ".review.md")):
-                    continue
-                fpath = os.path.join(d, fname)
-                if not os.path.isfile(fpath):
-                    continue
+            with open(fpath, "r", encoding="utf-8") as f:
+                for line in f:
+                    stripped = line.strip()
+                    if re.match(r"^\s*[-*]\s*\[[\s~]\]", line):
+                        unchecked_items.append(stripped)
+                        if len(unchecked_items) >= 10:
+                            break
+        except Exception:  # noqa: BLE001, S112
+            continue
 
-                unchecked_items = []
-                try:
-                    with open(fpath, "r", encoding="utf-8") as f:
-                        for line in f:
-                            stripped = line.strip()
-                            if re.match(r"^\s*[-*]\s*\[[\s~]\]", line):
-                                unchecked_items.append(stripped)
-                                if len(unchecked_items) >= 10:
-                                    break
-                except Exception:  # noqa: BLE001, S112
-                    continue
+        if unchecked_items:
+            msg_lines = [
+                "🔄 COMPACTION TODO PRESERVER: Active plan TODOs detected (context may have been compacted).",
+                "Remaining unchecked items:",
+                f"[{fname}]",
+            ]
+            msg_lines.extend(unchecked_items)
+            msg_lines.append("Please ensure you continue working on these items.")
+            messages.append({"ephemeralMessage": "\n".join(msg_lines)})
 
-                if unchecked_items:
-                    msg_lines = [
-                        "🔄 COMPACTION TODO PRESERVER: Active plan TODOs detected (context may have been compacted).",
-                        "Remaining unchecked items:",
-                        f"[{fname}]",
-                    ]
-                    msg_lines.extend(unchecked_items)
-                    msg_lines.append("Please ensure you continue working on these items.")
-                    messages.append({"ephemeralMessage": "\n".join(msg_lines)})
-
-                    files_processed += 1
-                    if files_processed >= 3:
-                        return messages
-        except Exception:  # noqa: BLE001, S110
-            pass
+            files_processed += 1
+            if files_processed >= 3:
+                return messages
 
     return messages
 
@@ -95,5 +66,7 @@ class CompactionTodoPreserverHook(BaseHook):
         return "compaction_todo_preserver"
 
     def execute(self, context: HookContext) -> HookResult:
-        messages = get_compaction_todo_messages(context.raw_payload)
+        messages = get_compaction_todo_messages(
+            context.raw_payload, conversation_id=context.conversation_id
+        )
         return HookResult(injected_steps=messages)

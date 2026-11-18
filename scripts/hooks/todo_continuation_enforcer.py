@@ -4,28 +4,16 @@ import json
 import os
 import re
 
+from scripts.hooks.boulder import get_bound_active_plans
 from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
 
 TODO_UNCHECKED_RE = re.compile(r"^\s*[-*]\s*\[[\s~]\]")
 
 
-def resolve_path(path: str, cwd: str | None = None) -> str:
-    """Helper to resolve paths"""
-    if not path:
-        return ""
-    if os.path.isabs(path):
-        return path
-    if path.startswith("~"):
-        return os.path.expanduser(path)
-    if cwd:
-        return os.path.normpath(os.path.join(cwd, path))
-    return os.path.normpath(os.path.abspath(path))
-
-
-def get_todo_continuation_messages(payload: dict) -> list[dict]:
+def get_todo_continuation_messages(payload: dict, conversation_id: str = "") -> list[dict]:
     """
-    Detects stalled/abandoned work by checking .omo/plans/ for incomplete TODOs.
+    Detects stalled/abandoned work by checking active plans bound via .omo/boulder.json for incomplete TODOs.
     On detection (invocationNum >= 3 and unchecked items exist), injects a continuation prompt.
     Returns list of {'ephemeralMessage': str} dicts.
     """
@@ -37,40 +25,7 @@ def get_todo_continuation_messages(payload: dict) -> list[dict]:
     if not artifact_dir:
         return []
 
-    # Get search directories
-    workspace_paths_raw = payload.get("workspacePaths", [])
-    workspace_paths = [wp for wp in workspace_paths_raw if isinstance(wp, str) and wp]
-    cwd = payload.get("cwd", "")
-
-    resolved_cwd = resolve_path(cwd) if cwd else ""
-    resolved_workspaces = [
-        resolve_path(wp, resolved_cwd if resolved_cwd else None)
-        for wp in workspace_paths
-    ]
-
-    dirs_to_check = []
-    for wp in resolved_workspaces:
-        if wp and wp not in dirs_to_check:
-            dirs_to_check.append(wp)
-    if resolved_cwd and resolved_cwd not in dirs_to_check:
-        dirs_to_check.append(resolved_cwd)
-
-    # Scan .omo/plans/
-    plan_files = []
-    for d in dirs_to_check:
-        plans_dir = os.path.join(d, ".omo", "plans")
-        if os.path.isdir(plans_dir):
-            for filename in os.listdir(plans_dir):
-                full_path = os.path.join(plans_dir, filename)
-                if (
-                    os.path.isfile(full_path)
-                    and filename.endswith(".md")
-                    and not filename.endswith(("-review.md", ".review.md"))
-                ):
-                    plan_files.append(full_path)
-
-    # Deduplicate based on absolute path
-    plan_files = list({os.path.abspath(f) for f in plan_files})
+    plan_files = get_bound_active_plans(payload, conversation_id=conversation_id)
 
     unchecked_by_file = {}
     total_unchecked = 0
@@ -153,7 +108,9 @@ class TodoContinuationEnforcerHook(BaseHook):
         return "todo_continuation_enforcer"
 
     def execute(self, context: HookContext) -> HookResult:
-        messages = get_todo_continuation_messages(context.raw_payload)
+        messages = get_todo_continuation_messages(
+            context.raw_payload, conversation_id=context.conversation_id
+        )
         return HookResult(injected_steps=messages)
 
 

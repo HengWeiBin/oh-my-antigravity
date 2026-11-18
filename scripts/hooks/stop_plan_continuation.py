@@ -3,52 +3,23 @@ from __future__ import annotations
 import os
 import re
 
+from scripts.hooks.boulder import get_bound_active_plans
 from scripts.hooks.engine import BaseHook
 from scripts.hooks.models import HookContext, HookResult
-from scripts.hooks.utils import resolve_path
 
 UNCHECKED_RE = re.compile(r"^\s*[-*]\s*\[[\s~]\]")
 
 
-def check_uncompleted_plans(payload: dict, cwd: str = "") -> tuple[bool, int, list[str]]:
-    """Checks .omo/plans/ in workspace paths and cwd for incomplete markdown plans.
+def check_uncompleted_plans(
+    payload: dict,
+    cwd: str = "",
+    conversation_id: str = "",
+) -> tuple[bool, int, list[str]]:
+    """Checks active plans bound via .omo/boulder.json for incomplete markdown tasks.
 
     Returns (has_uncompleted, total_unchecked, list_of_filenames).
     """
-    workspace_paths_raw = payload.get("workspacePaths", [])
-    workspace_paths = [wp for wp in workspace_paths_raw if isinstance(wp, str) and wp]
-    payload_cwd = payload.get("cwd") or cwd or ""
-
-    resolved_cwd = resolve_path(payload_cwd) if payload_cwd else ""
-    resolved_workspaces = [
-        resolve_path(wp, resolved_cwd if resolved_cwd else None)
-        for wp in workspace_paths
-    ]
-
-    dirs_to_check: list[str] = []
-    for wp in resolved_workspaces:
-        if wp and wp not in dirs_to_check:
-            dirs_to_check.append(wp)
-    if resolved_cwd and resolved_cwd not in dirs_to_check:
-        dirs_to_check.append(resolved_cwd)
-
-    if not dirs_to_check:
-        dirs_to_check.append(os.getcwd())
-
-    plan_files: list[str] = []
-    for d in dirs_to_check:
-        plans_dir = os.path.join(d, ".omo", "plans")
-        if os.path.isdir(plans_dir):
-            for filename in os.listdir(plans_dir):
-                full_path = os.path.join(plans_dir, filename)
-                if (
-                    os.path.isfile(full_path)
-                    and filename.endswith(".md")
-                    and not filename.endswith(("-review.md", ".review.md"))
-                ):
-                    plan_files.append(full_path)
-
-    plan_files = list({os.path.abspath(f) for f in plan_files})
+    plan_files = get_bound_active_plans(payload, cwd=cwd, conversation_id=conversation_id)
 
     unchecked_files: list[str] = []
     total_unchecked = 0
@@ -89,7 +60,7 @@ class StopPlanContinuationHook(BaseHook):
             return HookResult()
 
         has_uncompleted, total_unchecked, unchecked_files = check_uncompleted_plans(
-            payload, cwd=context.cwd
+            payload, cwd=context.cwd, conversation_id=context.conversation_id
         )
 
         if has_uncompleted:

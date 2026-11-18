@@ -464,6 +464,16 @@ def test_hook_engine_run_pre_tool_use_deny_with_permission_overrides(capsys: pyt
     assert output["permissionOverrides"] == ["ALLOW_READ"]
 
 
+def _write_boulder(
+    ws_dir: str,
+    data: dict,
+) -> None:
+    omo_dir = os.path.join(ws_dir, ".omo")
+    os.makedirs(omo_dir, exist_ok=True)
+    with open(os.path.join(omo_dir, "boulder.json"), "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+
 def test_stop_plan_continuation_hook_with_uncompleted_plan(tmp_path: pytest.TempPathFactory) -> None:
     from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
 
@@ -473,6 +483,21 @@ def test_stop_plan_continuation_hook_with_uncompleted_plan(tmp_path: pytest.Temp
     plan_file = os.path.join(plans_dir, "feature_plan.md")
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("# Task\n- [ ] Unfinished task 1\n- [x] Finished task 2\n")
+
+    _write_boulder(
+        ws_dir,
+        {
+            "schema_version": 2,
+            "active_work_id": "w1",
+            "works": {
+                "w1": {
+                    "active_plan": ".omo/plans/feature_plan.md",
+                    "session_ids": ["conv-stop-test"],
+                    "status": "active",
+                }
+            },
+        },
+    )
 
     hook = StopPlanContinuationHook()
     ctx = HookContext(
@@ -504,6 +529,14 @@ def test_stop_plan_continuation_hook_when_all_completed(tmp_path: pytest.TempPat
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("# Task\n- [x] Finished task 1\n- [x] Finished task 2\n")
 
+    _write_boulder(
+        ws_dir,
+        {
+            "active_plan": ".omo/plans/done_plan.md",
+            "session_ids": ["conv-stop-test-2"],
+        },
+    )
+
     hook = StopPlanContinuationHook()
     ctx = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -531,6 +564,14 @@ def test_stop_plan_continuation_hook_non_model_stop(tmp_path: pytest.TempPathFac
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("- [ ] Unfinished task 1\n")
 
+    _write_boulder(
+        ws_dir,
+        {
+            "active_plan": ".omo/plans/feature_plan.md",
+            "session_ids": ["conv-stop-test-3"],
+        },
+    )
+
     hook = StopPlanContinuationHook()
     ctx = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -557,6 +598,14 @@ def test_stop_plan_continuation_hook_not_fully_idle(tmp_path: pytest.TempPathFac
     plan_file = os.path.join(plans_dir, "feature_plan.md")
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("- [ ] Unfinished task 1\n")
+
+    _write_boulder(
+        ws_dir,
+        {
+            "active_plan": ".omo/plans/feature_plan.md",
+            "session_ids": ["conv-stop-test-4"],
+        },
+    )
 
     hook = StopPlanContinuationHook()
     ctx = HookContext(
@@ -606,6 +655,14 @@ def test_stop_plan_continuation_hook_no_tool_call(tmp_path: pytest.TempPathFacto
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("# Task\n- [ ] Unfinished task\n")
 
+    _write_boulder(
+        ws_dir,
+        {
+            "active_plan": ".omo/plans/feature_plan.md",
+            "session_ids": ["conv-stop-no-tool-call"],
+        },
+    )
+
     hook = StopPlanContinuationHook()
     ctx = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -635,6 +692,14 @@ def test_stop_plan_continuation_hook_continuation_active(tmp_path: pytest.TempPa
     plan_file = os.path.join(plans_dir, "feature_plan.md")
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("# Task\n- [ ] Unfinished task\n")
+
+    _write_boulder(
+        ws_dir,
+        {
+            "active_plan": ".omo/plans/feature_plan.md",
+            "session_ids": ["conv-stop-ca-1", "conv-stop-ca-2"],
+        },
+    )
 
     hook = StopPlanContinuationHook()
     # Test payload.get("continuationActive") is True
@@ -679,6 +744,21 @@ def test_stop_plan_continuation_hook_in_progress_tasks(tmp_path: pytest.TempPath
     with open(plan_file, "w", encoding="utf-8") as f:
         f.write("# Task\n- [~] In progress task\n")
 
+    _write_boulder(
+        ws_dir,
+        {
+            "schema_version": 2,
+            "active_work_id": "w-wip",
+            "works": {
+                "w-wip": {
+                    "active_plan": ".omo/plans/wip_plan.md",
+                    "session_ids": ["codex:conv-stop-wip"],
+                    "status": "active",
+                }
+            },
+        },
+    )
+
     hook = StopPlanContinuationHook()
     ctx = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -717,6 +797,25 @@ def test_stop_plan_continuation_hook_review_file_exclusion(tmp_path: pytest.Temp
     with open(os.path.join(reviews_dir, "momus.md"), "w", encoding="utf-8") as f:
         f.write("- [ ] Review feedback\n")
 
+    _write_boulder(
+        ws_dir,
+        {
+            "schema_version": 2,
+            "works": {
+                "r1": {
+                    "active_plan": ".omo/plans/feature-review.md",
+                    "session_ids": ["conv-stop-review-exclude"],
+                    "status": "active",
+                },
+                "r2": {
+                    "active_plan": ".omo/plans/code.review.md",
+                    "session_ids": ["conv-stop-review-exclude"],
+                    "status": "active",
+                },
+            },
+        },
+    )
+
     hook = StopPlanContinuationHook()
     ctx = HookContext(
         lifecycle=LifecycleEvent.STOP,
@@ -732,6 +831,177 @@ def test_stop_plan_continuation_hook_review_file_exclusion(tmp_path: pytest.Temp
 
     result = hook.execute(ctx)
     assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_ignores_unbound_without_boulder(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    with open(os.path.join(plans_dir, "unrelated.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Unfinished task in unrelated plan\n")
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-no-boulder",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_ignores_different_conversation_id(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    with open(os.path.join(plans_dir, "other_session.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Unfinished task\n")
+
+    _write_boulder(
+        ws_dir,
+        {
+            "schema_version": 2,
+            "active_work_id": "w1",
+            "works": {
+                "w1": {
+                    "active_plan": ".omo/plans/other_session.md",
+                    "session_ids": ["codex:other-conv-id"],
+                    "status": "active",
+                }
+            },
+        },
+    )
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="my-conv-id",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_ignores_completed_boulder_status(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    ws_dir = str(tmp_path)
+    plans_dir = os.path.join(ws_dir, ".omo", "plans")
+    os.makedirs(plans_dir, exist_ok=True)
+    with open(os.path.join(plans_dir, "completed_work.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] Unchecked optional note\n")
+
+    _write_boulder(
+        ws_dir,
+        {
+            "schema_version": 2,
+            "active_work_id": "w1",
+            "works": {
+                "w1": {
+                    "active_plan": ".omo/plans/completed_work.md",
+                    "session_ids": ["conv-completed"],
+                    "status": "completed",
+                }
+            },
+        },
+    )
+
+    hook = StopPlanContinuationHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.STOP,
+        conversation_id="conv-completed",
+        cwd=ws_dir,
+        raw_payload={
+            "terminationReason": "model_stop",
+            "fullyIdle": True,
+            "cwd": ws_dir,
+            "workspacePaths": [ws_dir],
+        },
+    )
+
+    result = hook.execute(ctx)
+    assert result.decision is None
+
+
+def test_stop_plan_continuation_hook_schemas_and_prefixed_session_ids(tmp_path: pytest.TempPathFactory) -> None:
+    from scripts.hooks.stop_plan_continuation import StopPlanContinuationHook
+
+    hook = StopPlanContinuationHook()
+
+    # Schema v1 with unprefixed and prefixed session_ids
+    ws_v1 = os.path.join(str(tmp_path), "v1")
+    os.makedirs(os.path.join(ws_v1, ".omo", "plans"), exist_ok=True)
+    with open(os.path.join(ws_v1, ".omo", "plans", "v1_plan.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] V1 task\n")
+    _write_boulder(
+        ws_v1,
+        {
+            "active_plan": ".omo/plans/v1_plan.md",
+            "session_ids": ["antigravity:conv-v1"],
+        },
+    )
+    res_v1 = hook.execute(
+        HookContext(
+            lifecycle=LifecycleEvent.STOP,
+            conversation_id="conv-v1",
+            cwd=ws_v1,
+            raw_payload={"terminationReason": "model_stop", "fullyIdle": True, "cwd": ws_v1},
+        )
+    )
+    assert res_v1.decision == "continue"
+    assert res_v1.reason is not None
+    assert "v1_plan.md" in res_v1.reason
+
+    # Schema v2 with codex:<cid> and worktree_path
+    ws_v2 = os.path.join(str(tmp_path), "v2")
+    wt_v2 = os.path.join(str(tmp_path), "v2_worktree")
+    os.makedirs(os.path.join(wt_v2, ".omo", "plans"), exist_ok=True)
+    with open(os.path.join(wt_v2, ".omo", "plans", "v2_plan.md"), "w", encoding="utf-8") as f:
+        f.write("- [ ] V2 task\n")
+    _write_boulder(
+        ws_v2,
+        {
+            "schema_version": 2,
+            "active_work_id": "w2",
+            "works": {
+                "w2": {
+                    "active_plan": ".omo/plans/v2_plan.md",
+                    "session_ids": ["codex:conv-v2"],
+                    "status": "active",
+                    "worktree_path": wt_v2,
+                }
+            },
+        },
+    )
+    res_v2 = hook.execute(
+        HookContext(
+            lifecycle=LifecycleEvent.STOP,
+            conversation_id="conv-v2",
+            cwd=ws_v2,
+            raw_payload={"terminationReason": "model_stop", "fullyIdle": True, "cwd": ws_v2},
+        )
+    )
+    assert res_v2.decision == "continue"
+    assert res_v2.reason is not None
+    assert "v2_plan.md" in res_v2.reason
 
 
 def test_hook_engine_run_session_start(capsys: pytest.CaptureFixture[str]) -> None:

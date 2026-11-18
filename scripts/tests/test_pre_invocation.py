@@ -123,6 +123,20 @@ def test_compaction_todo_preserver_hook(tmp_path: Path) -> None:
     plans_dir = ws_dir / ".omo" / "plans"
     plans_dir.mkdir(parents=True)
     (plans_dir / "feature.md").write_text("- [ ] Implement feature\n- [x] Write spec", encoding="utf-8")
+    (ws_dir / ".omo" / "boulder.json").write_text(
+        json.dumps({
+            "schema_version": 2,
+            "active_work_id": "w1",
+            "works": {
+                "w1": {
+                    "active_plan": ".omo/plans/feature.md",
+                    "session_ids": ["codex:c1"],
+                    "status": "active",
+                }
+            },
+        }),
+        encoding="utf-8",
+    )
 
     hook = CompactionTodoPreserverHook()
     ctx = HookContext(
@@ -141,7 +155,72 @@ def test_compaction_todo_preserver_hook(tmp_path: Path) -> None:
     assert "- [ ] Implement feature" in res.injected_steps[0]["ephemeralMessage"]
 
 
+def test_compaction_todo_preserver_hook_ignores_unbound_or_other_session(tmp_path: Path) -> None:
+    ws_dir = tmp_path / "workspace"
+    plans_dir = ws_dir / ".omo" / "plans"
+    plans_dir.mkdir(parents=True)
+    (plans_dir / "feature.md").write_text("- [ ] Implement feature\n", encoding="utf-8")
+
+    hook = CompactionTodoPreserverHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.PRE_INVOCATION,
+        conversation_id="c1",
+        cwd=str(ws_dir),
+        raw_payload={
+            "invocationNum": 15,
+            "workspacePaths": [str(ws_dir)],
+            "cwd": str(ws_dir),
+        },
+    )
+
+    # Missing boulder.json
+    assert hook.execute(ctx).injected_steps == []
+
+    # Boulder bound to a different session
+    (ws_dir / ".omo" / "boulder.json").write_text(
+        json.dumps({
+            "active_plan": ".omo/plans/feature.md",
+            "session_ids": ["other-session"],
+        }),
+        encoding="utf-8",
+    )
+    assert hook.execute(ctx).injected_steps == []
+
+
 def test_todo_continuation_enforcer_hook(tmp_path: Path) -> None:
+    ws_dir = tmp_path / "workspace"
+    plans_dir = ws_dir / ".omo" / "plans"
+    plans_dir.mkdir(parents=True)
+    (plans_dir / "todo.md").write_text("- [ ] Finish tests", encoding="utf-8")
+    (ws_dir / ".omo" / "boulder.json").write_text(
+        json.dumps({
+            "active_plan": ".omo/plans/todo.md",
+            "session_ids": ["conv-1"],
+        }),
+        encoding="utf-8",
+    )
+
+    artifact_dir = tmp_path / "brain" / "conv-1"
+    artifact_dir.mkdir(parents=True)
+
+    hook = TodoContinuationEnforcerHook()
+    ctx = HookContext(
+        lifecycle=LifecycleEvent.PRE_INVOCATION,
+        conversation_id="conv-1",
+        cwd=str(ws_dir),
+        raw_payload={
+            "invocationNum": 4,
+            "workspacePaths": [str(ws_dir)],
+            "cwd": str(ws_dir),
+            "artifactDirectoryPath": str(artifact_dir),
+        },
+    )
+    res = hook.execute(ctx)
+    assert len(res.injected_steps) == 1
+    assert "TODO CONTINUATION ENFORCER" in res.injected_steps[0]["ephemeralMessage"]
+
+
+def test_todo_continuation_enforcer_hook_ignores_unbound_or_other_session(tmp_path: Path) -> None:
     ws_dir = tmp_path / "workspace"
     plans_dir = ws_dir / ".omo" / "plans"
     plans_dir.mkdir(parents=True)
@@ -162,9 +241,25 @@ def test_todo_continuation_enforcer_hook(tmp_path: Path) -> None:
             "artifactDirectoryPath": str(artifact_dir),
         },
     )
-    res = hook.execute(ctx)
-    assert len(res.injected_steps) == 1
-    assert "TODO CONTINUATION ENFORCER" in res.injected_steps[0]["ephemeralMessage"]
+
+    # Missing boulder.json
+    assert hook.execute(ctx).injected_steps == []
+
+    # Boulder bound to a different session
+    (ws_dir / ".omo" / "boulder.json").write_text(
+        json.dumps({
+            "schema_version": 2,
+            "works": {
+                "w1": {
+                    "active_plan": ".omo/plans/todo.md",
+                    "session_ids": ["codex:other-conv"],
+                    "status": "active",
+                }
+            },
+        }),
+        encoding="utf-8",
+    )
+    assert hook.execute(ctx).injected_steps == []
 
 
 def test_agent_usage_reminder_hook() -> None:
