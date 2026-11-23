@@ -44,11 +44,11 @@ def test_hero_banner_and_language_switch(english_readme, chinese_readme):
 def test_badges_present(english_readme, chinese_readme):
     """Verify all 5 required shields.io badges are present."""
     required_badge_snippets = [
-        "badge/Antigravity-2.26.0%2B-blue",
+        "badge/Antigravity-2.32.0%2B-blue",
         "badge/Python-3.13%2B-blue",
         "badge/License-MIT-green",
         "badge/Tests-Passing-brightgreen",
-        "badge/Release-v0.5.1-orange",
+        "badge/Release-v0.6.0-orange",
     ]
     for content in [english_readme, chinese_readme]:
         for snippet in required_badge_snippets:

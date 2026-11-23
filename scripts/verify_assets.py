@@ -31,7 +31,7 @@ required_strings = [
     "The Ultimate Agent Orchestration Harness for Google Antigravity 2.0",
     "Antigravity 2.0 Native",
     "11 Orchestrated Agents",
-    "42 Bundled Skills",
+    "47 Bundled Skills",
     "Python 3.13 Hook Engine"
 ]
 
