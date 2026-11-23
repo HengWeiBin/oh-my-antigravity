@@ -46,11 +46,11 @@ def test_plan_with_unchecked_items(tmp_path):
     }
     messages = get_compaction_todo_messages(payload)
     assert len(messages) == 1
-    assert "🔄 COMPACTION TODO PRESERVER:" in messages[0]["ephemeralMessage"]
-    assert "[my_plan.md]" in messages[0]["ephemeralMessage"]
-    assert "- [ ] task 1" in messages[0]["ephemeralMessage"]
-    assert "- [ ] task 3" in messages[0]["ephemeralMessage"]
-    assert "- [x] task 2" not in messages[0]["ephemeralMessage"]
+    assert "🔄 COMPACTION TODO PRESERVER:" in messages[0]["systemMessage"]["systemMessage"]
+    assert "[my_plan.md]" in messages[0]["systemMessage"]["systemMessage"]
+    assert "- [ ] task 1" in messages[0]["systemMessage"]["systemMessage"]
+    assert "- [ ] task 3" in messages[0]["systemMessage"]["systemMessage"]
+    assert "- [x] task 2" not in messages[0]["systemMessage"]["systemMessage"]
 
 
 def test_plan_with_in_progress_items(tmp_path):
@@ -79,8 +79,8 @@ def test_plan_with_in_progress_items(tmp_path):
     }
     messages = get_compaction_todo_messages(payload)
     assert len(messages) == 1
-    assert "- [~] task in progress" in messages[0]["ephemeralMessage"]
-    assert "* [~] star in progress" in messages[0]["ephemeralMessage"]
+    assert "- [~] task in progress" in messages[0]["systemMessage"]["systemMessage"]
+    assert "* [~] star in progress" in messages[0]["systemMessage"]["systemMessage"]
 
 
 def test_skip_review_files(tmp_path):

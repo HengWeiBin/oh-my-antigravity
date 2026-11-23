@@ -55,7 +55,7 @@ class TestHooksConfig(unittest.TestCase):
         post_matcher = hooks["PostToolUse"][0].get("matcher", "")
         self.assertEqual(
             post_matcher,
-            "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file)$",
+            "^(invoke_subagent|write_to_file|replace_file_content|multi_replace_file_content|write_file|edit_file|view_file|view_file_outline|view_code_item|read_file)$",
         )
 
         commands = extract_commands(data)

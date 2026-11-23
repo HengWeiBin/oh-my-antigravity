@@ -102,13 +102,13 @@ def test_plan_file_with_unchecked_first_time(temp_workspace, temp_artifact_dir):
     
     result = get_todo_continuation_messages(payload)
     assert len(result) == 1
-    assert "🎯 TODO CONTINUATION ENFORCER" in result[0]["ephemeralMessage"]
-    assert "[plan.md]" in result[0]["ephemeralMessage"]
-    assert "- [ ] task 1" in result[0]["ephemeralMessage"]
-    assert "- [ ] task 3" in result[0]["ephemeralMessage"]
-    assert "- [x] task 2" not in result[0]["ephemeralMessage"]
-    assert "AUTO-CONTINUE" in result[0]["ephemeralMessage"]
-    assert "treat that refusal as final" in result[0]["ephemeralMessage"]
+    assert "🎯 TODO CONTINUATION ENFORCER" in result[0]["systemMessage"]["systemMessage"]
+    assert "[plan.md]" in result[0]["systemMessage"]["systemMessage"]
+    assert "- [ ] task 1" in result[0]["systemMessage"]["systemMessage"]
+    assert "- [ ] task 3" in result[0]["systemMessage"]["systemMessage"]
+    assert "- [x] task 2" not in result[0]["systemMessage"]["systemMessage"]
+    assert "AUTO-CONTINUE" in result[0]["systemMessage"]["systemMessage"]
+    assert "treat that refusal as final" in result[0]["systemMessage"]["systemMessage"]
 
     # Check state file
     state_file = os.path.join(temp_artifact_dir, "todo_continuation_state.json")
@@ -128,7 +128,7 @@ def test_plan_file_with_in_progress_checkbox(temp_workspace, temp_artifact_dir):
     write_boulder(temp_workspace, "wip.md", "codex:conv-1")
     result = get_todo_continuation_messages(payload)
     assert len(result) == 1
-    assert "- [~] in-progress task 1" in result[0]["ephemeralMessage"]
+    assert "- [~] in-progress task 1" in result[0]["systemMessage"]["systemMessage"]
 
 def test_skip_review_files(temp_workspace, temp_artifact_dir):
     payload = {

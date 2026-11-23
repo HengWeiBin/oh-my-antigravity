@@ -15,7 +15,7 @@ def get_todo_continuation_messages(payload: dict, conversation_id: str = "") -> 
     """
     Detects stalled/abandoned work by checking active plans bound via .omo/boulder.json for incomplete TODOs.
     On detection (invocationNum >= 3 and unchecked items exist), injects a continuation prompt.
-    Returns list of {'ephemeralMessage': str} dicts.
+    Returns list of {'systemMessage': {'systemMessage': str}} dicts.
     """
     invocation_num = payload.get("invocationNum", 0)
     if not isinstance(invocation_num, int) or invocation_num < 3:
@@ -96,7 +96,7 @@ def get_todo_continuation_messages(payload: dict, conversation_id: str = "") -> 
     except OSError:
         pass
 
-    return [{"ephemeralMessage": message}]
+    return [{"systemMessage": {"systemMessage": message}}]
 
 
 run_todo_continuation_enforcer = get_todo_continuation_messages

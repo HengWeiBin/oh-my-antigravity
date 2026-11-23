@@ -61,7 +61,7 @@ def get_keyword_detector_messages(payload: dict) -> list[dict]:
     Detects special $keyword commands in the user prompt and triggers
     corresponding skill loading. Complements the existing /skill-name parsing.
     Filters out keywords within forwarded reports, blockquotes, or negated phrases.
-    Returns list of {'ephemeralMessage': str} dicts.
+    Returns list of {'systemMessage': {'systemMessage': str}} dicts.
     """
     prompt = extract_user_prompt(payload)
     if not prompt:
@@ -126,7 +126,7 @@ def get_keyword_detector_messages(payload: dict) -> list[dict]:
                 with open(skill_path, "r", encoding="utf-8") as f:
                     skill_content = f.read()
                 formatted = format_skill_instruction(skill_name, skill_content)
-                messages.append({"ephemeralMessage": formatted})
+                messages.append({"systemMessage": {"systemMessage": formatted}})
             except OSError:
                 pass
 

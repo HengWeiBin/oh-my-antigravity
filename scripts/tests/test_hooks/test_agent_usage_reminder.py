@@ -24,14 +24,14 @@ def test_main_session_first_reminder():
     payload = {"invocationNum": 5}
     result = get_agent_usage_reminder_messages(payload)
     assert len(result) == 1
-    assert "AGENT USAGE REMINDER" in result[0]["ephemeralMessage"]
+    assert "AGENT USAGE REMINDER" in result[0]["systemMessage"]["systemMessage"]
 
 def test_main_session_second_reminder():
     # invocationNum = 15, should return reminder
     payload = {"invocationNum": 15}
     result = get_agent_usage_reminder_messages(payload)
     assert len(result) == 1
-    assert "AGENT USAGE REMINDER" in result[0]["ephemeralMessage"]
+    assert "AGENT USAGE REMINDER" in result[0]["systemMessage"]["systemMessage"]
 
 def test_main_session_no_reminder_interval():
     # invocationNum = 12, should return []

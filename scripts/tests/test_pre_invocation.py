@@ -55,7 +55,7 @@ def test_codegraph_recommendation_hook(tmp_path: Path) -> None:
     )
     res0 = hook.execute(ctx0)
     assert len(res0.injected_steps) == 1
-    assert res0.injected_steps[0]["ephemeralMessage"] == EXPECTED_EPHEMERAL_MESSAGE
+    assert res0.injected_steps[0]["systemMessage"]["systemMessage"] == EXPECTED_EPHEMERAL_MESSAGE
 
     # When codegraph dir does not exist, no recommendation
     empty_ws = tmp_path / "empty_ws"
@@ -96,7 +96,7 @@ def test_subagent_skill_autoloader_hook(tmp_path: Path) -> None:
     )
     res_sub = hook.execute(ctx_sub)
     assert len(res_sub.injected_steps) == 1
-    assert res_sub.injected_steps[0]["ephemeralMessage"] == (
+    assert res_sub.injected_steps[0]["systemMessage"]["systemMessage"] == (
         "<skill-instruction>\nDo testing carefully.\n</skill-instruction>"
     )
 
@@ -151,8 +151,8 @@ def test_compaction_todo_preserver_hook(tmp_path: Path) -> None:
     )
     res = hook.execute(ctx)
     assert len(res.injected_steps) == 1
-    assert "COMPACTION TODO PRESERVER" in res.injected_steps[0]["ephemeralMessage"]
-    assert "- [ ] Implement feature" in res.injected_steps[0]["ephemeralMessage"]
+    assert "COMPACTION TODO PRESERVER" in res.injected_steps[0]["systemMessage"]["systemMessage"]
+    assert "- [ ] Implement feature" in res.injected_steps[0]["systemMessage"]["systemMessage"]
 
 
 def test_compaction_todo_preserver_hook_ignores_unbound_or_other_session(tmp_path: Path) -> None:
@@ -217,7 +217,7 @@ def test_todo_continuation_enforcer_hook(tmp_path: Path) -> None:
     )
     res = hook.execute(ctx)
     assert len(res.injected_steps) == 1
-    assert "TODO CONTINUATION ENFORCER" in res.injected_steps[0]["ephemeralMessage"]
+    assert "TODO CONTINUATION ENFORCER" in res.injected_steps[0]["systemMessage"]["systemMessage"]
 
 
 def test_todo_continuation_enforcer_hook_ignores_unbound_or_other_session(tmp_path: Path) -> None:
@@ -272,7 +272,7 @@ def test_agent_usage_reminder_hook() -> None:
     )
     res = hook.execute(ctx)
     assert len(res.injected_steps) == 1
-    assert "AGENT USAGE REMINDER" in res.injected_steps[0]["ephemeralMessage"]
+    assert "AGENT USAGE REMINDER" in res.injected_steps[0]["systemMessage"]["systemMessage"]
 
 
 def test_keyword_detector_hook() -> None:
@@ -286,7 +286,7 @@ def test_keyword_detector_hook() -> None:
     )
     res = hook.execute(ctx)
     assert len(res.injected_steps) == 1
-    assert "<skill-instruction>" in res.injected_steps[0]["ephemeralMessage"]
+    assert "<skill-instruction>" in res.injected_steps[0]["systemMessage"]["systemMessage"]
 
 
 def test_init_project_dir_replacer_hook(tmp_path: Path) -> None:
@@ -307,8 +307,8 @@ def test_init_project_dir_replacer_hook(tmp_path: Path) -> None:
     )
     res = hook.execute(ctx)
     assert len(res.injected_steps) == 1
-    assert "<skill-instruction>" in res.injected_steps[0]["ephemeralMessage"]
-    assert str(ws_dir) in res.injected_steps[0]["ephemeralMessage"]
+    assert "<skill-instruction>" in res.injected_steps[0]["systemMessage"]["systemMessage"]
+    assert str(ws_dir) in res.injected_steps[0]["systemMessage"]["systemMessage"]
 
 
 def test_pre_invocation_runner_delegation(capsys) -> None:

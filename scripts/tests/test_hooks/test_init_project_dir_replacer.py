@@ -22,9 +22,9 @@ def test_init_skill_replacer_replaces_project_dir():
     with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data=mock_skill_content)):
         msgs = run_init_project_dir_replacer(payload)
         assert len(msgs) == 1
-        assert "my-repo" in msgs[0]["ephemeralMessage"]
-        assert "{project_dir}" not in msgs[0]["ephemeralMessage"]
-        assert "<skill-instruction>" in msgs[0]["ephemeralMessage"]
+        assert "my-repo" in msgs[0]["systemMessage"]["systemMessage"]
+        assert "{project_dir}" not in msgs[0]["systemMessage"]["systemMessage"]
+        assert "<skill-instruction>" in msgs[0]["systemMessage"]["systemMessage"]
 
 
 def test_init_skill_replacer_ignored_when_no_init():

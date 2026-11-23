@@ -20,7 +20,7 @@ def get_agent_usage_reminder_messages(payload: dict) -> list[dict]:
     """
     Periodically reminds the agent of important tool usage patterns.
     Only fires for non-subagent sessions at configured intervals.
-    Returns list of {'ephemeralMessage': str} dicts.
+    Returns list of {'systemMessage': {'systemMessage': str}} dicts.
     """
     if is_subagent_session(payload):
         return []
@@ -42,7 +42,7 @@ def get_agent_usage_reminder_messages(payload: dict) -> list[dict]:
 🛠️ Skills: Activate skills with `/skill-name` (e.g. /programming, /frontend, /debugging)
 📝 Notepads: Track state in `.omo/notepads/` files for cross-invocation memory
 🚫 Never implement yourself: You are an orchestrator — delegate everything"""
-        return [{"ephemeralMessage": reminder_content}]
+        return [{"systemMessage": {"systemMessage": reminder_content}}]
 
     return []
 

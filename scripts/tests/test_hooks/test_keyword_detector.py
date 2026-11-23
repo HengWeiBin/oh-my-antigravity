@@ -14,8 +14,8 @@ def test_start_work_keyword():
     with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="Start work content")):
         msgs = get_keyword_detector_messages(payload)
         assert len(msgs) == 1
-        assert "Start work content" in msgs[0]["ephemeralMessage"]
-        assert "<skill-instruction>" in msgs[0]["ephemeralMessage"]
+        assert "Start work content" in msgs[0]["systemMessage"]["systemMessage"]
+        assert "<skill-instruction>" in msgs[0]["systemMessage"]["systemMessage"]
 
 
 def test_ulw_alias():
@@ -23,7 +23,7 @@ def test_ulw_alias():
     with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="Ultrawork content")):
         msgs = get_keyword_detector_messages(payload)
         assert len(msgs) == 1
-        assert "Ultrawork content" in msgs[0]["ephemeralMessage"]
+        assert "Ultrawork content" in msgs[0]["systemMessage"]["systemMessage"]
 
 
 def test_normal_text():
@@ -103,7 +103,7 @@ def test_mixed_valid_and_ignored():
     with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="Start work content")):
         msgs = get_keyword_detector_messages(payload)
         assert len(msgs) == 1
-        assert "Start work content" in msgs[0]["ephemeralMessage"]
+        assert "Start work content" in msgs[0]["systemMessage"]["systemMessage"]
 
 
 def test_ulw_execute_and_mass_ulw_keywords():
@@ -111,6 +111,6 @@ def test_ulw_execute_and_mass_ulw_keywords():
     with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="Skill instruction content")):
         msgs = get_keyword_detector_messages(payload)
         assert len(msgs) == 2
-        assert all("<skill-instruction>" in m["ephemeralMessage"] for m in msgs)
+        assert all("<skill-instruction>" in m["systemMessage"]["systemMessage"] for m in msgs)
 
 

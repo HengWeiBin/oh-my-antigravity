@@ -1347,6 +1347,56 @@ def test_hook_engine_build_context_new_fields() -> None:
     assert ctx.tool_input == {"Path": "test.txt", "Content": "hi"}
 
 
+def test_hook_engine_build_context_extended_fields() -> None:
+    camel_payload = {
+        "conversationId": "c-ext-1",
+        "cwd": "/workspace",
+        "workspacePaths": ["/workspace/a", "", 123, "/workspace/b"],
+        "transcriptPath": "/tmp/transcript.jsonl",
+        "artifactDirectoryPath": "/tmp/brain/c-ext-1",
+        "invocationNum": 7,
+        "executionNum": "12",
+    }
+    ctx_camel = HookEngine.build_context(LifecycleEvent.PRE_INVOCATION, camel_payload)
+    assert ctx_camel.workspace_paths == ["/workspace/a", "/workspace/b"]
+    assert ctx_camel.transcript_path == "/tmp/transcript.jsonl"
+    assert ctx_camel.artifact_directory_path == "/tmp/brain/c-ext-1"
+    assert ctx_camel.invocation_num == 7
+    assert ctx_camel.execution_num == 12
+
+    snake_payload = {
+        "conversation_id": "c-ext-2",
+        "cwd": "/workspace",
+        "workspace_paths": ["/workspace/snake"],
+        "transcript_path": "/tmp/snake_transcript.jsonl",
+        "artifact_directory_path": "/tmp/brain/c-ext-2",
+        "invocation_num": "0",
+        "execution_num": 3,
+    }
+    ctx_snake = HookEngine.build_context(LifecycleEvent.PRE_INVOCATION, snake_payload)
+    assert ctx_snake.workspace_paths == ["/workspace/snake"]
+    assert ctx_snake.transcript_path == "/tmp/snake_transcript.jsonl"
+    assert ctx_snake.artifact_directory_path == "/tmp/brain/c-ext-2"
+    assert ctx_snake.invocation_num == 0
+    assert ctx_snake.execution_num == 3
+
+    invalid_payload = {
+        "conversationId": "c-ext-3",
+        "cwd": "/workspace",
+        "workspacePaths": "not-a-list",
+        "transcriptPath": 123,
+        "artifactDirectoryPath": ["invalid"],
+        "invocationNum": True,
+        "executionNum": "not-an-int",
+    }
+    ctx_invalid = HookEngine.build_context(LifecycleEvent.PRE_INVOCATION, invalid_payload)
+    assert ctx_invalid.workspace_paths == []
+    assert ctx_invalid.transcript_path is None
+    assert ctx_invalid.artifact_directory_path is None
+    assert ctx_invalid.invocation_num is None
+    assert ctx_invalid.execution_num is None
+
+
 
 
 

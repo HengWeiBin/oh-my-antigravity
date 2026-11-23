@@ -42,7 +42,7 @@ def run_init_project_dir_replacer(payload: dict) -> list[dict]:
     """
     Hook triggered when the user uses the 'init' skill (e.g. /init, $init, or mentioning init skill).
     Replaces {project_dir} in the skill instructions with the actual project directory path.
-    Returns list of {'ephemeralMessage': str} dicts.
+    Returns list of {'systemMessage': {'systemMessage': str}} dicts.
     """
     prompt = extract_user_prompt(payload)
     if not prompt:
@@ -72,7 +72,7 @@ def run_init_project_dir_replacer(payload: dict) -> list[dict]:
         content_replaced = content.replace("{project_dir}", project_dir)
         formatted = format_skill_instruction("init", content_replaced)
 
-        return [{"ephemeralMessage": formatted}]
+        return [{"systemMessage": {"systemMessage": formatted}}]
     except OSError:
         return []
 

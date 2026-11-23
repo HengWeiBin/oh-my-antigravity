@@ -37,6 +37,11 @@ class HookContext:
     hook_event_name: str | None = None
     tool_call_id: str | None = None
     continuation_active: bool = False
+    workspace_paths: list[str] = field(default_factory=list)
+    transcript_path: str | None = None
+    artifact_directory_path: str | None = None
+    invocation_num: int | None = None
+    execution_num: int | None = None
 
 
 @dataclass

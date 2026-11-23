@@ -12,8 +12,8 @@ def get_compaction_todo_messages(payload: dict, conversation_id: str = "") -> li
     """
     On high invocation numbers (>= 15, suggesting context compaction),
     checks active plans bound via .omo/boulder.json for unchecked TODOs and returns
-    ephemeral messages to re-inject them.
-    Returns list of {'ephemeralMessage': str} dicts, or empty list.
+    system messages to re-inject them.
+    Returns list of {'systemMessage': {'systemMessage': str}} dicts, or empty list.
     """
     invocation_num = payload.get("invocationNum", 0)
     if not isinstance(invocation_num, int) or invocation_num < 15:
@@ -48,7 +48,7 @@ def get_compaction_todo_messages(payload: dict, conversation_id: str = "") -> li
             ]
             msg_lines.extend(unchecked_items)
             msg_lines.append("Please ensure you continue working on these items.")
-            messages.append({"ephemeralMessage": "\n".join(msg_lines)})
+            messages.append({"systemMessage": {"systemMessage": "\n".join(msg_lines)}})
 
             files_processed += 1
             if files_processed >= 3:

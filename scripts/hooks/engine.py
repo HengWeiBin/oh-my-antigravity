@@ -63,7 +63,7 @@ class CodegraphRecommendationHook(BaseHook):
                 "You should prioritize using `codegraph_explore` to explore symbols, find call paths, "
                 "and understand the codebase architecture in a single round-trip instead of standard grep + read loops."
             )
-            return HookResult(injected_steps=[{"ephemeralMessage": msg}])
+            return HookResult(injected_steps=[{"systemMessage": {"systemMessage": msg}}])
         return HookResult()
 
 
@@ -95,7 +95,7 @@ class SubagentSkillAutoloaderHook(BaseHook):
                         s_name, workspace_paths=resolved_workspaces, cwd=resolved_cwd
                     )
                     if formatted:
-                        steps.append({"ephemeralMessage": formatted})
+                        steps.append({"systemMessage": {"systemMessage": formatted}})
                 if steps:
                     return HookResult(injected_steps=steps)
         return HookResult()
@@ -223,6 +223,22 @@ class HookEngine:
         except Exception:  # noqa: BLE001
             return {}
 
+    @staticmethod
+    def _parse_optional_int(payload: dict[str, Any], *keys: str) -> int | None:
+        value: Any = None
+        for key in keys:
+            value = payload.get(key)
+            if value is not None:
+                break
+        if isinstance(value, bool) or not isinstance(value, int):
+            try:
+                if isinstance(value, str) and value.isdigit():
+                    return int(value)
+                return None
+            except Exception:  # noqa: BLE001
+                return None
+        return value
+
     @classmethod
     def build_context(cls, lifecycle: LifecycleEvent, payload: dict) -> HookContext:
         conversation_id = payload.get("conversationId") or payload.get("conversation_id") or ""
@@ -255,17 +271,7 @@ class HookEngine:
 
         user_prompt = extract_user_prompt(payload)
 
-        step_idx = payload.get("stepIdx")
-        if step_idx is None:
-            step_idx = payload.get("step_idx")
-        if isinstance(step_idx, bool) or not isinstance(step_idx, int):
-            try:
-                if isinstance(step_idx, str) and step_idx.isdigit():
-                    step_idx = int(step_idx)
-                else:
-                    step_idx = None
-            except Exception:  # noqa: BLE001
-                step_idx = None
+        step_idx = cls._parse_optional_int(payload, "stepIdx", "step_idx")
 
         model_name = payload.get("modelName")
         if model_name is None:
@@ -285,6 +291,26 @@ class HookEngine:
 
         continuation_active = bool(payload.get("continuationActive", False))
 
+        raw_wp = payload.get("workspacePaths") or payload.get("workspace_paths")
+        workspace_paths = (
+            [wp for wp in raw_wp if isinstance(wp, str) and wp]
+            if isinstance(raw_wp, list)
+            else []
+        )
+
+        transcript_path = payload.get("transcriptPath") or payload.get("transcript_path")
+        if not isinstance(transcript_path, str):
+            transcript_path = None
+
+        artifact_directory_path = (
+            payload.get("artifactDirectoryPath") or payload.get("artifact_directory_path")
+        )
+        if not isinstance(artifact_directory_path, str):
+            artifact_directory_path = None
+
+        invocation_num = cls._parse_optional_int(payload, "invocationNum", "invocation_num")
+        execution_num = cls._parse_optional_int(payload, "executionNum", "execution_num")
+
         return HookContext(
             lifecycle=lifecycle,
             conversation_id=conversation_id,
@@ -300,6 +326,11 @@ class HookEngine:
             hook_event_name=hook_event_name,
             tool_call_id=tool_call_id,
             continuation_active=continuation_active,
+            workspace_paths=workspace_paths,
+            transcript_path=transcript_path,
+            artifact_directory_path=artifact_directory_path,
+            invocation_num=invocation_num,
+            execution_num=execution_num,
         )
 
     @classmethod
