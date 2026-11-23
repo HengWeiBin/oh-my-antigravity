@@ -6,7 +6,6 @@ mainAgent: false
 subagent: true
 commandExecutionPolicy: auto
 model: flash
-enable_mcp_tools: true
 inheritMcp: true
 inheritCustomizations: true
 tools:

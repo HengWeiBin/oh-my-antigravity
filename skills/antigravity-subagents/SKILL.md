@@ -129,7 +129,7 @@ Static agent definitions begin with a YAML frontmatter block enclosed between tr
 > - `workspace`: Workspace isolation mode (`inherit`, `branch`, or `share`) is a runtime parameter passed to the `invoke_subagent` tool call (see [Workspace Isolation Modes](#workspace-isolation-modes-workspace)) and **MUST NOT** be placed inside the YAML frontmatter of a static `.md` agent definition.
 > - `inheritMcp`: Use `inheritMcp: true` in static YAML frontmatter. `enable_mcp_tools: true` / `EnableMCPTools` is specifically the parameter for programmatic dynamic agents via `define_subagent`.
 
-### Frontier Models & Reasoning Tiers (`v2.31.0–v2.32.0`)
+### Frontier Models & Reasoning Tiers (`v2.31.0–v2.34.0`)
 
 Antigravity provides access to frontier reasoning models from Google DeepMind and partners. Models can be selected via YAML frontmatter `model:` or at runtime:
 
@@ -240,6 +240,9 @@ Unlike the main chat agent, sub-agents **DO NOT automatically inherit default fi
 > 
 > Always ensure execution takes place inside a recognized, active workspace directory before launching sub-agents.
 
+> [!NOTE]
+> **Tool Alias Reminder**: In the YAML `tools:` lists below, `view_file`, `write_to_file`, and `replace_file_content` resolve at runtime to `read_file`, `write_file`, and `edit_file` respectively. Never list an alias alongside its runtime counterpart, or executor construction will fail with a tool name conflict.
+
 ### Standard Production Tool Sets
 
 #### Set A: Read-Only & Research Agents (e.g., `explore`, `librarian`)
@@ -304,10 +307,11 @@ Equipped for task decomposition, subagent delegation, and high-level workflow co
 name: atlas
 description: Master orchestrator that coordinates multiple sub-agents to complete structured plan tasks.
 mainAgent: true
-subagent: false
-model: inherit
-commandExecutionPolicy: sandbox
+subagent: true
+model: flash
+commandExecutionPolicy: eager
 inheritMcp: true
+inheritCustomizations: true
 tools:
   - view_file
   - replace_file_content
@@ -327,6 +331,8 @@ skills:
   - start-work
   - teammode
   - ultrawork
+  - ulw-loop
+  - ulw-execute
 ---
 ```
 
@@ -341,7 +347,7 @@ Antigravity provides four pre-configured built-in subagents accessible out of th
 - **Capabilities**: Read-only access to workspace files, web search, URL reading, and directory trees.
 - **Behavior**: Generates structured findings without altering code or running destructive commands.
 
-### 2. `browser` (`v2.30.0–v2.32.0`)
+### 2. `browser` (`v2.30.0–v2.34.0`)
 - **Purpose**: Operates an automated, sandboxed web browser for interactive application testing, DOM inspection, user journey verification, visual screenshots, and console/network inspection.
 - **Access**: Invokable programmatically via `invoke_subagent` or interactively in chat using `/browser`.
 - **Environment & Accounts**:
@@ -351,6 +357,7 @@ Antigravity provides four pre-configured built-in subagents accessible out of th
 - **Verification & Security**:
   - `BROWSER_HOST_FACTS`: Host-injected verification facts providing runtime assurance of environment boundaries.
   - Download approval gates (`v2.31.0+`): Safeguards file downloads initiated during browser sessions with explicit confirmation prompts.
+  - Host input protection (`v2.33.0–v2.34.0`): Web pages controlled by the browser agent are restricted from locking host mouse pointers or keyboards.
 
 ### 3. `self`
 - **Purpose**: Direct, recursive clone of the calling agent.

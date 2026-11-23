@@ -85,7 +85,7 @@ Named hook groups organize hook handlers into logical, self-contained units (e.g
 
 #### B. Plugin Root Hooks Format & Template Rendering
 
-Plugins bundle hook configurations using `hooks.template.json` with dynamic placeholders, which are rendered into `hooks.json` during installation or setup:
+Top-level keys in `hooks.json` (and `hooks.template.json`) are **named hook groups**—for example, `"hooks"` below acts as the group name containing the lifecycle event entries (`SessionStart`, `PreInvocation`, etc.). Plugins can commit a portable `hooks.json` directly or bundle `hooks.template.json` with dynamic placeholders to render machine-specific bindings into `hooks.json` during setup:
 
 ```json
 {
@@ -149,7 +149,7 @@ Plugins bundle hook configurations using `hooks.template.json` with dynamic plac
 >      ```bash
 >      python scripts/setup_hooks.py [--python <path>] [--plugin-dir <path>]
 >      ```
->    - `hooks.template.json` is committed to version control, while locally rendered `hooks.json` files can be ignored in `.gitignore` if dynamic per-machine bindings are used.
+>    - A portable `hooks.json` (using relative commands such as `"uv run python ./scripts/..."`) is committed to version control for out-of-the-box `agy plugin install`, while `hooks.template.json` and `scripts/setup_hooks.py` remain available when machine-specific absolute paths need to be rendered.
 
 #### C. Plugin Working Directory (`CWD`) & Injected Environment Variables
 
@@ -360,38 +360,6 @@ Same as `PreInvocation` input fields (`invocationNum`, `initialNumSteps`, `hookE
   - `"force_continue"`: Forces the execution loop to continue.
   - `"terminate"`: Forces the loop to terminate (pair with an injected `errorMessage` to show a block message).
   - `""` (or omitted): Normal lifecycle progression.
-
-#### `PostInvocation` Stdin Payload
-```json
-{
-  "conversationId": "b67d4ce2-1b29-4e25-8598-e6636a3171aa",
-  "invocationNum": 1,
-  "initialNumSteps": 3,
-  "workspacePaths": ["C:/Users/user/project"],
-  "cwd": "C:/Users/user/project",
-  "transcriptPath": "C:/Users/user/.gemini/antigravity/brain/b67d4ce2-1b29-4e25-8598-e6636a3171aa/.system_generated/logs/transcript.jsonl",
-  "artifactDirectoryPath": "C:/Users/user/.gemini/antigravity/brain/b67d4ce2-1b29-4e25-8598-e6636a3171aa",
-  "modelName": "gemini-3.6-flash-medium"
-}
-```
-
-#### `PostInvocation` Stdout Response Contract
-```json
-{
-  "terminationBehavior": "force_continue",
-  "injectSteps": [
-    {
-      "ephemeralMessage": "Task incomplete: You still have pending verification tests to execute."
-    }
-  ]
-}
-```
-
-- **`terminationBehavior` (`string`)**:
-  - `"force_continue"`: Re-engages the model for another invocation loop even if no tool calls were emitted.
-  - `"terminate"`: Immediately halts execution for this turn.
-  - `""` (empty or omitted): Normal lifecycle progression.
-- **`injectSteps` (`array`)**: Additional steps to inject before the next invocation.
 
 ---
 
@@ -712,26 +680,27 @@ class HookContext:
     lifecycle: LifecycleEvent
     conversation_id: str
     cwd: str
-    workspace_paths: list[str] = field(default_factory=list)
-    hook_event_name: str | None = None
-    transcript_path: str | None = None
-    artifact_directory_path: str | None = None
-    model_name: str | None = None
-    step_idx: int | None = None
-    invocation_num: int | None = None
-    execution_num: int | None = None
-    continuation_active: bool = False
-    tool_call_id: str | None = None
     tool_name: str | None = None
     tool_input: dict[str, Any] = field(default_factory=dict)
+    tool_output: str | None = None
     tool_error: str | None = None
     user_prompt: str | None = None
     raw_payload: dict[str, Any] = field(default_factory=dict)
+    step_idx: int | None = None
+    model_name: str | None = None
+    hook_event_name: str | None = None
+    tool_call_id: str | None = None
+    continuation_active: bool = False
+    workspace_paths: list[str] = field(default_factory=list)
+    transcript_path: str | None = None
+    artifact_directory_path: str | None = None
+    invocation_num: int | None = None
+    execution_num: int | None = None
 
 @dataclass
 class HookResult:
     injected_steps: list[dict[str, Any]] = field(default_factory=list)
-    decision: str | None = None  # PreToolUse: "allow"|"deny"|"ask"|"auto_approve"|"force_ask"|"deny_unless_prior_grant"; Stop: "continue"; PostInvocation: "force_continue"|"terminate"
+    decision: str | None = None  # "allow" | "deny" | "ask" | "auto_approve" | "force_ask" | "deny_unless_prior_grant" | "force_continue" | "terminate" | "block"
     reason: str | None = None
     additional_context: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -754,7 +723,7 @@ class BaseHook(ABC):
         ...
 
     @abstractmethod
-    def execute(self, context: HookContext) -> HookResult | None:
+    def execute(self, context: HookContext) -> HookResult:
         """Executes logic against strongly typed context."""
         ...
 
